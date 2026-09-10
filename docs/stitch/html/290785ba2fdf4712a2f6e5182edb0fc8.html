@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS AI - Chat Neural Assistant</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config verbatim from instructions -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#31353f",
+            "error": "#ffb4ab",
+            "on-background": "#dfe2ef",
+            "on-primary-fixed": "#001f24",
+            "on-tertiary": "#003824",
+            "on-surface": "#dfe2ef",
+            "surface-dim": "#0f131c",
+            "on-secondary-container": "#e6ecff",
+            "secondary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface": "#0f131c",
+            "surface-tint": "#00daf3",
+            "surface-container-low": "#181b25",
+            "error-container": "#93000a",
+            "on-tertiary-fixed": "#002113",
+            "on-secondary": "#002e6a",
+            "on-surface-variant": "#bac9cc",
+            "secondary": "#adc6ff",
+            "on-tertiary-container": "#006645",
+            "on-primary-container": "#00626e",
+            "primary-fixed-dim": "#00daf3",
+            "tertiary-container": "#5be9ad",
+            "on-secondary-fixed-variant": "#004395",
+            "outline-variant": "#3b494c",
+            "surface-container-lowest": "#0a0e17",
+            "tertiary": "#a8ffd2",
+            "inverse-primary": "#006875",
+            "secondary-fixed": "#d8e2ff",
+            "on-primary-fixed-variant": "#004f58",
+            "inverse-surface": "#dfe2ef",
+            "surface-container-highest": "#31353f",
+            "outline": "#849396",
+            "on-error-container": "#ffdad6",
+            "secondary-container": "#0566d9",
+            "on-primary": "#00363d",
+            "background": "#0f131c",
+            "on-error": "#690005",
+            "surface-container": "#1c1f29",
+            "on-secondary-fixed": "#001a42",
+            "primary-container": "#00e5ff",
+            "primary-fixed": "#9cf0ff",
+            "surface-bright": "#353943",
+            "primary": "#c3f5ff",
+            "tertiary-fixed-dim": "#4edea3",
+            "inverse-on-surface": "#2c303a",
+            "tertiary-fixed": "#6ffbbe",
+            "surface-container-high": "#262a34"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.5rem",
+            "margin-tablet": "2rem",
+            "space-sm": "0.75rem",
+            "margin-desktop": "3rem",
+            "space-2xs": "0.25rem",
+            "space-2xl": "3rem",
+            "dock-height": "4.5rem",
+            "space-md": "1rem",
+            "space-3xl": "4rem",
+            "margin-mobile": "1rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-caps": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "display-hero-mobile": ["Space Grotesk"],
+            "code-telemetry": ["JetBrains Mono"],
+            "display-hero": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "label-hud": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "display-hero-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "code-telemetry": ["12px", { "lineHeight": "16px", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "label-hud": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Custom Holographic & Audio wave Keyframes */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.8; transform: scale(1); filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.6)); }
+      50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.9)); }
+    }
+    @keyframes soundwave {
+      0%, 100% { height: 6px; }
+      50% { height: 18px; }
+    }
+    .orb-glow {
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+    .wave-bar-1 { animation: soundwave 1.1s infinite ease-in-out; }
+    .wave-bar-2 { animation: soundwave 0.8s infinite ease-in-out 0.2s; }
+    .wave-bar-3 { animation: soundwave 1.4s infinite ease-in-out 0.4s; }
+    .wave-bar-4 { animation: soundwave 0.9s infinite ease-in-out 0.1s; }
+    
+    /* Hide scrollbar for chips row while allowing horizontal touch drag */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen flex flex-col font-body-md selection:bg-primary-container selection:text-surface-container-lowest pb-36">
+<!-- ==================== TOP APP BAR HUD (Derived from Shared Components JSON) ==================== -->
+<header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-margin-mobile h-16 w-full max-w-7xl mx-auto bg-surface-container-lowest/80 dark:bg-surface-container-lowest/80 backdrop-blur-xl border-b border-primary-container/20 shadow-[0_4px_24px_-2px_rgba(0,229,255,0.1)]">
+<!-- Leading Identity: Holographic Orb + Status Telemetry -->
+<div class="flex items-center gap-space-xs">
+<!-- Pulsing Holographic Orb / Avatar -->
+<div class="relative flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low border border-primary-container/40 orb-glow">
+<div class="w-6 h-6 rounded-full bg-gradient-to-tr from-primary-container via-primary-fixed to-tertiary-container opacity-90 blur-[1px]"></div>
+<div class="absolute w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_#ffffff]"></div>
+</div>
+<!-- Header Headline & Engine Telemetry -->
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-1.5">
+<span class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary-container dark:text-primary-container">JARVIS AI</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-primary-container font-code-telemetry text-[9px] uppercase border border-primary-container/30">v4.2</span>
+</div>
+<!-- Live Soundwave + Engine status indicator -->
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="flex items-end gap-0.5 h-3">
+<span class="w-[2px] bg-primary-container rounded-full wave-bar-1"></span>
+<span class="w-[2px] bg-primary-container rounded-full wave-bar-2"></span>
+<span class="w-[2px] bg-primary-container rounded-full wave-bar-3"></span>
+<span class="w-[2px] bg-primary-container rounded-full wave-bar-4"></span>
+</span>
+<span class="font-code-telemetry text-[10px] text-tertiary tracking-tight">NEURAL ENGINE ACTIVE</span>
+</div>
+</div>
+</div>
+<!-- Trailing Action Controls: Voice/Text HUD Mode Switch + Reset Session -->
+<div class="flex items-center gap-2">
+<!-- Voice / Text HUD Segmented Toggle -->
+<div class="flex items-center p-0.5 rounded-full bg-surface-container-low border border-outline-variant/40 text-label-caps font-label-caps text-[10px]">
+<button class="px-2.5 py-1 rounded-full bg-primary-container text-surface-container-lowest font-bold transition-all shadow-[0_0_10px_rgba(0,229,255,0.4)]" id="mode-text-btn">
+          TEXT
+        </button>
+<button class="px-2 py-1 rounded-full text-on-surface-variant hover:text-primary transition-all flex items-center gap-1" id="mode-voice-btn">
+<span class="material-symbols-outlined text-[12px]" data-icon="mic">mic</span>
+          VOICE
+        </button>
+</div>
+<!-- Clear Session Action Button -->
+<button class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-high/60 text-on-surface-variant border border-outline-variant/30 hover:text-primary hover:border-primary-container/40 active:scale-95 transition-all" title="Clear Session">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete_sweep">delete_sweep</span>
+</button>
+</div>
+</header>
+<!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+<main class="flex-1 w-full max-w-lg mx-auto pt-20 px-margin-mobile flex flex-col gap-space-md">
+<!-- ==================== HORIZONTAL PROMPT STARTERS (QUICK ACCESS CHIPS) ==================== -->
+<section class="w-full pt-1 pb-1">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+          Neural Starters
+        </span>
+<span class="font-code-telemetry text-[10px] text-outline">Lat: 12ms</span>
+</div>
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-margin-mobile px-margin-mobile">
+<!-- Chip 1 -->
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container/90 border border-primary-container/40 text-primary hover:bg-primary-container/20 active:scale-95 shadow-[0_0_12px_rgba(0,229,255,0.12)] transition-all">
+<span class="material-symbols-outlined text-primary-container text-[14px]" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-caps text-label-caps font-bold">Plan my day</span>
+</button>
+<!-- Chip 2 -->
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container/90 border border-primary-container/40 text-primary hover:bg-primary-container/20 active:scale-95 shadow-[0_0_12px_rgba(0,229,255,0.12)] transition-all">
+<span class="material-symbols-outlined text-primary-container text-[14px]" data-icon="school">school</span>
+<span class="font-label-caps text-label-caps font-bold">University advice</span>
+</button>
+<!-- Chip 3 -->
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container/90 border border-primary-container/40 text-primary hover:bg-primary-container/20 active:scale-95 shadow-[0_0_12px_rgba(0,229,255,0.12)] transition-all">
+<span class="material-symbols-outlined text-primary-container text-[14px]" data-icon="timer">timer</span>
+<span class="font-label-caps text-label-caps font-bold">Study session</span>
+</button>
+<!-- Chip 4 -->
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container/90 border border-primary-container/40 text-primary hover:bg-primary-container/20 active:scale-95 shadow-[0_0_12px_rgba(0,229,255,0.12)] transition-all">
+<span class="material-symbols-outlined text-primary-container text-[14px]" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-label-caps text-label-caps font-bold">Budget check</span>
+</button>
+<!-- Chip 5 -->
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container/90 border border-primary-container/40 text-primary hover:bg-primary-container/20 active:scale-95 shadow-[0_0_12px_rgba(0,229,255,0.12)] transition-all">
+<span class="material-symbols-outlined text-primary-container text-[14px]" data-icon="bolt">bolt</span>
+<span class="font-label-caps text-label-caps font-bold">Optimize tasks</span>
+</button>
+</div>
+</section>
+<!-- ==================== CONVERSATION STREAM ==================== -->
+<section class="flex flex-col gap-5 pt-1">
+<!-- ==================== TURN 1: USER PROMPT ==================== -->
+<div class="flex flex-col items-end self-end max-w-[86%]">
+<div class="flex items-center gap-1.5 mb-1 px-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant text-[10px]">Juan P.</span>
+<span class="font-code-telemetry text-code-telemetry text-[10px] text-outline">14:02</span>
+</div>
+<div class="p-3.5 rounded-2xl rounded-tr-xs bg-surface-container-high border border-outline-variant/50 text-on-surface shadow-[0_4px_16px_rgba(0,0,0,0.4)]">
+<p class="font-body-md text-body-md text-on-surface">
+            ¿En qué debería enfocarme hoy según mis notas y entregas?
+          </p>
+</div>
+<div class="flex items-center gap-1 mt-1 pr-1">
+<span class="material-symbols-outlined text-primary-container text-[13px]" data-icon="done_all">done_all</span>
+<span class="font-code-telemetry text-[9px] text-outline">Cognitive sync verified</span>
+</div>
+</div>
+<!-- ==================== TURN 2: JARVIS INTELLIGENCE RESPONSE ==================== -->
+<div class="flex flex-col items-start self-start w-full">
+<!-- Assistant Header Badge -->
+<div class="flex items-center gap-2 mb-1.5 px-1">
+<div class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_6px_#00e5ff]"></div>
+<span class="font-label-caps text-label-caps text-primary-container">JARVIS SYNTHESIS</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-container/10 border border-primary-container/30 text-primary-container font-label-caps text-[9px]">
+            RECOMMENDED BY JARVIS
+          </span>
+<span class="font-code-telemetry text-code-telemetry text-[10px] text-outline ml-auto">14:02:14</span>
+</div>
+<!-- Glassmorphic Intelligence Container -->
+<div class="w-full rounded-2xl rounded-tl-xs p-4 bg-surface-container/80 backdrop-blur-2xl border border-primary-container/30 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_20px_0_rgba(0,229,255,0.12)] flex flex-col gap-3.5">
+<!-- Opening Synthesis Analysis -->
+<div class="space-y-2">
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+              Analizando tu situación académica y cognitiva actual...<br/>
+              Tu máxima prioridad hoy es <strong class="text-primary-container font-semibold">Redes y Comunicación de Datos</strong>. Tienes examen parcial en 4 días (15 de Septiembre) y el diagnóstico neural muestra que el tema de <strong class="text-secondary font-semibold">Subnetting VLSM</strong> tiene un 35% de margen de error.
+            </p>
+<p class="font-body-md text-body-md text-on-surface font-medium pt-1">
+              He estructurado tu plan de acción óptimo:
+            </p>
+</div>
+<!-- Structured Action Plan Timeline -->
+<div class="flex flex-col gap-2 rounded-xl bg-surface-container-lowest/70 border border-outline-variant/30 p-3">
+<!-- Step 1 -->
+<div class="flex items-start gap-2.5 pb-2 border-b border-surface-container-high/60">
+<span class="material-symbols-outlined text-primary-container text-[18px] shrink-0 mt-0.5" data-icon="timer">timer</span>
+<div class="flex-1">
+<span class="font-code-telemetry text-code-telemetry text-primary-container font-semibold block">16:00 - 17:00 (60 min)</span>
+<span class="font-body-sm text-body-sm text-on-surface">Práctica intensiva de subnetting con quiz adaptativo.</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-start gap-2.5 py-1 border-b border-surface-container-high/60">
+<span class="material-symbols-outlined text-tertiary-container text-[18px] shrink-0 mt-0.5" data-icon="menu_book">menu_book</span>
+<div class="flex-1">
+<span class="font-code-telemetry text-code-telemetry text-tertiary font-semibold block">17:15 - 18:30 (75 min)</span>
+<span class="font-body-sm text-body-sm text-on-surface">Finalizar el 35% restante del taller de Cálculo Multivariable (entrega mañana).</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-start gap-2.5 pt-1">
+<span class="font-code-telemetry text-base shrink-0 mt-0.5">🇩🇪</span>
+<div class="flex-1">
+<span class="font-code-telemetry text-code-telemetry text-secondary font-semibold block">19:00 - 19:30 (30 min)</span>
+<span class="font-body-sm text-body-sm text-on-surface">Repaso de vocabulario de Alemán A1 para mantener tu racha de 12 días.</span>
+</div>
+</div>
+</div>
+<!-- Embedded High-Action Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+<!-- Action Card 1: Subnetting Quiz -->
+<div class="rounded-xl p-3 bg-surface-container-high/70 border border-primary-container/40 flex flex-col justify-between gap-2.5 relative overflow-hidden group hover:border-primary-container transition-all">
+<div class="absolute -right-4 -bottom-4 w-16 h-16 rounded-full bg-primary-container/10 blur-xl"></div>
+<div>
+<div class="flex items-center justify-between mb-1">
+<span class="px-2 py-0.5 rounded text-[9px] font-label-caps font-bold bg-error-container/40 border border-error/30 text-error">CRITICAL GAP</span>
+<span class="font-code-telemetry text-[10px] text-outline">15 Qs</span>
+</div>
+<h4 class="font-headline-sm text-[13px] font-bold text-on-surface">Subnetting Practice Quiz</h4>
+<p class="font-body-sm text-[11px] text-on-surface-variant">Prueba adaptativa enfocada en máscaras VLSM y rangos IP.</p>
+</div>
+<button class="w-full py-2 px-3 rounded-lg bg-primary-container text-surface-container-lowest font-label-caps text-label-caps font-bold flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:brightness-110 active:scale-95 transition-all">
+<span>Comenzar ahora</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="play_arrow">play_arrow</span>
+</button>
+</div>
+<!-- Action Card 2: Multivariable Calculus Assignment -->
+<div class="rounded-xl p-3 bg-surface-container-high/70 border border-tertiary-container/30 flex flex-col justify-between gap-2.5 relative overflow-hidden group hover:border-tertiary-container transition-all">
+<div class="absolute -right-4 -bottom-4 w-16 h-16 rounded-full bg-tertiary-container/10 blur-xl"></div>
+<div>
+<div class="flex items-center justify-between mb-1">
+<span class="px-2 py-0.5 rounded text-[9px] font-label-caps font-bold bg-tertiary-container/15 border border-tertiary-container/40 text-tertiary">DUE TOMORROW</span>
+<span class="font-code-telemetry text-[10px] text-tertiary-container font-semibold">65% DONE</span>
+</div>
+<h4 class="font-headline-sm text-[13px] font-bold text-on-surface">Taller Cálculo Multivariable</h4>
+<!-- Progress HUD Bar -->
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden my-1.5">
+<div class="bg-gradient-to-r from-primary-container to-tertiary-container h-full rounded-full" style="width: 65%;"></div>
+</div>
+<p class="font-body-sm text-[11px] text-on-surface-variant">Ejercicios 8 al 12: Integrales de Línea y Teorema de Green.</p>
+</div>
+<button class="w-full py-2 px-3 rounded-lg bg-surface-container border border-outline-variant text-on-surface hover:text-primary-container hover:border-primary-container/40 font-label-caps text-label-caps font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+<span>Abrir tarea</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Bottom Telemetry HUD line -->
+<div class="flex items-center justify-between pt-1 border-t border-surface-container-high/50 font-code-telemetry text-[10px] text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-primary-container" data-icon="memory">memory</span>
+              Neural Confidence: 98.4%
+            </span>
+<div class="flex items-center gap-2">
+<button class="hover:text-primary transition-colors" title="Copy response">
+<span class="material-symbols-outlined text-[13px]" data-icon="content_copy">content_copy</span>
+</button>
+<button class="hover:text-primary transition-colors" title="Regenerate">
+<span class="material-symbols-outlined text-[13px]" data-icon="refresh">refresh</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ==================== TURN 3: USER QUICK CAPTURE / UNIVERSAL INBOX ==================== -->
+<div class="flex flex-col items-end self-end max-w-[88%] mt-2">
+<div class="flex items-center gap-1.5 mb-1 px-1">
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-primary text-[9px] font-code-telemetry">UNIVERSAL INBOX</span>
+<span class="font-code-telemetry text-code-telemetry text-[10px] text-outline">14:04</span>
+</div>
+<div class="p-3.5 rounded-2xl rounded-tr-xs bg-surface-container-high border border-outline-variant/60 text-on-surface shadow-[0_4px_16px_rgba(0,0,0,0.4)]">
+<p class="font-body-md text-body-md text-on-surface">
+            Anota: Parcial de Redes movido al 16 de septiembre a las 10 AM y gasté $32.000 en almuerzo.
+          </p>
+</div>
+</div>
+<!-- ==================== TURN 4: JARVIS SECOND BRAIN CONFIRMATION ==================== -->
+<div class="flex flex-col items-start self-start w-full">
+<div class="flex items-center gap-2 mb-1 px-1">
+<div class="w-2 h-2 rounded-full bg-tertiary-container shadow-[0_0_6px_#5be9ad]"></div>
+<span class="font-label-caps text-label-caps text-tertiary-container">SECOND BRAIN SYNCHRONIZED</span>
+<span class="font-code-telemetry text-[10px] text-outline ml-auto">14:04:02</span>
+</div>
+<div class="w-full rounded-2xl rounded-tl-xs p-4 bg-surface-container/80 backdrop-blur-2xl border border-tertiary-container/30 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_15px_0_rgba(91,233,173,0.12)] flex flex-col gap-3">
+<p class="font-body-md text-body-md text-on-surface">
+            He procesado y actualizado automáticamente tu <strong class="text-tertiary">Second Brain</strong>:
+          </p>
+<!-- Sync Items Breakdown -->
+<div class="space-y-2">
+<!-- Calendar Card -->
+<div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-container-lowest/80 border border-primary-container/20">
+<span class="material-symbols-outlined text-primary-container text-[20px] shrink-0 mt-0.5" data-icon="check_circle">check_circle</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-primary-container">CALENDAR DATABASE</span>
+<span class="font-code-telemetry text-[10px] text-outline">AUTO-RESCHEDULED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium mt-0.5">
+                  Examen de Redes reubicado al <span class="text-primary font-bold">16 Sept, 10:00 AM</span>.
+                </p>
+</div>
+</div>
+<!-- Finance Card -->
+<div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-container-lowest/80 border border-tertiary-container/20">
+<span class="material-symbols-outlined text-tertiary-container text-[20px] shrink-0 mt-0.5" data-icon="check_circle">check_circle</span>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-tertiary-container">FINANCES LEDGER</span>
+<span class="font-code-telemetry text-[10px] text-outline">LOGGED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium mt-0.5">
+                  Registrado gasto de <span class="text-tertiary font-bold">$32.000 COP</span> en categoría <span class="text-on-surface-variant font-semibold">'Alimentación'</span>.
+                </p>
+<div class="flex items-center gap-1.5 mt-1.5 text-[11px] font-code-telemetry text-on-surface-variant bg-surface-container-high/50 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[12px] text-tertiary" data-icon="info">info</span>
+                  Presupuesto diario restante: <strong class="text-tertiary">$40.000 COP</strong>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-2 text-label-caps text-[10px] text-outline pt-1">
+<span class="material-symbols-outlined text-[13px] text-tertiary-container" data-icon="sync">sync</span>
+<span>Notion + Google Calendar synced</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- ==================== HOLOGRAPHIC CHAT INPUT BAR (FIXED ABOVE NAV) ==================== -->
+<div class="fixed bottom-[4.8rem] left-0 right-0 z-40 px-margin-mobile w-full max-w-lg mx-auto pointer-events-none">
+<div class="pointer-events-auto bg-surface-container-lowest/90 backdrop-blur-2xl rounded-2xl border border-primary-container/30 p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.8),0_0_20px_rgba(0,229,255,0.15)] flex items-center gap-1.5 transition-all focus-within:border-primary-container focus-within:shadow-[0_0_25px_rgba(0,229,255,0.3)]">
+<!-- Voice Input / Mic Glow Trigger -->
+<button class="w-10 h-10 rounded-xl bg-surface-container-low border border-primary-container/30 text-primary-container flex items-center justify-center hover:bg-primary-container/20 active:scale-90 transition-all shrink-0 relative group" id="mic-trigger-btn" title="Activar entrada por voz">
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110" data-icon="mic">mic</span>
+<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary-container rounded-full animate-ping opacity-75"></span>
+</button>
+<!-- Natural Language Command Input -->
+<div class="flex-1 relative flex items-center">
+<input class="w-full bg-transparent border-0 text-on-surface placeholder:text-outline/70 font-body-md text-[13px] focus:ring-0 px-2 py-2" placeholder="Ask JARVIS anything or type natural language command..." type="text"/>
+</div>
+<!-- Attachment / Camera Quick Action -->
+<button class="w-8 h-8 rounded-lg text-outline-variant hover:text-on-surface-variant flex items-center justify-center active:scale-95 transition-colors shrink-0" title="Adjuntar documento o captura">
+<span class="material-symbols-outlined text-[18px]" data-icon="attach_file">attach_file</span>
+</button>
+<!-- Primary Send Action Trigger -->
+<button class="w-10 h-10 rounded-xl bg-primary-container text-surface-container-lowest flex items-center justify-center font-bold shadow-[0_0_15px_rgba(0,229,255,0.5)] hover:brightness-110 active:scale-90 transition-all shrink-0" title="Enviar comando">
+<span class="material-symbols-outlined text-[20px]" data-icon="send">send</span>
+</button>
+</div>
+</div>
+<!-- ==================== BOTTOM NAV BAR (FLOATING DOCK DERIVED FROM JSON) ==================== -->
+<!-- Contextual Lock: Tab 3 "JARVIS" is ACTIVE -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-dock-height max-w-lg mx-auto">
+<!-- Dock Container with exact styling instructions from JSON -->
+<div class="w-full h-14 rounded-full bg-surface-container-lowest/85 dark:bg-surface-container-lowest/85 backdrop-blur-2xl border border-primary-container/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_20px_0_rgba(0,229,255,0.15)] flex items-center justify-around px-3 relative">
+<!-- Nav Item 1: Home (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant font-medium opacity-60 hover:text-primary-container dark:hover:text-primary-container transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Home</span>
+</a>
+<!-- Nav Item 2: Tasks (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant font-medium opacity-60 hover:text-primary-container dark:hover:text-primary-container transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="checklist">checklist</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Tasks</span>
+</a>
+<!-- Nav Item 3: JARVIS (ACTIVE CENTERPIECE PROTRUDING ORB) -->
+<a class="relative -top-4 flex flex-col items-center justify-center group active:scale-90 transition-transform duration-150" href="#">
+<!-- Floating Outer Glow Ring -->
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest border-2 border-primary-container flex items-center justify-center shadow-[0_0_25px_rgba(0,229,255,0.6),inset_0_0_12px_rgba(0,229,255,0.4)]">
+<!-- Multi-layer AI Orb Center -->
+<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-container via-primary-fixed to-tertiary-container flex items-center justify-center shadow-[0_0_15px_#00e5ff]">
+<span class="material-symbols-outlined text-surface-container-lowest text-[22px] font-bold" data-icon="smart_toy">smart_toy</span>
+</div>
+</div>
+<!-- Active Nav Label with drop-shadow per JSON rules -->
+<span class="text-label-caps font-label-caps text-[11px] font-bold text-primary-container dark:text-primary-container drop-shadow-[0_0_8px_rgba(0,229,255,0.6)] mt-1">
+          JARVIS
+        </span>
+</a>
+<!-- Nav Item 4: Calendar (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant font-medium opacity-60 hover:text-primary-container dark:hover:text-primary-container transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="calendar_month">calendar_month</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Calendar</span>
+</a>
+<!-- Nav Item 5: Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant font-medium opacity-60 hover:text-primary-container dark:hover:text-primary-container transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="person">person</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Profile</span>
+</a>
+</div>
+</nav>
+<!-- Interactive script for HUD mode toggles & lightweight atmospheric micro-interactions -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modeTextBtn = document.getElementById('mode-text-btn');
+      const modeVoiceBtn = document.getElementById('mode-voice-btn');
+      const micTrigger = document.getElementById('mic-trigger-btn');
+
+      if (modeTextBtn && modeVoiceBtn) {
+        modeVoiceBtn.addEventListener('click', () => {
+          modeVoiceBtn.className = 'px-2.5 py-1 rounded-full bg-primary-container text-surface-container-lowest font-bold transition-all shadow-[0_0_10px_rgba(0,229,255,0.4)] flex items-center gap-1';
+          modeTextBtn.className = 'px-2 py-1 rounded-full text-on-surface-variant hover:text-primary transition-all';
+        });
+
+        modeTextBtn.addEventListener('click', () => {
+          modeTextBtn.className = 'px-2.5 py-1 rounded-full bg-primary-container text-surface-container-lowest font-bold transition-all shadow-[0_0_10px_rgba(0,229,255,0.4)]';
+          modeVoiceBtn.className = 'px-2 py-1 rounded-full text-on-surface-variant hover:text-primary transition-all flex items-center gap-1';
+        });
+      }
+
+      // Mic pulse feedback
+      if (micTrigger) {
+        micTrigger.addEventListener('click', () => {
+          micTrigger.classList.toggle('ring-4');
+          micTrigger.classList.toggle('ring-primary-container/40');
+        });
+      }
+    });
+  </script>
+</body></html>

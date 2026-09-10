@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS AI - Redes y Comunicación de Datos</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-primary": "#2b6193",
+            "coral-dust-border": "rgba(252, 165, 165, 0.22)",
+            "inverse-on-surface": "#2c3039",
+            "ghost-border": "rgba(148, 163, 184, 0.14)",
+            "primary-container": "#93c5fd",
+            "surface-variant": "#31353e",
+            "primary": "#c6dfff",
+            "sage-success": "#86efac",
+            "tertiary": "#89f2af",
+            "dusty-sky": "#64b5f6",
+            "tertiary-fixed": "#8ff8b4",
+            "ice-blue-soft": "#7dd3fc",
+            "background": "#0f131c",
+            "surface-slate-elevated": "#1c2333",
+            "tertiary-container": "#6dd594",
+            "on-secondary": "#1a2b6a",
+            "on-background": "#dfe2ee",
+            "surface-obsidian": "#0b0f17",
+            "amber-soft-border": "rgba(252, 211, 77, 0.22)",
+            "surface-container-high": "#262a33",
+            "tertiary-fixed-dim": "#73db9a",
+            "error": "#ffb4ab",
+            "surface-container-highest": "#31353e",
+            "secondary-fixed-dim": "#b8c4ff",
+            "on-error-container": "#ffdad6",
+            "sage-success-border": "rgba(134, 239, 172, 0.22)",
+            "on-tertiary-container": "#005b33",
+            "primary-fixed": "#d0e4ff",
+            "on-primary-container": "#145283",
+            "amber-soft-warning": "#fcd34d",
+            "coral-dust-bg": "rgba(252, 165, 165, 0.08)",
+            "secondary-fixed": "#dde1ff",
+            "on-tertiary": "#00391d",
+            "outline": "#8c919a",
+            "amber-soft-bg": "rgba(252, 211, 77, 0.08)",
+            "surface-tint": "#9ccaff",
+            "on-surface-variant": "#c2c7d0",
+            "on-surface": "#dfe2ee",
+            "on-secondary-fixed-variant": "#334282",
+            "surface-container-low": "#181c24",
+            "outline-variant": "#42474f",
+            "ghost-border-interactive": "rgba(147, 197, 253, 0.3)",
+            "secondary-container": "#334282",
+            "surface-container-lowest": "#0a0e16",
+            "surface-container": "#1c2028",
+            "primary-fixed-dim": "#9ccaff",
+            "on-primary-fixed-variant": "#03497a",
+            "surface-bright": "#353942",
+            "on-secondary-fixed": "#001354",
+            "coral-dust-danger": "#fca5a5",
+            "sage-success-bg": "rgba(134, 239, 172, 0.08)",
+            "surface-dim": "#0f131c",
+            "on-error": "#690005",
+            "on-tertiary-fixed-variant": "#00522d",
+            "on-primary-fixed": "#001d35",
+            "inverse-surface": "#dfe2ee",
+            "on-tertiary-fixed": "#00210f",
+            "surface-midnight": "#131823",
+            "surface": "#0f131c",
+            "secondary": "#b8c4ff",
+            "on-secondary-container": "#a2b1f9",
+            "error-container": "#93000a",
+            "on-primary": "#003257"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter-mobile": "1rem",
+            "space-xs": "0.5rem",
+            "space-xl": "2rem",
+            "gutter-tablet": "1.5rem",
+            "space-3xl": "4rem",
+            "space-3xs": "0.125rem",
+            "gutter-desktop": "2rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-2xs": "0.25rem",
+            "dock-height": "4.25rem",
+            "space-2xl": "3rem",
+            "space-sm": "0.75rem",
+            "margin-mobile": "1rem"
+          },
+          "fontFamily": {
+            "label-hud": ["Space Grotesk"],
+            "display-hero": ["Space Grotesk"],
+            "headline-md": ["Space Grotesk"],
+            "code-telemetry": ["JetBrains Mono"],
+            "body-lg": ["Inter"],
+            "label-caps": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Space Grotesk"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "display-hero-mobile": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "label-hud": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "display-hero": ["52px", { "lineHeight": "60px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "code-telemetry": ["12px", { "lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.06em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "display-hero-mobile": ["34px", { "lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen font-body-md antialiased pb-32 selection:bg-primary-container selection:text-on-primary-container">
+<!-- Ambient Calm Digital Space Lighting -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[550px] h-[550px] bg-primary-container/[0.06] rounded-full blur-[140px]"></div>
+<div class="absolute top-[40%] -right-40 w-[380px] h-[380px] bg-secondary-container/20 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-10 left-[-100px] w-[350px] h-[350px] bg-sage-success/[0.04] rounded-full blur-[100px]"></div>
+</div>
+<!-- Shared Component: TopAppBar -->
+<header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-margin-mobile h-16 w-full max-w-7xl mx-auto bg-surface-container-lowest/80 dark:bg-surface-container-lowest/80 backdrop-blur-xl border-b border-ghost-border">
+<div class="flex items-center gap-3">
+<div class="relative w-9 h-9 rounded-full overflow-hidden p-[1px] bg-gradient-to-tr from-primary-container/60 to-transparent">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic portrait avatar of university scholar Juan P. with sharp cybernetic lighting, moody cyan neon edge-rim accents, highly detailed photorealistic render on dark void background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDPj9eUaSNpxsEV6_-W3CCwF6AJjZqt5zm3cRFcKDrxfqolBD8xFwxrk2tT2nQLgVm2BPcFw4mBUrpvUZlhuQ0Dv7R6IaPy1hbpmL-gnsXYwUQOgMJkNniqIAlgEehOr74aMtJQTYcvV_1qVJ8Kv7uy2YhiJpfwQae7bR6XbcAw3oFYsDPPlYorC2Siz5FtwOoz-mnZy4g4E_ziwj9qtuFSCKday9hdTxHeoqfA9nunk9usIPh3zDEyA"/>
+</div>
+<span class="text-headline-sm font-headline-sm font-semibold tracking-wider text-primary">JARVIS AI</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-low/90 border border-ghost-border text-code-telemetry font-code-telemetry text-dusty-sky">
+<span class="w-2 h-2 rounded-full bg-ice-blue-soft animate-pulse"></span>
+<span>NEURAL LINK ACTIVE</span>
+</div>
+<button class="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high/50 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<!-- Main Mobile Canvas -->
+<main class="relative z-10 pt-20 px-margin-mobile max-w-lg mx-auto space-y-5">
+<!-- Action Back Link -->
+<div class="pt-1">
+<button class="group inline-flex items-center gap-1.5 text-dusty-sky font-label-caps text-label-caps tracking-wider transition-all duration-150 active:scale-95">
+<span class="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform" data-icon="arrow_back_ios">arrow_back_ios</span>
+<span>Volver a Universidad</span>
+</button>
+</div>
+<!-- Subject Header Section -->
+<section class="space-y-3 bg-surface-container/60 backdrop-blur-xl border border-ghost-border rounded-xl p-space-md shadow-[0_4px_24px_rgba(0,0,0,0.35)]">
+<div class="space-y-1">
+<div class="flex items-center justify-between">
+<span class="font-code-telemetry text-code-telemetry text-outline tracking-wider">RED-402 • 4 Créditos</span>
+<span class="px-2 py-0.5 rounded-full font-label-caps text-label-caps bg-primary-container/10 border border-primary-container/20 text-dusty-sky">Semestre 6</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-semibold leading-tight">Redes y Comunicación de Datos</h1>
+<p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-dusty-sky" data-icon="account_circle">account_circle</span>
+          Prof. Carlos Restrepo
+        </p>
+</div>
+<!-- Telemetry Metric Pills HUD -->
+<div class="grid grid-cols-2 gap-2 pt-2">
+<!-- Metric 1 -->
+<div class="p-2.5 rounded-lg bg-surface-container-lowest/80 border border-ghost-border flex items-center justify-between">
+<div>
+<div class="text-[10px] font-label-caps text-outline uppercase tracking-wider">Nota Actual</div>
+<div class="font-headline-sm text-headline-sm font-semibold text-sage-success">4.4 <span class="text-body-sm font-body-sm text-outline font-normal">/ 5.0</span></div>
+</div>
+<div class="w-8 h-8 rounded-full bg-sage-success/10 flex items-center justify-center text-sage-success border border-sage-success-border">
+<span class="material-symbols-outlined text-[18px]" data-icon="trending_up">trending_up</span>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="p-2.5 rounded-lg bg-surface-container-lowest/80 border border-ghost-border flex items-center justify-between">
+<div>
+<div class="text-[10px] font-label-caps text-outline uppercase tracking-wider">Meta Fijada</div>
+<div class="font-headline-sm text-headline-sm font-semibold text-primary-container">4.5 <span class="text-body-sm font-body-sm text-outline font-normal">/ 5.0</span></div>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary-container/10 flex items-center justify-center text-primary-container border border-primary-container/20">
+<span class="material-symbols-outlined text-[18px]" data-icon="flag">flag</span>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="p-2.5 rounded-lg bg-surface-container-lowest/80 border border-ghost-border flex items-center justify-between">
+<div>
+<div class="text-[10px] font-label-caps text-outline uppercase tracking-wider">Próximo Parcial</div>
+<div class="font-label-hud text-label-hud font-medium text-on-surface">15 Sept <span class="text-secondary font-code-telemetry text-code-telemetry">(4 días)</span></div>
+</div>
+<div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary border border-secondary/20">
+<span class="material-symbols-outlined text-[18px]" data-icon="timer">timer</span>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="p-2.5 rounded-lg bg-surface-container-lowest/80 border border-ghost-border flex items-center justify-between">
+<div>
+<div class="text-[10px] font-label-caps text-outline uppercase tracking-wider">Nivel de Riesgo</div>
+<div class="font-label-hud text-label-hud font-medium text-coral-dust-danger">Medio</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-coral-dust-bg flex items-center justify-center text-coral-dust-danger border border-coral-dust-border">
+<span class="material-symbols-outlined text-[18px]" data-icon="warning">warning</span>
+</div>
+</div>
+</div>
+</section>
+<!-- AI Academic Analysis & Neural Diagnosis -->
+<section class="relative overflow-hidden rounded-xl p-space-md bg-gradient-to-br from-surface-container/90 via-surface-container-low/95 to-surface-container-lowest border border-ghost-border-interactive shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
+<!-- Subtle glow effect corner -->
+<div class="absolute -top-10 -right-10 w-28 h-28 bg-primary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-start gap-3">
+<div class="relative mt-0.5 shrink-0">
+<div class="w-10 h-10 rounded-xl bg-surface-container-lowest border border-primary-container/30 flex items-center justify-center text-primary-container shadow-[0_0_12px_rgba(147,197,253,0.15)]">
+<span class="material-symbols-outlined text-[24px]" data-icon="psychology">psychology</span>
+</div>
+<span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-50"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-container"></span>
+</span>
+</div>
+<div class="space-y-1">
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-container/10 border border-primary-container/25 text-[10px] font-label-caps text-dusty-sky uppercase tracking-widest">
+<span class="w-1.5 h-1.5 rounded-full bg-dusty-sky"></span>
+            Recommended by JARVIS
+          </div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">AI Academic Analysis &amp; Neural Diagnosis</h2>
+</div>
+</div>
+<p class="mt-3 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+        Subnetting y direccionamiento <strong class="text-primary font-medium">VLSM</strong> sigue siendo el tema con mayor tasa de error en tus quizes (<span class="text-coral-dust-danger font-code-telemetry">35% fallos</span>). Recomiendo realizar una sesión de 90 minutos mañana y un quiz simulado con JARVIS antes del examen.
+      </p>
+<div class="mt-4">
+<!-- Serene soft-blue / muted indigo gradient button identical to Continue Task -->
+<button class="w-full flex items-center justify-center gap-2 py-3 px-space-md rounded-lg font-headline-sm text-headline-sm font-semibold bg-gradient-to-r from-dusty-sky via-primary-container to-secondary text-surface-container-lowest shadow-[0_4px_20px_rgba(147,197,253,0.25)] hover:shadow-[0_4px_26px_rgba(147,197,253,0.35)] transition-all duration-200 active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]" data-icon="bolt">bolt</span>
+<span>Start AI Study Session (90 min)</span>
+</button>
+</div>
+</section>
+<!-- Temas del Curso & Radar de Dominio -->
+<section class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-dusty-sky text-[20px]" data-icon="radar">radar</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Temas &amp; Radar de Dominio</h3>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-outline">4/4 Módulos</span>
+</div>
+<div class="space-y-2.5">
+<!-- Topic 1 -->
+<div class="p-space-sm rounded-xl bg-surface-container/70 border border-ghost-border hover:border-ghost-border-interactive transition-all space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-medium text-on-surface">Topologías &amp; Modelo OSI</span>
+<span class="px-2 py-0.5 rounded-full font-label-caps text-[10px] bg-sage-success-bg border border-sage-success-border text-sage-success">95% • Dominado</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden p-[1px]">
+<div class="bg-gradient-to-r from-sage-success to-tertiary h-full rounded-full w-[95%] shadow-[0_0_6px_rgba(134,239,172,0.3)]"></div>
+</div>
+</div>
+<!-- Topic 2 -->
+<div class="p-space-sm rounded-xl bg-surface-container/70 border border-coral-dust-border hover:border-coral-dust-danger/40 transition-all space-y-2 relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 w-20 h-20 bg-coral-dust-bg rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-medium text-on-surface">Subnetting IPv4 &amp; VLSM</span>
+<span class="px-2 py-0.5 rounded-full font-label-caps text-[10px] bg-coral-dust-bg border border-coral-dust-border text-coral-dust-danger">58% • Atención Requerida</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden p-[1px]">
+<div class="bg-gradient-to-r from-error to-coral-dust-danger h-full rounded-full w-[58%] shadow-[0_0_6px_rgba(252,165,165,0.3)]"></div>
+</div>
+</div>
+<!-- Topic 3 -->
+<div class="p-space-sm rounded-xl bg-surface-container/70 border border-ghost-border hover:border-ghost-border-interactive transition-all space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-medium text-on-surface">Protocolos de Enrutamiento (OSPF, RIP)</span>
+<span class="px-2 py-0.5 rounded-full font-label-caps text-[10px] bg-secondary-container/30 border border-secondary-fixed/20 text-secondary">72% • En Progreso</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden p-[1px]">
+<div class="bg-gradient-to-r from-secondary-container to-secondary h-full rounded-full w-[72%]"></div>
+</div>
+</div>
+<!-- Topic 4 -->
+<div class="p-space-sm rounded-xl bg-surface-container/70 border border-ghost-border hover:border-ghost-border-interactive transition-all space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-medium text-on-surface">Capa de Transporte (TCP/UDP)</span>
+<span class="px-2 py-0.5 rounded-full font-label-caps text-[10px] bg-sage-success-bg border border-sage-success-border text-sage-success">88% • Dominado</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden p-[1px]">
+<div class="bg-gradient-to-r from-sage-success to-tertiary h-full rounded-full w-[88%]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Lista de Tareas y Entregables Pendientes -->
+<section class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-dusty-sky text-[20px]" data-icon="checklist">checklist</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Tareas &amp; Entregables</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-outline text-[11px] font-label-caps">2 Pendientes</span>
+</div>
+<div class="space-y-2.5">
+<!-- Task Item 1 -->
+<div class="p-space-sm rounded-xl bg-surface-container/80 border border-ghost-border flex flex-col gap-2">
+<div class="flex items-start justify-between">
+<div class="space-y-0.5">
+<h4 class="font-body-lg text-body-lg font-medium text-on-surface">Taller de Subnetting VLSM</h4>
+<div class="flex items-center gap-2 text-body-sm text-on-surface-variant font-body-sm">
+<span class="text-coral-dust-danger font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span>
+                  Due: Mañana, 23:59
+                </span>
+<span>•</span>
+<span class="text-outline">Ponderación: 15%</span>
+</div>
+</div>
+<span class="px-2 py-1 rounded bg-primary-container/10 border border-primary-container/25 text-dusty-sky font-code-telemetry text-code-telemetry">60%</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-dusty-sky to-primary-container h-full w-[60%] shadow-[0_0_6px_rgba(147,197,253,0.4)]"></div>
+</div>
+</div>
+<!-- Task Item 2 -->
+<div class="p-space-sm rounded-xl bg-surface-container/80 border border-ghost-border flex items-start justify-between">
+<div class="space-y-0.5">
+<h4 class="font-body-lg text-body-lg font-medium text-on-surface">Laboratorio Packet Tracer 3</h4>
+<div class="flex items-center gap-2 text-body-sm text-on-surface-variant font-body-sm">
+<span class="text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="event">event</span>
+                Due: 18 Sep
+              </span>
+<span>•</span>
+<span class="text-outline">Ponderación: 20%</span>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded bg-surface-container-high text-outline font-label-caps text-[10px]">POR INICIAR</span>
+</div>
+</div>
+</section>
+<!-- Materiales & Sesiones de Estudio Recientes -->
+<section class="space-y-3 pb-6">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-dusty-sky text-[20px]" data-icon="auto_stories">auto_stories</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Materiales &amp; Sesiones IA</h3>
+</div>
+<button class="text-dusty-sky text-body-sm font-body-sm hover:underline">Ver todo</button>
+</div>
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Resource Card 1 -->
+<div class="p-3 rounded-xl bg-surface-container/60 border border-ghost-border hover:border-ghost-border-interactive transition-all flex flex-col justify-between h-32">
+<div class="flex items-center justify-between">
+<span class="w-8 h-8 rounded-lg bg-primary-container/10 text-dusty-sky flex items-center justify-center border border-primary-container/20">
+<span class="material-symbols-outlined text-[18px]" data-icon="description">description</span>
+</span>
+<span class="text-[9px] font-label-caps px-1.5 py-0.5 rounded bg-surface-container-lowest text-dusty-sky border border-ghost-border">AI SYNTH</span>
+</div>
+<div>
+<div class="font-body-md text-body-md font-medium text-on-surface line-clamp-1">Slides VLSM Anotadas</div>
+<div class="text-[11px] text-outline font-body-sm">48 diapositivas • Resumido</div>
+</div>
+</div>
+<!-- Resource Card 2 -->
+<div class="p-3 rounded-xl bg-surface-container/60 border border-ghost-border hover:border-ghost-border-interactive transition-all flex flex-col justify-between h-32">
+<div class="flex items-center justify-between">
+<span class="w-8 h-8 rounded-lg bg-sage-success-bg text-sage-success flex items-center justify-center border border-sage-success-border">
+<span class="material-symbols-outlined text-[18px]" data-icon="style">style</span>
+</span>
+<span class="text-[9px] font-label-caps px-1.5 py-0.5 rounded bg-surface-container-lowest text-sage-success border border-ghost-border">35 CARDS</span>
+</div>
+<div>
+<div class="font-body-md text-body-md font-medium text-on-surface line-clamp-1">Flashcards Enrutamiento</div>
+<div class="text-[11px] text-outline font-body-sm">Generadas por JARVIS</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Shared Component: BottomNavBar (Fixed Dock Layout) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-dock-height max-w-lg mx-auto">
+<div class="w-full h-16 rounded-full bg-surface-container-lowest/85 dark:bg-surface-container-lowest/85 backdrop-blur-2xl border border-ghost-border shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] flex items-center justify-around px-2 relative">
+<!-- Nav Item 1: Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="dashboard">dashboard</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Home</span>
+</a>
+<!-- Nav Item 2: Tasks (Active) -->
+<a class="flex flex-col items-center justify-center text-primary-container font-semibold drop-shadow-[0_0_8px_rgba(147,197,253,0.4)] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="checklist" data-weight="fill" style="font-variation-settings: 'FILL' 1;">checklist</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Tasks</span>
+</a>
+<!-- Nav Item 3: Center Protruding JARVIS Orb -->
+<div class="relative -top-3 flex flex-col items-center">
+<button class="w-14 h-14 rounded-full bg-gradient-to-tr from-dusty-sky via-primary-container to-secondary p-[2px] shadow-[0_0_18px_rgba(147,197,253,0.3)] active:scale-95 transition-all">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-0 bg-primary-container/10 animate-pulse"></div>
+<span class="material-symbols-outlined text-primary-container text-[28px] relative z-10" data-icon="smart_toy">smart_toy</span>
+</div>
+</button>
+<span class="text-label-caps font-label-caps text-[10px] text-primary-container font-bold mt-1">JARVIS</span>
+</div>
+<!-- Nav Item 4: Calendar -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="calendar_month">calendar_month</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Calendar</span>
+</a>
+<!-- Nav Item 5: Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="person">person</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

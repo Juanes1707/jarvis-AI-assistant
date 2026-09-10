@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS AI - Dashboard Principal</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#31353f",
+            "error": "#ffb4ab",
+            "on-background": "#dfe2ef",
+            "on-primary-fixed": "#001f24",
+            "on-tertiary": "#003824",
+            "on-surface": "#dfe2ef",
+            "surface-dim": "#0f131c",
+            "on-secondary-container": "#e6ecff",
+            "secondary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface": "#0f131c",
+            "surface-tint": "#00daf3",
+            "surface-container-low": "#181b25",
+            "error-container": "#93000a",
+            "on-tertiary-fixed": "#002113",
+            "on-secondary": "#002e6a",
+            "on-surface-variant": "#bac9cc",
+            "secondary": "#adc6ff",
+            "on-tertiary-container": "#006645",
+            "on-primary-container": "#00626e",
+            "primary-fixed-dim": "#00daf3",
+            "tertiary-container": "#5be9ad",
+            "on-secondary-fixed-variant": "#004395",
+            "outline-variant": "#3b494c",
+            "surface-container-lowest": "#0a0e17",
+            "tertiary": "#a8ffd2",
+            "inverse-primary": "#006875",
+            "secondary-fixed": "#d8e2ff",
+            "on-primary-fixed-variant": "#004f58",
+            "inverse-surface": "#dfe2ef",
+            "surface-container-highest": "#31353f",
+            "outline": "#849396",
+            "on-error-container": "#ffdad6",
+            "secondary-container": "#0566d9",
+            "on-primary": "#00363d",
+            "background": "#0f131c",
+            "on-error": "#690005",
+            "surface-container": "#1c1f29",
+            "on-secondary-fixed": "#001a42",
+            "primary-container": "#00e5ff",
+            "primary-fixed": "#9cf0ff",
+            "surface-bright": "#353943",
+            "primary": "#c3f5ff",
+            "tertiary-fixed-dim": "#4edea3",
+            "inverse-on-surface": "#2c303a",
+            "tertiary-fixed": "#6ffbbe",
+            "surface-container-high": "#262a34"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.5rem",
+            "margin-tablet": "2rem",
+            "space-sm": "0.75rem",
+            "margin-desktop": "3rem",
+            "space-2xs": "0.25rem",
+            "space-2xl": "3rem",
+            "dock-height": "4.5rem",
+            "space-md": "1rem",
+            "space-3xl": "4rem",
+            "margin-mobile": "1rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-caps": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "display-hero-mobile": ["Space Grotesk"],
+            "code-telemetry": ["JetBrains Mono"],
+            "display-hero": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "label-hud": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "display-hero-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "code-telemetry": ["12px", { "lineHeight": "16px", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "label-hud": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    
+    /* Precision Ambient Glows */
+    .glow-cyan-subtle {
+      box-shadow: 0 0 20px -2px rgba(0, 229, 255, 0.15);
+    }
+    .glow-orb {
+      box-shadow: 0 0 25px 3px rgba(0, 229, 255, 0.5), inset 0 0 12px rgba(255, 255, 255, 0.7);
+    }
+    .hud-border-cyan {
+      border: 1px solid rgba(0, 229, 255, 0.18);
+    }
+    .hud-border-emerald {
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .hud-border-amber {
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md antialiased min-h-screen selection:bg-primary-container selection:text-surface-container-lowest pb-32">
+<!-- TOP APP BAR HUD (Shared Component JSON Conformance) -->
+<header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-margin-mobile h-16 w-full max-w-7xl mx-auto bg-surface-container-lowest/80 backdrop-blur-xl border-b border-primary-container/20 shadow-[0_4px_24px_-2px_rgba(0,229,255,0.1)]">
+<!-- Leading Identity & Avatar -->
+<div class="flex items-center space-x-space-sm">
+<div class="relative flex items-center justify-center w-10 h-10 rounded-full bg-surface-container border border-primary-container/30 overflow-hidden ring-1 ring-primary-container/20">
+<img class="w-full h-full object-cover" data-alt="Futuristic digital portrait of Juan P., an ambitious university engineering student with subtle cybernetic HUD projections reflecting faintly across his sharp focus, ambient dark studio aesthetic with cool electric cyan neon reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAybQygUPzMX_14Fjs1McdwyrlREbPGxTJKyPnEffOxgfEbB9r_h3N9W00bOxVZh_XKmY7CcMN9rhW9PINSlfd4T5QueKRxP1eCQCZbOKcsZ8NNWUFYm2SZLTbgwyjN5YPpX--oz7QtYMdKZvqlBhItmPSAXUEuuAnhVMr7CY_pNbwFYjLVLsClaS5sP3dW_xkqnT9qzrG3uteSVxx3K3Z_WyupgfUeVvYrBgFs1iguKiWAQfAHAUi3zA"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-tertiary-container ring-2 ring-surface-container-lowest"></div>
+</div>
+<div class="flex items-center space-x-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-container animate-ping opacity-75"></div>
+<span class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary-container">JARVIS AI</span>
+</div>
+</div>
+<!-- Trailing Actions & Add Trigger -->
+<div class="flex items-center space-x-space-xs">
+<button class="relative p-2 rounded-xl bg-surface-container/60 border border-outline-variant/30 text-on-surface-variant hover:text-primary hover:bg-surface-container-high/50 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error-container border border-error animate-pulse"></span>
+</button>
+<button class="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-primary-container/10 border border-primary-container/40 text-primary-container hover:bg-primary-container/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+<span class="font-label-caps text-label-caps">Add</span>
+</button>
+</div>
+</header>
+<!-- MAIN VIEWPORT CONTAINER -->
+<main class="w-full max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto px-margin-mobile pt-20 space-y-space-lg">
+<!-- SALUDO & IA COMMAND BAR -->
+<section class="space-y-space-sm pt-2">
+<div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight">
+          Buenas tardes, <span class="text-primary-container drop-shadow-[0_0_12px_rgba(0,229,255,0.4)]">Juan.</span>
+</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Esto es lo que necesita tu atención hoy.
+        </p>
+</div>
+<!-- Futuristic JARVIS Command Bar -->
+<div class="relative rounded-2xl bg-surface-container/80 backdrop-blur-xl border border-primary-container/30 shadow-[0_4px_20px_rgba(0,0,0,0.5)] p-2">
+<div class="flex items-center space-x-space-xs px-2 py-1">
+<div class="relative flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[22px] animate-pulse" data-icon="graphic_eq">graphic_eq</span>
+</div>
+<input class="w-full bg-transparent border-none text-on-surface placeholder:text-outline/70 font-body-md text-body-md focus:ring-0 focus:outline-none" placeholder="Ask JARVIS anything..." type="text"/>
+<button class="p-2 rounded-xl bg-surface-container-high/80 text-primary-container border border-primary-container/20 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[20px]" data-icon="mic">mic</span>
+</button>
+</div>
+<!-- Interactive Suggestion Chips -->
+<div class="flex items-center space-x-2 overflow-x-auto pt-2 pb-1 scrollbar-none text-nowrap">
+<button class="px-3 py-1 rounded-full bg-surface-container-low border border-primary-container/20 text-on-surface-variant hover:text-primary-container hover:border-primary-container/50 font-label-caps text-label-caps transition-colors">
+            ¿Qué debería estudiar hoy?
+          </button>
+<button class="px-3 py-1 rounded-full bg-surface-container-low border border-primary-container/20 text-on-surface-variant hover:text-primary-container hover:border-primary-container/50 font-label-caps text-label-caps transition-colors">
+            Organiza mi día
+          </button>
+<button class="px-3 py-1 rounded-full bg-surface-container-low border border-primary-container/20 text-on-surface-variant hover:text-primary-container hover:border-primary-container/50 font-label-caps text-label-caps transition-colors">
+            ¿Cuánto puedo gastar?
+          </button>
+</div>
+</div>
+</section>
+<!-- DAILY BRIEFING CARD (RECOMMENDED BY JARVIS) -->
+<section class="relative rounded-2xl bg-surface-container/75 backdrop-blur-2xl p-space-md border border-primary-container/30 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.7),0_0_20px_0_rgba(0,229,255,0.12)]">
+<!-- Neural HUD Beacon Badge -->
+<div class="flex items-center justify-between mb-3">
+<div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-primary-container/10 border border-primary-container/40 text-primary-container font-label-caps text-label-caps">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+<span>RECOMMENDED BY JARVIS</span>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant">EST. 35 MIN</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-4">
+        Hoy tienes <strong class="text-primary-container font-semibold">2 clases</strong>, <strong class="text-primary-container font-semibold">3 tareas pendientes</strong> y un bloque libre de 2 horas. Tu prioridad debería ser terminar el taller de Redes.
+      </p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+<div class="flex items-center space-x-2 text-on-surface-variant font-code-telemetry text-code-telemetry">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container" data-icon="auto_awesome">auto_awesome</span>
+<span>AI Synthesis Model v4.2</span>
+</div>
+<button class="flex items-center space-x-1 text-primary-container font-label-caps text-label-caps hover:underline">
+<span>View full briefing</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- TODAY'S PRIORITY CARD -->
+<section class="rounded-2xl bg-surface-container-low/90 backdrop-blur-xl p-space-md border border-error/30 shadow-[0_4px_24px_rgba(147,0,10,0.15)] relative overflow-hidden">
+<!-- Ambient Glow in Top Corner -->
+<div class="absolute -top-10 -right-10 w-28 h-28 bg-error-container/30 blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-2">
+<div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-error-container/20 border border-error/40 text-error font-label-caps text-label-caps">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span>HIGH ACADEMIC IMPACT</span>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-error">URGENCY: HIGH</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 mb-3">
+        Terminar taller de Cálculo Multivariable
+      </h3>
+<!-- Badges Telemétricos -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+<div class="p-2 rounded-xl bg-surface-container/60 border border-outline-variant/20 flex flex-col">
+<span class="font-label-caps text-label-caps text-outline">ENTREGA</span>
+<span class="font-code-telemetry text-code-telemetry text-on-surface font-semibold">Mañana (14:00)</span>
+</div>
+<div class="p-2 rounded-xl bg-surface-container/60 border border-outline-variant/20 flex flex-col">
+<span class="font-label-caps text-label-caps text-outline">IMPACTO</span>
+<span class="font-code-telemetry text-code-telemetry text-primary-container font-semibold">30% Nota Final</span>
+</div>
+<div class="p-2 rounded-xl bg-surface-container/60 border border-outline-variant/20 flex flex-col col-span-2 sm:col-span-1">
+<span class="font-label-caps text-label-caps text-outline">ESTADO</span>
+<span class="font-code-telemetry text-code-telemetry text-tertiary font-semibold">65% Completado</span>
+</div>
+</div>
+<!-- Glowing Cyan Progress Bar -->
+<div class="space-y-1.5 mb-4">
+<div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant">
+<span>Progreso del taller</span>
+<span class="text-primary-container">65%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden p-0.5">
+<div class="h-full rounded-full bg-primary-container shadow-[0_0_12px_#00e5ff]" style="width: 65%;"></div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full py-2.5 px-4 rounded-xl bg-primary-container text-on-primary-fixed font-headline-sm text-label-hud font-bold flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:brightness-110 active:scale-[0.99] transition-all">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow">play_arrow</span>
+<span>Continue task</span>
+</button>
+</section>
+<!-- AGENDA DE HOY (Interactive Timeline) -->
+<section class="rounded-2xl bg-surface-container/70 backdrop-blur-xl p-space-md border border-outline-variant/20">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Agenda de hoy</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant">6 Eventos programados</p>
+</div>
+<button class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-primary-container/10 border border-primary-container/40 text-primary-container font-label-caps text-label-caps hover:bg-primary-container/20 transition-all">
+<span class="material-symbols-outlined text-[16px]" data-icon="bolt">bolt</span>
+<span>Optimize my schedule (AI)</span>
+</button>
+</div>
+<!-- Timeline visual vertical -->
+<div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/25">
+<!-- Item 1: Completado -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-tertiary-container flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></div>
+</div>
+<div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low/60 border border-tertiary-container/20">
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-tertiary">08:00</span>
+<span class="font-body-md text-body-md font-medium text-on-surface line-through opacity-75">Repasar alemán</span>
+</div>
+<span class="font-label-caps text-label-caps text-tertiary/80">Completado (+40 XP)</span>
+</div>
+<span class="material-symbols-outlined text-tertiary text-[20px]" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<!-- Item 2: En curso (Active Pulsing Cyan) -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-primary-container flex items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-primary-container animate-ping"></div>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-high/90 border border-primary-container/40 shadow-[0_0_16px_-2px_rgba(0,229,255,0.2)]">
+<div class="flex items-center justify-between mb-1">
+<span class="font-code-telemetry text-code-telemetry text-primary-container font-bold">10:00 - EN CURSO</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-container/20 text-primary-container font-label-caps text-label-caps">Aula 402B</span>
+</div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Clase de Redes y Sistemas Operativos</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Prof. V. Restrepo • Protocolos de Transporte</p>
+</div>
+</div>
+<!-- Item 3: Almuerzo -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-outline-variant flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-outline"></div>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container-low/40 border border-outline-variant/20 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant">12:00</span>
+<span class="font-body-md text-body-md text-on-surface">Almuerzo &amp; Descanso cognitivo</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="restaurant">restaurant</span>
+</div>
+</div>
+<!-- Item 4: Cálculo Multivariable -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-outline-variant flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-outline"></div>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container-low/40 border border-outline-variant/20 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant">14:00</span>
+<span class="font-body-md text-body-md text-on-surface">Cálculo Multivariable</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="functions">functions</span>
+</div>
+</div>
+<!-- Item 5: Bloque recomendado por IA -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-primary-container/70 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-primary-container"></div>
+</div>
+<div class="p-3 rounded-xl bg-primary-container/5 border border-primary-container/30">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-primary-container font-semibold">16:00</span>
+<span class="font-body-md text-body-md font-medium text-on-surface">Bloque de estudio libre (2h)</span>
+</div>
+<span class="font-label-caps text-label-caps text-primary-container">AI RECOMMENDED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Sugerencia: Avanzar 40% del Taller de Redes en biblioteca piso 3.</p>
+</div>
+</div>
+<!-- Item 6: Tiempo libre -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-outline-variant flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-outline"></div>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container-low/40 border border-outline-variant/20 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant">18:00</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Tiempo libre / Desconexión</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="bedtime">bedtime</span>
+</div>
+</div>
+</div>
+</section>
+<!-- GRILLA MODULAR DE WIDGETS BENTO -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- WIDGET 1: RESUMEN ACADÉMICO -->
+<div class="rounded-2xl bg-surface-container/75 backdrop-blur-xl p-space-md border border-primary-container/20 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary-container" data-icon="school">school</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Academic Overview</h3>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-primary-container">SEMESTER W-9</span>
+</div>
+<!-- Circular HUD Gauge & Main Metrics -->
+<div class="flex items-center justify-around py-3">
+<!-- Dual-track Circular HUD Progress -->
+<div class="relative w-28 h-28 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<!-- Background Slate Track -->
+<circle class="text-surface-container-highest" cx="50" cy="50" fill="none" r="42" stroke="currentColor" stroke-width="8"></circle>
+<!-- Glowing Cyan-Emerald Meter Track -->
+<circle class="drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]" cx="50" cy="50" fill="none" r="42" stroke="#00e5ff" stroke-dasharray="264" stroke-dashoffset="74" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">72%</span>
+<span class="font-label-caps text-[9px] text-on-surface-variant">PROGRESS</span>
+</div>
+</div>
+<!-- Meta Data Telemetry Grid -->
+<div class="space-y-2">
+<div>
+<span class="font-label-caps text-label-caps text-outline block">PENDING TASKS</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">7 pendientes</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-outline block">DUE THIS WEEK</span>
+<span class="font-headline-sm text-headline-sm text-tertiary-container font-semibold">3 entregas</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-outline block">STUDY VELOCITY</span>
+<span class="font-headline-sm text-headline-sm text-primary-container font-semibold">12.5h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Next Exam Alert -->
+<div class="mt-3 p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block">PRÓXIMO EXAMEN</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Redes y Sistemas Operativos</span>
+</div>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-secondary font-bold">En 3 días</span>
+</div>
+</div>
+<!-- WIDGET 2: RESUMEN FINANCIERO -->
+<div class="rounded-2xl bg-surface-container/75 backdrop-blur-xl p-space-md border border-primary-container/20 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-tertiary-container" data-icon="account_balance_wallet">account_balance_wallet</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Personal Finance</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary font-label-caps text-label-caps">COP</span>
+</div>
+<div class="space-y-1 mb-3">
+<span class="font-label-caps text-label-caps text-outline">BALANCE DISPONIBLE</span>
+<div class="font-headline-lg-mobile font-headline-lg text-headline-lg-mobile text-on-surface font-bold">
+              $2.450.000 <span class="text-sm font-body-sm text-on-surface-variant font-normal">COP</span>
+</div>
+</div>
+<!-- Budget Bar -->
+<div class="space-y-1.5 mb-3">
+<div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant">
+<span>Gastado: $1.180.000</span>
+<span class="text-secondary-fixed">Presupuesto: $2.000.000 (59%)</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="h-full rounded-full bg-gradient-to-r from-tertiary-container to-secondary-container" style="width: 59%;"></div>
+</div>
+</div>
+<!-- JARVIS Financial Insight -->
+<div class="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-start space-x-2">
+<span class="material-symbols-outlined text-secondary text-[18px] mt-0.5" data-icon="insights">insights</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+<strong class="text-on-surface">JARVIS Insight:</strong> Estás gastando <span class="text-secondary font-semibold">18% más</span> en comida que el mes pasado.
+            </p>
+</div>
+</div>
+<button class="mt-4 w-full py-2 rounded-xl bg-surface-container-high/80 border border-outline-variant/40 text-on-surface hover:text-primary-container font-label-caps text-label-caps transition-colors">
+          View finances
+        </button>
+</div>
+<!-- WIDGET 3: HABIT TRACKER (Full width in mobile/tablet grid) -->
+<div class="col-span-1 md:col-span-2 rounded-2xl bg-surface-container/75 backdrop-blur-xl p-space-md border border-primary-container/20">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary-container" data-icon="local_fire_department">local_fire_department</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Habit Tracker</h3>
+</div>
+<div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary-container font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[14px]" data-icon="local_fire_department">local_fire_department</span>
+<span>RACHA ACTIVA: 12 DÍAS</span>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<!-- Habit 1 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-outline-variant/20">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-outline">GERMAN</span>
+<span class="font-code-telemetry text-code-telemetry text-tertiary">4/6 sess</span>
+</div>
+<div class="flex space-x-1.5 pt-2">
+<div class="w-3.5 h-3.5 rounded-full bg-tertiary"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-tertiary"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-tertiary"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-tertiary"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-surface-container-highest"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-surface-container-highest"></div>
+</div>
+</div>
+<!-- Habit 2 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-outline-variant/20">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-outline">GYM / STRENGTH</span>
+<span class="font-code-telemetry text-code-telemetry text-primary-container">3/4</span>
+</div>
+<div class="flex space-x-1.5 pt-2">
+<div class="w-3.5 h-3.5 rounded-full bg-primary-container"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-primary-container"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-primary-container"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-surface-container-highest"></div>
+</div>
+</div>
+<!-- Habit 3 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-outline-variant/20">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-outline">DEEP STUDY</span>
+<span class="font-code-telemetry text-code-telemetry text-on-surface">12/18h</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest mt-3 overflow-hidden">
+<div class="h-full bg-secondary-fixed rounded-full" style="width: 66%;"></div>
+</div>
+</div>
+<!-- Habit 4 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-outline-variant/20">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-outline">SLEEP QUALITY</span>
+<span class="font-code-telemetry text-code-telemetry text-tertiary">7.2h avg</span>
+</div>
+<div class="flex items-center space-x-1 pt-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-container/40"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FLOATING BOTTOM NAVIGATION DOCK (Strict Shared Component Conformance) -->
+<nav class="fixed bottom-4 inset-x-4 max-w-lg mx-auto z-50 h-dock-height rounded-full bg-surface-container-lowest/85 backdrop-blur-2xl border border-primary-container/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_20px_0_rgba(0,229,255,0.15)] flex justify-around items-center px-margin-mobile">
+<!-- Tab 1: Home (ACTIVE - Direct Match) -->
+<a class="flex flex-col items-center justify-center text-primary-container font-semibold drop-shadow-[0_0_8px_rgba(0,229,255,0.6)] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="dashboard">dashboard</span>
+<span class="text-label-caps font-label-caps mt-0.5">Home</span>
+</a>
+<!-- Tab 2: Tasks (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="checklist">checklist</span>
+<span class="text-label-caps font-label-caps mt-0.5">Tasks</span>
+</a>
+<!-- Tab 3: JARVIS ORB (Raised centerpiece glowing orb) -->
+<div class="relative -top-3 flex flex-col items-center justify-center">
+<button class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-primary-container via-surface-tint to-primary p-0.5 glow-orb active:scale-95 transition-transform flex items-center justify-center">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container text-[28px] animate-pulse" data-icon="smart_toy">smart_toy</span>
+</div>
+</button>
+<span class="text-label-caps font-label-caps text-primary-container font-bold mt-1 tracking-wider">JARVIS</span>
+</div>
+<!-- Tab 4: Calendar (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="calendar_month">calendar_month</span>
+<span class="text-label-caps font-label-caps mt-0.5">Calendar</span>
+</a>
+<!-- Tab 5: Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="person">person</span>
+<span class="text-label-caps font-label-caps mt-0.5">Profile</span>
+</a>
+</nav>
+</body></html>

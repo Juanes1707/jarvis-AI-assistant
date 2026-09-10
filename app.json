@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "JARVIS",
+    "slug": "jarvis-student-command-center",
+    "version": "0.2.0",
+    "scheme": "jarvis",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0a0e16"
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "predictiveBackGestureEnabled": true
+    }
+  }
+}

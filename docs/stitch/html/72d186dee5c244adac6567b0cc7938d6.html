@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS AI - Dashboard Principal</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#31353e",
+            "error": "#fca5a5",
+            "on-background": "#dfe2ee",
+            "on-primary-fixed": "#001d35",
+            "on-tertiary": "#00391d",
+            "on-surface": "#dfe2ee",
+            "surface-dim": "#0f131c",
+            "on-secondary-container": "#a2b1f9",
+            "secondary-fixed-dim": "#b8c4ff",
+            "on-tertiary-fixed-variant": "#00522d",
+            "surface": "#0f131c",
+            "surface-tint": "#9ccaff",
+            "surface-container-low": "#181c24",
+            "error-container": "rgba(239, 68, 68, 0.15)",
+            "on-tertiary-fixed": "#00210f",
+            "on-secondary": "#1a2b6a",
+            "on-surface-variant": "#94a3b8",
+            "secondary": "#b8c4ff",
+            "on-tertiary-container": "#005b33",
+            "on-primary-container": "#145283",
+            "primary-fixed-dim": "#9ccaff",
+            "tertiary-container": "#6dd594",
+            "on-secondary-fixed-variant": "#334282",
+            "outline-variant": "#334155",
+            "surface-container-lowest": "#0a0e16",
+            "tertiary": "#86efac",
+            "inverse-primary": "#2b6193",
+            "secondary-fixed": "#dde1ff",
+            "on-primary-fixed-variant": "#03497a",
+            "inverse-surface": "#dfe2ee",
+            "surface-container-highest": "#2e3442",
+            "outline": "#64748b",
+            "on-error-container": "#fecaca",
+            "secondary-container": "#334282",
+            "on-primary": "#003257",
+            "background": "#0f131c",
+            "on-error": "#7f1d1d",
+            "surface-container": "#151922",
+            "on-secondary-fixed": "#001354",
+            "primary-container": "#93c5fd",
+            "primary-fixed": "#d0e4ff",
+            "surface-bright": "#2c3342",
+            "primary": "#c6dfff",
+            "tertiary-fixed-dim": "#73db9a",
+            "inverse-on-surface": "#2c3039",
+            "tertiary-fixed": "#8ff8b4",
+            "surface-container-high": "#1f2430"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.5rem",
+            "margin-tablet": "2rem",
+            "space-sm": "0.75rem",
+            "margin-desktop": "3rem",
+            "space-2xs": "0.25rem",
+            "space-2xl": "3rem",
+            "dock-height": "4.5rem",
+            "space-md": "1rem",
+            "space-3xl": "4rem",
+            "margin-mobile": "1rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-caps": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "display-hero-mobile": ["Space Grotesk"],
+            "code-telemetry": ["JetBrains Mono"],
+            "display-hero": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "label-hud": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "display-hero-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "code-telemetry": ["12px", { "lineHeight": "16px", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "label-hud": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    
+    /* Quiet Tech Subtle Glows & Accents */
+    .glow-soft {
+      box-shadow: 0 0 16px -2px rgba(147, 197, 253, 0.12);
+    }
+    .glow-orb-soft {
+      box-shadow: 0 4px 18px rgba(96, 165, 250, 0.25), inset 0 0 8px rgba(255, 255, 255, 0.2);
+    }
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md antialiased min-h-screen selection:bg-slate-700 selection:text-slate-100 pb-32">
+<!-- TOP APP BAR HUD (Quiet Tech Header) -->
+<header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-margin-mobile h-16 w-full max-w-7xl mx-auto bg-surface-container-lowest/80 backdrop-blur-xl border-b border-white/5 shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
+<!-- Leading Identity & Avatar -->
+<div class="flex items-center space-x-space-sm">
+<div class="relative flex items-center justify-center w-10 h-10 rounded-full bg-surface-container border border-white/10 overflow-hidden ring-1 ring-white/5">
+<img class="w-full h-full object-cover" data-alt="Futuristic digital portrait of Juan P., an ambitious university engineering student with subtle cybernetic HUD projections reflecting faintly across his sharp focus, ambient dark studio aesthetic with cool electric cyan neon reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAybQygUPzMX_14Fjs1McdwyrlREbPGxTJKyPnEffOxgfEbB9r_h3N9W00bOxVZh_XKmY7CcMN9rhW9PINSlfd4T5QueKRxP1eCQCZbOKcsZ8NNWUFYm2SZLTbgwyjN5YPpX--oz7QtYMdKZvqlBhItmPSAXUEuuAnhVMr7CY_pNbwFYjLVLsClaS5sP3dW_xkqnT9qzrG3uteSVxx3K3Z_WyupgfUeVvYrBgFs1iguKiWAQfAHAUi3zA"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400/90 ring-2 ring-surface-container-lowest"></div>
+</div>
+<div class="flex items-center space-x-1.5">
+<div class="w-2 h-2 rounded-full bg-sky-400/80 animate-pulse"></div>
+<span class="text-headline-sm font-headline-sm font-bold tracking-wider text-slate-100">JARVIS AI</span>
+</div>
+</div>
+<!-- Trailing Actions & Add Trigger -->
+<div class="flex items-center space-x-space-xs">
+<button class="relative p-2 rounded-xl bg-surface-container/60 border border-white/5 text-slate-400 hover:text-slate-200 hover:bg-surface-container-high/50 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-400"></span>
+</button>
+<button class="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-sky-200 hover:bg-slate-700/70 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+<span class="font-label-caps text-label-caps">Add</span>
+</button>
+</div>
+</header>
+<!-- MAIN VIEWPORT CONTAINER -->
+<main class="w-full max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto px-margin-mobile pt-20 space-y-space-lg">
+<!-- SALUDO & IA COMMAND BAR -->
+<section class="space-y-space-sm pt-2">
+<div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight">
+          Buenas tardes, <span class="text-sky-300 font-semibold">Juan.</span>
+</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Esto es lo que necesita tu atención hoy.
+        </p>
+</div>
+<!-- Futuristic JARVIS Command Bar (Restyled Quiet Navy/Slate) -->
+<div class="relative rounded-2xl bg-surface-container/90 backdrop-blur-xl border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.35)] p-2">
+<div class="flex items-center space-x-space-xs px-2 py-1">
+<div class="relative flex items-center justify-center text-sky-400">
+<span class="material-symbols-outlined text-[22px] opacity-80" data-icon="graphic_eq">graphic_eq</span>
+</div>
+<input class="w-full bg-transparent border-none text-on-surface placeholder:text-slate-500 font-body-md text-body-md focus:ring-0 focus:outline-none" placeholder="Ask JARVIS anything..." type="text"/>
+<button class="p-2 rounded-xl bg-slate-800/80 text-sky-300 border border-slate-700/60 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[20px]" data-icon="mic">mic</span>
+</button>
+</div>
+<!-- Interactive Suggestion Chips -->
+<div class="flex items-center space-x-2 overflow-x-auto pt-2 pb-1 scrollbar-none text-nowrap">
+<button class="px-3 py-1 rounded-full bg-surface-container-low border border-white/5 text-slate-300 hover:text-sky-200 hover:border-slate-600 font-label-caps text-label-caps transition-colors">
+            ¿Qué debería estudiar hoy?
+          </button>
+<button class="px-3 py-1 rounded-full bg-surface-container-low border border-white/5 text-slate-300 hover:text-sky-200 hover:border-slate-600 font-label-caps text-label-caps transition-colors">
+            Organiza mi día
+          </button>
+<button class="px-3 py-1 rounded-full bg-surface-container-low border border-white/5 text-slate-300 hover:text-sky-200 hover:border-slate-600 font-label-caps text-label-caps transition-colors">
+            ¿Cuánto puedo gastar?
+          </button>
+</div>
+</div>
+</section>
+<!-- DAILY BRIEFING CARD (RECOMMENDED BY JARVIS) -->
+<section class="relative rounded-2xl bg-surface-container/80 backdrop-blur-xl p-space-md border border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+<!-- Neural HUD Beacon Badge -->
+<div class="flex items-center justify-between mb-3">
+<div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-sky-950/40 border border-sky-500/25 text-sky-300 font-label-caps text-label-caps">
+<span class="w-2 h-2 rounded-full bg-sky-400"></span>
+<span>RECOMMENDED BY JARVIS</span>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-slate-400">EST. 35 MIN</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed mb-4">
+        Hoy tienes <strong class="text-sky-300 font-medium">2 clases</strong>, <strong class="text-sky-300 font-medium">3 tareas pendientes</strong> y un bloque libre de 2 horas. Tu prioridad debería ser terminar el taller de Redes.
+      </p>
+<div class="flex items-center justify-between pt-2 border-t border-white/5">
+<div class="flex items-center space-x-2 text-slate-400 font-code-telemetry text-code-telemetry">
+<span class="material-symbols-outlined text-[16px] text-emerald-400/80" data-icon="auto_awesome">auto_awesome</span>
+<span>AI Synthesis Model v4.2</span>
+</div>
+<button class="flex items-center space-x-1 text-sky-300 hover:text-sky-200 font-label-caps text-label-caps transition-colors">
+<span>View full briefing</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- TODAY'S PRIORITY CARD (Muted Coral / Amber Tint) -->
+<section class="rounded-2xl bg-surface-container-low/90 backdrop-blur-xl p-space-md border border-rose-500/20 shadow-[0_4px_20px_rgba(0,0,0,0.3)] relative overflow-hidden">
+<!-- Ambient Glow in Top Corner -->
+<div class="absolute -top-10 -right-10 w-28 h-28 bg-rose-500/10 blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-2">
+<div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-rose-950/30 border border-rose-400/25 text-rose-300 font-label-caps text-label-caps">
+<span class="w-2 h-2 rounded-full bg-rose-400"></span>
+<span>HIGH ACADEMIC IMPACT</span>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-rose-300/80">URGENCY: HIGH</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-1 mb-3">
+        Terminar taller de Cálculo Multivariable
+      </h3>
+<!-- Badges Telemétricos -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+<div class="p-2 rounded-xl bg-surface-container/60 border border-white/5 flex flex-col">
+<span class="font-label-caps text-label-caps text-slate-400">ENTREGA</span>
+<span class="font-code-telemetry text-code-telemetry text-on-surface font-semibold">Mañana (14:00)</span>
+</div>
+<div class="p-2 rounded-xl bg-surface-container/60 border border-white/5 flex flex-col">
+<span class="font-label-caps text-label-caps text-slate-400">IMPACTO</span>
+<span class="font-code-telemetry text-code-telemetry text-sky-300 font-semibold">30% Nota Final</span>
+</div>
+<div class="p-2 rounded-xl bg-surface-container/60 border border-white/5 flex flex-col col-span-2 sm:col-span-1">
+<span class="font-label-caps text-label-caps text-slate-400">ESTADO</span>
+<span class="font-code-telemetry text-code-telemetry text-emerald-400 font-semibold">65% Completado</span>
+</div>
+</div>
+<!-- Soft Ice-Blue Progress Bar -->
+<div class="space-y-1.5 mb-4">
+<div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant">
+<span>Progreso del taller</span>
+<span class="text-sky-300">65%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden p-0.5">
+<div class="h-full rounded-full bg-sky-400/90" style="width: 65%;"></div>
+</div>
+</div>
+<!-- Action Button (Sober Soft Blue / Cold Indigo Gradient) -->
+<button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-headline-sm text-label-hud font-semibold flex items-center justify-center space-x-2 shadow-[0_2px_12px_rgba(56,189,248,0.2)] hover:from-sky-500 hover:to-indigo-500 active:scale-[0.99] transition-all">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow">play_arrow</span>
+<span>Continue task</span>
+</button>
+</section>
+<!-- AGENDA DE HOY (Interactive Timeline) -->
+<section class="rounded-2xl bg-surface-container/70 backdrop-blur-xl p-space-md border border-white/10">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Agenda de hoy</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant">6 Eventos programados</p>
+</div>
+<button class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-sky-300 font-label-caps text-label-caps hover:bg-slate-700/70 transition-all">
+<span class="material-symbols-outlined text-[16px]" data-icon="bolt">bolt</span>
+<span>Optimize my schedule (AI)</span>
+</button>
+</div>
+<!-- Timeline visual vertical -->
+<div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-800">
+<!-- Item 1: Completado -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-emerald-500/50 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+</div>
+<div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low/60 border border-emerald-500/15">
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-emerald-400">08:00</span>
+<span class="font-body-md text-body-md font-medium text-on-surface line-through opacity-75">Repasar alemán</span>
+</div>
+<span class="font-label-caps text-label-caps text-emerald-400/70">Completado (+40 XP)</span>
+</div>
+<span class="material-symbols-outlined text-emerald-400 text-[20px]" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<!-- Item 2: En curso (Refined Sky Soft Accent) -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-sky-400 flex items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-high/90 border border-sky-400/30 shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
+<div class="flex items-center justify-between mb-1">
+<span class="font-code-telemetry text-code-telemetry text-sky-300 font-bold">10:00 - EN CURSO</span>
+<span class="px-2 py-0.5 rounded-full bg-sky-950/50 text-sky-200 border border-sky-500/20 font-label-caps text-label-caps">Aula 402B</span>
+</div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Clase de Redes y Sistemas Operativos</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Prof. V. Restrepo • Protocolos de Transporte</p>
+</div>
+</div>
+<!-- Item 3: Almuerzo -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-slate-700 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container-low/40 border border-white/5 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant">12:00</span>
+<span class="font-body-md text-body-md text-on-surface">Almuerzo &amp; Descanso cognitivo</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="restaurant">restaurant</span>
+</div>
+</div>
+<!-- Item 4: Cálculo Multivariable -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-slate-700 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container-low/40 border border-white/5 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant">14:00</span>
+<span class="font-body-md text-body-md text-on-surface">Cálculo Multivariable</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="functions">functions</span>
+</div>
+</div>
+<!-- Item 5: Bloque recomendado por IA -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-sky-400/40 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-sky-400"></div>
+</div>
+<div class="p-3 rounded-xl bg-sky-950/20 border border-sky-400/20">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-sky-300 font-semibold">16:00</span>
+<span class="font-body-md text-body-md font-medium text-on-surface">Bloque de estudio libre (2h)</span>
+</div>
+<span class="font-label-caps text-label-caps text-sky-300">AI RECOMMENDED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Sugerencia: Avanzar 40% del Taller de Redes en biblioteca piso 3.</p>
+</div>
+</div>
+<!-- Item 6: Tiempo libre -->
+<div class="relative group">
+<div class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-surface-container-lowest border-2 border-slate-700 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container-low/40 border border-white/5 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant">18:00</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Tiempo libre / Desconexión</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="bedtime">bedtime</span>
+</div>
+</div>
+</div>
+</section>
+<!-- GRILLA MODULAR DE WIDGETS BENTO -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- WIDGET 1: RESUMEN ACADÉMICO -->
+<div class="rounded-2xl bg-surface-container/75 backdrop-blur-xl p-space-md border border-white/10 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-sky-300" data-icon="school">school</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Academic Overview</h3>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-sky-300/80">SEMESTER W-9</span>
+</div>
+<!-- Circular HUD Gauge & Main Metrics (Soft Ice-blue Meter) -->
+<div class="flex items-center justify-around py-3">
+<!-- Dual-track Circular Gauge -->
+<div class="relative w-28 h-28 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<!-- Background Slate Track -->
+<circle class="text-slate-800" cx="50" cy="50" fill="none" r="42" stroke="currentColor" stroke-width="8"></circle>
+<!-- Softer Muted Sky Gauge Track -->
+<circle class="text-sky-400" cx="50" cy="50" fill="none" r="42" stroke="currentColor" stroke-dasharray="264" stroke-dashoffset="74" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">72%</span>
+<span class="font-label-caps text-[9px] text-on-surface-variant">PROGRESS</span>
+</div>
+</div>
+<!-- Meta Data Telemetry Grid -->
+<div class="space-y-2">
+<div>
+<span class="font-label-caps text-label-caps text-slate-400 block">PENDING TASKS</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">7 pendientes</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-slate-400 block">DUE THIS WEEK</span>
+<span class="font-headline-sm text-headline-sm text-emerald-400 font-semibold">3 entregas</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-slate-400 block">STUDY VELOCITY</span>
+<span class="font-headline-sm text-headline-sm text-sky-300 font-semibold">12.5h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Next Exam Alert -->
+<div class="mt-3 p-2.5 rounded-xl bg-surface-container-low border border-white/5 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block">PRÓXIMO EXAMEN</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Redes y Sistemas Operativos</span>
+</div>
+</div>
+<span class="font-code-telemetry text-code-telemetry text-indigo-300 font-semibold">En 3 días</span>
+</div>
+</div>
+<!-- WIDGET 2: RESUMEN FINANCIERO -->
+<div class="rounded-2xl bg-surface-container/75 backdrop-blur-xl p-space-md border border-white/10 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-emerald-400" data-icon="account_balance_wallet">account_balance_wallet</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Personal Finance</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-500/20 text-emerald-300 font-label-caps text-label-caps">COP</span>
+</div>
+<div class="space-y-1 mb-3">
+<span class="font-label-caps text-label-caps text-slate-400">BALANCE DISPONIBLE</span>
+<div class="font-headline-lg-mobile font-headline-lg text-headline-lg-mobile text-on-surface font-bold">
+              $2.450.000 <span class="text-sm font-body-sm text-on-surface-variant font-normal">COP</span>
+</div>
+</div>
+<!-- Budget Bar (Soft Emerald to Indigo gradient) -->
+<div class="space-y-1.5 mb-3">
+<div class="flex justify-between font-label-caps text-label-caps text-on-surface-variant">
+<span>Gastado: $1.180.000</span>
+<span class="text-indigo-200">Presupuesto: $2.000.000 (59%)</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="h-full rounded-full bg-gradient-to-r from-emerald-500/80 to-indigo-500/80" style="width: 59%;"></div>
+</div>
+</div>
+<!-- JARVIS Financial Insight -->
+<div class="p-2.5 rounded-xl bg-surface-container-low border border-white/5 flex items-start space-x-2">
+<span class="material-symbols-outlined text-indigo-300 text-[18px] mt-0.5" data-icon="insights">insights</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+<strong class="text-on-surface">JARVIS Insight:</strong> Estás gastando <span class="text-indigo-300 font-semibold">18% más</span> en comida que el mes pasado.
+            </p>
+</div>
+</div>
+<button class="mt-4 w-full py-2 rounded-xl bg-surface-container-high/80 border border-white/10 text-slate-300 hover:text-sky-200 font-label-caps text-label-caps transition-colors">
+          View finances
+        </button>
+</div>
+<!-- WIDGET 3: HABIT TRACKER (Full width in mobile/tablet grid) -->
+<div class="col-span-1 md:col-span-2 rounded-2xl bg-surface-container/75 backdrop-blur-xl p-space-md border border-white/10">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-amber-300" data-icon="local_fire_department">local_fire_department</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Habit Tracker</h3>
+</div>
+<div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-amber-950/30 border border-amber-500/20 text-amber-300 font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[14px]" data-icon="local_fire_department">local_fire_department</span>
+<span>RACHA ACTIVA: 12 DÍAS</span>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<!-- Habit 1 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-white/5">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-slate-400">GERMAN</span>
+<span class="font-code-telemetry text-code-telemetry text-emerald-400">4/6 sess</span>
+</div>
+<div class="flex space-x-1.5 pt-2">
+<div class="w-3.5 h-3.5 rounded-full bg-emerald-400/80"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-emerald-400/80"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-emerald-400/80"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-emerald-400/80"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-surface-container-highest"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-surface-container-highest"></div>
+</div>
+</div>
+<!-- Habit 2 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-white/5">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-slate-400">GYM / STRENGTH</span>
+<span class="font-code-telemetry text-code-telemetry text-sky-300">3/4</span>
+</div>
+<div class="flex space-x-1.5 pt-2">
+<div class="w-3.5 h-3.5 rounded-full bg-sky-400/80"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-sky-400/80"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-sky-400/80"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-surface-container-highest"></div>
+</div>
+</div>
+<!-- Habit 3 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-white/5">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-slate-400">DEEP STUDY</span>
+<span class="font-code-telemetry text-code-telemetry text-on-surface">12/18h</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest mt-3 overflow-hidden">
+<div class="h-full bg-indigo-400/80 rounded-full" style="width: 66%;"></div>
+</div>
+</div>
+<!-- Habit 4 -->
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-white/5">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-caps text-label-caps text-slate-400">SLEEP QUALITY</span>
+<span class="font-code-telemetry text-code-telemetry text-emerald-400">7.2h avg</span>
+</div>
+<div class="flex items-center space-x-1 pt-2">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/20"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FLOATING BOTTOM NAVIGATION DOCK (Restyled Quiet Tech) -->
+<nav class="fixed bottom-4 inset-x-4 max-w-lg mx-auto z-50 h-dock-height rounded-full bg-surface-container-lowest/90 backdrop-blur-2xl border border-white/10 shadow-[0_8px_28px_rgba(0,0,0,0.5)] flex justify-around items-center px-margin-mobile">
+<!-- Tab 1: Home (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-sky-300 font-semibold active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="dashboard">dashboard</span>
+<span class="text-label-caps font-label-caps mt-0.5">Home</span>
+</a>
+<!-- Tab 2: Tasks (Inactive) -->
+<a class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="checklist">checklist</span>
+<span class="text-label-caps font-label-caps mt-0.5">Tasks</span>
+</a>
+<!-- Tab 3: JARVIS ORB (Raised centerpiece - Quiet Indigo/Sky tone) -->
+<div class="relative -top-3 flex flex-col items-center justify-center">
+<button class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-500 p-0.5 glow-orb-soft active:scale-95 transition-transform flex items-center justify-center">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-sky-300 text-[26px]" data-icon="smart_toy">smart_toy</span>
+</div>
+</button>
+<span class="text-label-caps font-label-caps text-sky-300 font-medium mt-1 tracking-wider">JARVIS</span>
+</div>
+<!-- Tab 4: Calendar (Inactive) -->
+<a class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="calendar_month">calendar_month</span>
+<span class="text-label-caps font-label-caps mt-0.5">Calendar</span>
+</a>
+<!-- Tab 5: Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition-colors duration-200 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="person">person</span>
+<span class="text-label-caps font-label-caps mt-0.5">Profile</span>
+</a>
+</nav>
+</body></html>

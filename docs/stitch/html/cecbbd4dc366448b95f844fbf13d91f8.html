@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS AI - University Hub</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#31353f",
+            "error": "#ffb4ab",
+            "on-background": "#dfe2ef",
+            "on-primary-fixed": "#001f24",
+            "on-tertiary": "#003824",
+            "on-surface": "#dfe2ef",
+            "surface-dim": "#0f131c",
+            "on-secondary-container": "#e6ecff",
+            "secondary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface": "#0f131c",
+            "surface-tint": "#00daf3",
+            "surface-container-low": "#181b25",
+            "error-container": "#93000a",
+            "on-tertiary-fixed": "#002113",
+            "on-secondary": "#002e6a",
+            "on-surface-variant": "#bac9cc",
+            "secondary": "#adc6ff",
+            "on-tertiary-container": "#006645",
+            "on-primary-container": "#00626e",
+            "primary-fixed-dim": "#00daf3",
+            "tertiary-container": "#5be9ad",
+            "on-secondary-fixed-variant": "#004395",
+            "outline-variant": "#3b494c",
+            "surface-container-lowest": "#0a0e17",
+            "tertiary": "#a8ffd2",
+            "inverse-primary": "#006875",
+            "secondary-fixed": "#d8e2ff",
+            "on-primary-fixed-variant": "#004f58",
+            "inverse-surface": "#dfe2ef",
+            "surface-container-highest": "#31353f",
+            "outline": "#849396",
+            "on-error-container": "#ffdad6",
+            "secondary-container": "#0566d9",
+            "on-primary": "#00363d",
+            "background": "#0f131c",
+            "on-error": "#690005",
+            "surface-container": "#1c1f29",
+            "on-secondary-fixed": "#001a42",
+            "primary-container": "#00e5ff",
+            "primary-fixed": "#9cf0ff",
+            "surface-bright": "#353943",
+            "primary": "#c3f5ff",
+            "tertiary-fixed-dim": "#4edea3",
+            "inverse-on-surface": "#2c303a",
+            "tertiary-fixed": "#6ffbbe",
+            "surface-container-high": "#262a34"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.5rem",
+            "margin-tablet": "2rem",
+            "space-sm": "0.75rem",
+            "margin-desktop": "3rem",
+            "space-2xs": "0.25rem",
+            "space-2xl": "3rem",
+            "dock-height": "4.5rem",
+            "space-md": "1rem",
+            "space-3xl": "4rem",
+            "margin-mobile": "1rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-caps": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "display-hero-mobile": ["Space Grotesk"],
+            "code-telemetry": ["JetBrains Mono"],
+            "display-hero": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "label-hud": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "display-hero-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "code-telemetry": ["12px", { "lineHeight": "16px", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "label-hud": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    @keyframes pulse-cyan {
+      0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.8)); }
+      50% { opacity: 0.6; transform: scale(0.96); filter: drop-shadow(0 0 2px rgba(0, 229, 255, 0.3)); }
+    }
+    .pulse-indicator {
+      animation: pulse-cyan 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-32 selection:bg-primary-container selection:text-surface-container-lowest antialiased overflow-x-hidden">
+<!-- TopAppBar (Anchored Component) -->
+<header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-margin-mobile h-16 w-full max-w-7xl mx-auto bg-surface-container-lowest/80 backdrop-blur-xl border-b border-primary-container/20 shadow-[0_4px_24px_-2px_rgba(0,229,255,0.1)]">
+<!-- Leading Avatar with telemetry ring -->
+<div class="flex items-center space-x-3">
+<div class="relative flex items-center justify-center">
+<div class="w-9 h-9 rounded-full bg-surface-container-high border border-primary-container/40 flex items-center justify-center overflow-hidden p-0.5 shadow-[0_0_10px_rgba(0,229,255,0.2)]">
+<img class="w-full h-full object-cover rounded-full" data-alt="Futuristic portrait avatar of Juan P., a young university scholar wearing cybernetic telemetry specs in an illuminated holographic university lab with deep cyan and dark charcoal lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhllyKxar-_0uD3G5ktnzLUtD8PUZDEGrnMHipFvrUKm5ISONtRvZmFC77OoNZ7zLG3_aj_pK0sgNv4a7eUP3of6XCiHeIX9lOovs0Mw_TXgvqQ-exKo_fHmKxMi7-IVNPEsj7P2y-tF6OeuKOEkw0MjIhIZmXsSpqbdGnrJQXfgowBMUhUvR04GQmQjCXNTpIXNrieoepQZewlvSyZ9adXv-z1llzxwyq1BkjjrOCYhdIWkaoDvONBQ"/>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-tertiary-container border border-surface-container-lowest"></span>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="font-headline-sm text-headline-sm font-bold tracking-wider text-primary-container">JARVIS AI</span>
+<span class="text-[9px] font-code-telemetry px-1 rounded bg-primary-container/10 text-primary-container border border-primary-container/30">v4.2</span>
+</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span>CAMPUS NET</span>
+<span class="w-1 h-1 rounded-full bg-primary-container"></span>
+<span class="text-primary-container">ONLINE</span>
+</div>
+</div>
+</div>
+<!-- Right Controls: Notification & Filter -->
+<div class="flex items-center space-x-2">
+<button class="w-9 h-9 rounded-full flex items-center justify-center bg-surface-container-high/60 border border-primary-container/20 text-primary-container hover:text-primary hover:bg-surface-container-high/90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="tune">tune</span>
+</button>
+<button class="w-9 h-9 rounded-full flex items-center justify-center bg-surface-container-high/60 border border-primary-container/20 text-primary-container hover:text-primary hover:bg-surface-container-high/90 active:scale-95 transition-all relative">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary-container shadow-[0_0_6px_#00e5ff]"></span>
+</button>
+</div>
+</header>
+<!-- Main Container -->
+<main class="pt-20 px-margin-mobile max-w-lg mx-auto space-y-5">
+<!-- Screen Title HUD Bar -->
+<div class="flex items-end justify-between border-b border-outline-variant/30 pb-3 pt-2">
+<div>
+<div class="font-label-caps text-label-caps text-primary-container flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container pulse-indicator"></span>
+          ACADEMIC COMMAND CENTER
+        </div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-tight mt-0.5">University Hub</h1>
+</div>
+<div class="text-right">
+<span class="font-code-telemetry text-code-telemetry text-on-surface-variant block">4to Semestre</span>
+<span class="font-label-caps text-label-caps text-tertiary-container px-2 py-0.5 rounded-full bg-tertiary-container/10 border border-tertiary-container/30">20 Créditos</span>
+</div>
+</div>
+<!-- Section 1: Semester Overview Metrics Bento -->
+<section class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary-container" data-icon="analytics">analytics</span>
+          SEMESTER OVERVIEW &amp; TELEMETRY
+        </span>
+<span class="font-code-telemetry text-[11px] text-outline">SYNCED: T-0M</span>
+</div>
+<!-- Bento Cards Grid -->
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Card 1: GPA Semestre Actual -->
+<div class="p-3.5 rounded-xl bg-surface-container-low/90 border border-primary-container/20 backdrop-blur-xl relative overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]">
+<div class="absolute -right-6 -bottom-6 w-20 h-20 bg-primary-container/5 rounded-full blur-xl pointer-events-none"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-1">GPA SEMESTRE</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-hero-mobile text-display-hero-mobile font-bold text-on-surface leading-none">4.63</span>
+<span class="font-label-caps text-[10px] px-1.5 py-0.5 rounded bg-tertiary-container/15 text-tertiary-container border border-tertiary-container/30 flex items-center font-bold">
+              +0.50
+            </span>
+</div>
+<div class="mt-2 text-primary-container font-code-telemetry text-[11px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]" data-icon="trending_up">trending_up</span>
+            Top 3% de la cohorte
+          </div>
+</div>
+<!-- Card 2: GPA Acumulado -->
+<div class="p-3.5 rounded-xl bg-surface-container-low/90 border border-outline-variant/30 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)]">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-1">GPA HISTÓRICO</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-hero-mobile text-display-hero-mobile font-bold text-secondary-fixed leading-none">4.13</span>
+<span class="font-code-telemetry text-[10px] text-on-surface-variant">/ 5.00</span>
+</div>
+<div class="mt-2 text-secondary font-code-telemetry text-[11px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]" data-icon="military_tech">military_tech</span>
+            Distinción Activa
+          </div>
+</div>
+</div>
+<!-- Wide Card: Créditos y Mini Gráfica Luminosa -->
+<div class="p-4 rounded-xl bg-surface-container-low/90 border border-primary-container/15 backdrop-blur-xl relative shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+<div class="flex items-center justify-between mb-2">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">CRÉDITOS APROBADOS</span>
+<div class="font-headline-sm text-headline-sm text-on-surface font-semibold flex items-baseline gap-1.5">
+<span>68</span>
+<span class="text-outline text-[13px] font-code-telemetry">/ 160 totales (42.5%)</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-[10px] text-primary-container">CURVA HISTÓRICA</span>
+<span class="font-code-telemetry text-[11px] text-tertiary-container block">S1: 3.8 → S4: 4.63</span>
+</div>
+</div>
+<!-- SVG Mini Sparkline Graph -->
+<div class="relative h-16 w-full mt-1 pt-1">
+<!-- Graph Guide Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="border-b border-primary-container border-dashed w-full"></div>
+<div class="border-b border-primary-container border-dashed w-full"></div>
+<div class="border-b border-primary-container border-dashed w-full"></div>
+</div>
+<svg class="w-full h-full overflow-visible" fill="none" viewbox="0 0 340 50">
+<defs>
+<lineargradient id="cyanArea" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#00e5ff" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#00e5ff" stop-opacity="0.0"></stop>
+</lineargradient>
+<filter height="140%" id="glow" width="140%" x="-20%" y="-20%">
+<fegaussianblur result="blur" stddeviation="3"></fegaussianblur>
+<femerge>
+<femergenode in="blur"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+</defs>
+<!-- Area under curve -->
+<path d="M 0 45 L 80 38 L 170 28 L 260 22 L 340 5 L 340 50 L 0 50 Z" fill="url(#cyanArea)"></path>
+<!-- Bright Cyan Line -->
+<path d="M 0 45 L 80 38 L 170 28 L 260 22 L 340 5" filter="url(#glow)" stroke="#00e5ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<!-- Data points -->
+<circle cx="0" cy="45" fill="#00e5ff" r="2.5"></circle>
+<circle cx="80" cy="38" fill="#00e5ff" r="2.5"></circle>
+<circle cx="170" cy="28" fill="#00e5ff" r="3"></circle>
+<circle cx="260" cy="22" fill="#00e5ff" r="3"></circle>
+<circle class="pulse-indicator" cx="340" cy="5" fill="#ffffff" r="4" stroke="#00e5ff" stroke-width="2"></circle>
+</svg>
+</div>
+<!-- Semester Points Footer -->
+<div class="flex justify-between text-[10px] font-code-telemetry text-on-surface-variant pt-1">
+<span>Sem 1 (3.82)</span>
+<span>Sem 2 (4.01)</span>
+<span>Sem 3 (4.15)</span>
+<span class="text-primary-container font-semibold">Sem 4 (4.63)</span>
+</div>
+</div>
+</section>
+<!-- Section 2: AI Academic Warning / Banner JARVIS -->
+<section class="relative overflow-hidden rounded-xl border border-primary-container/40 bg-surface-container-lowest/90 backdrop-blur-xl p-4 shadow-[0_0_25px_rgba(0,229,255,0.12)]">
+<!-- Ambient Glow Accents -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-primary-container via-amber-400 to-primary-container"></div>
+<div class="flex items-start space-x-3">
+<!-- Neural Beacon Orb -->
+<div class="w-8 h-8 rounded-lg bg-surface-container-high border border-primary-container/40 flex items-center justify-center shrink-0 text-primary-container shadow-[0_0_12px_rgba(0,229,255,0.3)] mt-0.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="space-y-1.5 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-[10px] text-primary-container tracking-wider flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+              JARVIS ACADEMIC ADVISOR
+            </span>
+<span class="font-code-telemetry text-[9px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-300 border border-amber-400/30">URGENCIA ALTA</span>
+</div>
+<p class="font-body-md text-[13px] leading-snug text-on-surface">
+            Tu materia con mayor riesgo es <strong class="text-primary font-semibold">"Redes y Comunicación"</strong> por el examen del <span class="text-amber-300 font-medium">15 de Septiembre</span>. Prioriza 3 sesiones de subnetting.
+          </p>
+<div class="pt-2 flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container font-label-caps text-label-caps font-bold flex items-center gap-1 shadow-[0_0_12px_rgba(0,229,255,0.4)] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[14px]" data-icon="bolt">bolt</span>
+              PLANIFICAR ESTUDIO
+            </button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-high/60 text-on-surface-variant font-label-caps text-label-caps border border-outline-variant/30 hover:text-on-surface active:scale-95 transition-all">
+              DETALLES
+            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Listado de Materias (Subjects) -->
+<section class="space-y-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-semibold text-on-surface">Materias Inscritas</span>
+<span class="font-code-telemetry text-[11px] px-2 py-0.5 rounded-full bg-surface-container-high text-primary-container border border-primary-container/20">5 ACTIVAS</span>
+</div>
+<button class="text-primary-container font-label-caps text-label-caps flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[14px]" data-icon="sort">sort</span>
+          RIESGO
+        </button>
+</div>
+<!-- Subject 1: Redes y Comunicación de Datos -->
+<article class="rounded-xl bg-surface-container-low/85 border border-primary-container/25 p-4 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.5)] transition-all hover:border-primary-container/50 space-y-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-amber-400/15 text-amber-300 border border-amber-400/30 font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                Riesgo: Medio
+              </span>
+<span class="font-code-telemetry text-[11px] text-outline">TEL-401 • 4 Créditos</span>
+</div>
+<h2 class="font-headline-sm text-[16px] text-on-surface font-semibold leading-tight">Redes y Comunicación de Datos</h2>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Profesor: Ing. Restrepo</p>
+</div>
+<!-- Current Grade Badge -->
+<div class="text-right">
+<span class="font-label-caps text-[9px] text-outline block">NOTA ACTUAL</span>
+<span class="font-headline-lg-mobile text-[22px] font-bold text-amber-300 leading-none">4.4</span>
+<span class="font-code-telemetry text-[10px] text-outline">/ 5.0</span>
+</div>
+</div>
+<!-- Telemetry Details Grid -->
+<div class="grid grid-cols-2 gap-2 bg-surface-container-lowest/60 p-2.5 rounded-lg border border-outline-variant/20 font-code-telemetry text-[11px]">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-amber-300" data-icon="event">event</span>
+<span>Examen: <strong class="text-amber-200">15 Sep</strong></span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-primary-container" data-icon="assignment">assignment</span>
+<span>Tareas: <strong class="text-on-surface">3 pend.</strong></span>
+</div>
+</div>
+<!-- Progress Track & Action -->
+<div class="space-y-2 pt-1">
+<div>
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant mb-1">
+<span>PROGRESO ACADÉMICO</span>
+<span class="text-primary-container font-code-telemetry">70%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary-container to-amber-300 rounded-full" style="width: 70%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-code-telemetry text-[11px] text-outline">Aulas: Lab CISCO 302</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-primary-container/10 border border-primary-container/40 text-primary-container font-label-caps text-label-caps hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center gap-1">
+<span>Open subject</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Subject 2: Cálculo Multivariable -->
+<article class="rounded-xl bg-surface-container-low/85 border border-outline-variant/30 p-4 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.5)] transition-all hover:border-tertiary-container/50 space-y-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-tertiary-container/15 text-tertiary-container border border-tertiary-container/30 font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+                Riesgo: Bajo
+              </span>
+<span class="font-code-telemetry text-[11px] text-outline">MAT-302 • 4 Créditos</span>
+</div>
+<h2 class="font-headline-sm text-[16px] text-on-surface font-semibold leading-tight">Cálculo Multivariable</h2>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Profesor: Dr. Vargas</p>
+</div>
+<!-- Current Grade Badge -->
+<div class="text-right">
+<span class="font-label-caps text-[9px] text-outline block">NOTA ACTUAL</span>
+<span class="font-headline-lg-mobile text-[22px] font-bold text-tertiary-container leading-none">4.8</span>
+<span class="font-code-telemetry text-[10px] text-outline">/ 5.0</span>
+</div>
+</div>
+<!-- Telemetry Details Grid -->
+<div class="grid grid-cols-2 gap-2 bg-surface-container-lowest/60 p-2.5 rounded-lg border border-outline-variant/20 font-code-telemetry text-[11px]">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-tertiary-container" data-icon="event">event</span>
+<span>Examen: <strong class="text-tertiary">22 Sep</strong></span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-primary-container" data-icon="assignment">assignment</span>
+<span>Tareas: <strong class="text-on-surface">1 pend.</strong></span>
+</div>
+</div>
+<!-- Progress Track & Action -->
+<div class="space-y-2 pt-1">
+<div>
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant mb-1">
+<span>PROGRESO ACADÉMICO</span>
+<span class="text-tertiary-container font-code-telemetry">85%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary-container to-tertiary-container rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-code-telemetry text-[11px] text-outline">Edificio Turing • Aula 404</span>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface-container-high/70 border border-outline-variant/40 text-on-surface font-label-caps text-label-caps hover:bg-tertiary-container hover:text-on-tertiary transition-all flex items-center gap-1">
+<span>Open subject</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Subject 3: Bases de Datos Avanzadas -->
+<article class="rounded-xl bg-surface-container-low/85 border border-outline-variant/25 p-4 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-tertiary-container/15 text-tertiary-container border border-tertiary-container/30 font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+                Riesgo: Bajo
+              </span>
+<span class="font-code-telemetry text-[11px] text-outline">DAT-501 • 4 Créditos</span>
+</div>
+<h2 class="font-headline-sm text-[16px] text-on-surface font-semibold leading-tight">Bases de Datos Avanzadas</h2>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Profesor: Ph.D. Romero</p>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-[9px] text-outline block">NOTA ACTUAL</span>
+<span class="font-headline-lg-mobile text-[22px] font-bold text-on-surface leading-none">4.5</span>
+<span class="font-code-telemetry text-[10px] text-outline">/ 5.0</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 bg-surface-container-lowest/60 p-2.5 rounded-lg border border-outline-variant/20 font-code-telemetry text-[11px]">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-secondary" data-icon="event">event</span>
+<span>Examen: <strong class="text-on-surface">02 Oct</strong></span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-primary-container" data-icon="assignment">assignment</span>
+<span>Tareas: <strong class="text-on-surface">2 pend.</strong></span>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant mb-1">
+<span>PROGRESO ACADÉMICO</span>
+<span class="text-on-surface font-code-telemetry">60%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 60%"></div>
+</div>
+</div>
+</article>
+<!-- Subject 4: Alemán A1 -->
+<article class="rounded-xl bg-surface-container-low/85 border border-outline-variant/25 p-4 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-tertiary-container/15 text-tertiary-container border border-tertiary-container/30 font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+                Riesgo: Bajo
+              </span>
+<span class="font-code-telemetry text-[11px] text-outline">LAN-101 • 3 Créditos</span>
+</div>
+<h2 class="font-headline-sm text-[16px] text-on-surface font-semibold leading-tight">Alemán A1</h2>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Profesora: Frauke Meyer</p>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-[9px] text-outline block">NOTA ACTUAL</span>
+<span class="font-headline-lg-mobile text-[22px] font-bold text-tertiary-container leading-none">4.9</span>
+<span class="font-code-telemetry text-[10px] text-outline">/ 5.0</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 bg-surface-container-lowest/60 p-2.5 rounded-lg border border-outline-variant/20 font-code-telemetry text-[11px]">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-primary-container" data-icon="mic">mic</span>
+<span>Oral: <strong class="text-tertiary">18 Sep</strong></span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-primary-container" data-icon="assignment">assignment</span>
+<span>Tareas: <strong class="text-on-surface">1 pend.</strong></span>
+</div>
+</div>
+</article>
+<!-- Subject 5: Microcontroladores y Sistemas Embebidos -->
+<article class="rounded-xl bg-surface-container-low/85 border border-error/40 p-4 backdrop-blur-xl shadow-[0_4px_24px_rgba(239,68,68,0.15)] space-y-3 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-error-container/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] px-2 py-0.5 rounded bg-error-container/40 text-error border border-error/40 font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+                Riesgo: Medio-Alto
+              </span>
+<span class="font-code-telemetry text-[11px] text-outline">EMB-408 • 5 Créditos</span>
+</div>
+<h2 class="font-headline-sm text-[16px] text-on-surface font-semibold leading-tight">Microcontroladores y Sistemas Embebidos</h2>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-0.5">Profesor: Ing. J. Montoya</p>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-[9px] text-outline block">NOTA ACTUAL</span>
+<span class="font-headline-lg-mobile text-[22px] font-bold text-error leading-none">3.9</span>
+<span class="font-code-telemetry text-[10px] text-outline">/ 5.0</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 bg-surface-container-lowest/70 p-2.5 rounded-lg border border-error/20 font-code-telemetry text-[11px]">
+<div class="flex items-center gap-1.5 text-error">
+<span class="material-symbols-outlined text-[15px]" data-icon="warning">warning</span>
+<span>Lab: <strong class="text-on-surface">Viernes</strong></span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-primary-container" data-icon="speed">speed</span>
+<span>Requiere: <strong class="text-error">Nota ≥ 4.2</strong></span>
+</div>
+</div>
+</article>
+</section>
+<!-- Section 4: Acceso Rápido a Recursos Académicos -->
+<section class="space-y-3 pt-2">
+<div class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary-container" data-icon="widgets">widgets</span>
+        HERRAMIENTAS ACADÉMICAS JARVIS
+      </div>
+<div class="grid grid-cols-3 gap-2.5">
+<!-- Action 1: Calculadora de Notas -->
+<button class="p-3 rounded-xl bg-surface-container-low/90 border border-outline-variant/30 flex flex-col items-center justify-center text-center group hover:border-primary-container/40 active:scale-95 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-primary-container/20 flex items-center justify-center text-primary-container group-hover:shadow-[0_0_12px_rgba(0,229,255,0.4)] mb-2 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="calculate">calculate</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface font-semibold leading-tight">Calculadora de Notas</span>
+</button>
+<!-- Action 2: Simulador GPA -->
+<button class="p-3 rounded-xl bg-surface-container-low/90 border border-outline-variant/30 flex flex-col items-center justify-center text-center group hover:border-primary-container/40 active:scale-95 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-secondary/20 flex items-center justify-center text-secondary group-hover:shadow-[0_0_12px_rgba(173,198,255,0.4)] mb-2 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="ssid_chart">ssid_chart</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface font-semibold leading-tight">Simulador de GPA</span>
+</button>
+<!-- Action 3: Programar Sesión -->
+<button class="p-3 rounded-xl bg-surface-container-low/90 border border-outline-variant/30 flex flex-col items-center justify-center text-center group hover:border-tertiary-container/40 active:scale-95 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high border border-tertiary-container/20 flex items-center justify-center text-tertiary-container group-hover:shadow-[0_0_12px_rgba(91,233,173,0.4)] mb-2 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="alarm_add">alarm_add</span>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface font-semibold leading-tight">Sesión de Estudio</span>
+</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Anchored Component) -->
+<!-- Floating dock on mobile, active on JARVIS center hub -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-dock-height max-w-lg mx-auto">
+<div class="w-full h-16 rounded-full bg-surface-container-lowest/85 backdrop-blur-2xl border border-primary-container/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_20px_0_rgba(0,229,255,0.15)] flex items-center justify-around px-2 relative">
+<!-- Nav Item 1: Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90 w-12" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps mt-0.5">Home</span>
+</a>
+<!-- Nav Item 2: Tasks -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90 w-12" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="checklist">checklist</span>
+<span class="font-label-caps text-label-caps mt-0.5">Tasks</span>
+</a>
+<!-- Center Feature: JARVIS Orb (Protruding Primary Trigger) -->
+<div class="relative -top-4 flex flex-col items-center justify-center active:scale-95 transition-transform">
+<button class="w-14 h-14 rounded-full bg-gradient-to-tr from-surface-container-lowest via-primary-container to-white p-0.5 shadow-[0_0_35px_2px_rgba(0,229,255,0.5)] cursor-pointer">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center relative overflow-hidden">
+<!-- Pulsing neural ring core -->
+<div class="absolute inset-0 bg-primary-container/20 rounded-full animate-ping"></div>
+<span class="material-symbols-outlined text-primary-container text-[26px] drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]" data-icon="smart_toy" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+</button>
+<span class="font-label-caps text-label-caps font-bold text-primary-container drop-shadow-[0_0_8px_rgba(0,229,255,0.6)] mt-1">JARVIS</span>
+</div>
+<!-- Nav Item 4: Calendar -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90 w-12" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="calendar_month">calendar_month</span>
+<span class="font-label-caps text-label-caps mt-0.5">Calendar</span>
+</a>
+<!-- Nav Item 5: Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90 w-12" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-0.5">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

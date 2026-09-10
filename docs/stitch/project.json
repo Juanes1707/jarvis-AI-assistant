@@ -1,0 +1,316 @@
+{
+  "createTime": "2026-09-08T22:34:05.842832Z",
+  "designTheme": {
+    "bodyFont": "INTER",
+    "bodyFontFamily": "Inter",
+    "colorMode": "DARK",
+    "colorVariant": "FIDELITY",
+    "customColor": "#00e5ff",
+    "designMd": "---\nname: Cybernetic Neural System\ncolors:\n  surface: '#0f131c'\n  surface-dim: '#0f131c'\n  surface-bright: '#353943'\n  surface-container-lowest: '#0a0e17'\n  surface-container-low: '#181b25'\n  surface-container: '#1c1f29'\n  surface-container-high: '#262a34'\n  surface-container-highest: '#31353f'\n  on-surface: '#dfe2ef'\n  on-surface-variant: '#bac9cc'\n  inverse-surface: '#dfe2ef'\n  inverse-on-surface: '#2c303a'\n  outline: '#849396'\n  outline-variant: '#3b494c'\n  surface-tint: '#00daf3'\n  primary: '#c3f5ff'\n  on-primary: '#00363d'\n  primary-container: '#00e5ff'\n  on-primary-container: '#00626e'\n  inverse-primary: '#006875'\n  secondary: '#adc6ff'\n  on-secondary: '#002e6a'\n  secondary-container: '#0566d9'\n  on-secondary-container: '#e6ecff'\n  tertiary: '#a8ffd2'\n  on-tertiary: '#003824'\n  tertiary-container: '#5be9ad'\n  on-tertiary-container: '#006645'\n  error: '#ffb4ab'\n  on-error: '#690005'\n  error-container: '#93000a'\n  on-error-container: '#ffdad6'\n  primary-fixed: '#9cf0ff'\n  primary-fixed-dim: '#00daf3'\n  on-primary-fixed: '#001f24'\n  on-primary-fixed-variant: '#004f58'\n  secondary-fixed: '#d8e2ff'\n  secondary-fixed-dim: '#adc6ff'\n  on-secondary-fixed: '#001a42'\n  on-secondary-fixed-variant: '#004395'\n  tertiary-fixed: '#6ffbbe'\n  tertiary-fixed-dim: '#4edea3'\n  on-tertiary-fixed: '#002113'\n  on-tertiary-fixed-variant: '#005236'\n  background: '#0f131c'\n  on-background: '#dfe2ef'\n  surface-variant: '#31353f'\ntypography:\n  display-hero:\n    fontFamily: Space Grotesk\n    fontSize: 56px\n    fontWeight: '700'\n    lineHeight: 64px\n    letterSpacing: -0.04em\n  display-hero-mobile:\n    fontFamily: Space Grotesk\n    fontSize: 36px\n    fontWeight: '700'\n    lineHeight: 44px\n    letterSpacing: -0.03em\n  headline-lg:\n    fontFamily: Space Grotesk\n    fontSize: 32px\n    fontWeight: '600'\n    lineHeight: 40px\n    letterSpacing: -0.02em\n  headline-lg-mobile:\n    fontFamily: Space Grotesk\n    fontSize: 26px\n    fontWeight: '600'\n    lineHeight: 34px\n    letterSpacing: -0.02em\n  headline-md:\n    fontFamily: Space Grotesk\n    fontSize: 22px\n    fontWeight: '600'\n    lineHeight: 30px\n    letterSpacing: -0.01em\n  headline-sm:\n    fontFamily: Space Grotesk\n    fontSize: 18px\n    fontWeight: '600'\n    lineHeight: 26px\n    letterSpacing: 0em\n  body-lg:\n    fontFamily: Inter\n    fontSize: 16px\n    fontWeight: '400'\n    lineHeight: 26px\n    letterSpacing: -0.01em\n  body-md:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: '400'\n    lineHeight: 22px\n    letterSpacing: 0em\n  body-sm:\n    fontFamily: Inter\n    fontSize: 12px\n    fontWeight: '400'\n    lineHeight: 18px\n    letterSpacing: 0.01em\n  label-caps:\n    fontFamily: Space Grotesk\n    fontSize: 11px\n    fontWeight: '700'\n    lineHeight: 14px\n    letterSpacing: 0.08em\n  label-hud:\n    fontFamily: Space Grotesk\n    fontSize: 13px\n    fontWeight: '500'\n    lineHeight: 16px\n    letterSpacing: 0.02em\n  code-telemetry:\n    fontFamily: JetBrains Mono\n    fontSize: 12px\n    fontWeight: '500'\n    lineHeight: 16px\n    letterSpacing: -0.02em\nrounded:\n  sm: 0.25rem\n  DEFAULT: 0.5rem\n  md: 0.75rem\n  lg: 1rem\n  xl: 1.5rem\n  full: 9999px\nspacing:\n  space-2xs: 0.25rem\n  space-xs: 0.5rem\n  space-sm: 0.75rem\n  space-md: 1rem\n  space-lg: 1.5rem\n  space-xl: 2rem\n  space-2xl: 3rem\n  space-3xl: 4rem\n  margin-mobile: 1rem\n  margin-tablet: 2rem\n  margin-desktop: 3rem\n  dock-height: 4.5rem\n---\n\n## Brand & Style\n\nThis design system embodies a futuristic, hyper-refined, AI-native command center tailored for high-achieving university scholars. It elevates the student experience from chaotic academic micromanagement to effortless cognitive synthesis. The tone is authoritative yet frictionless—evoking the sensation of interacting with an ambient, omniscient intelligence operating in real time.\n\nThe aesthetic fuses **Precision Cybernetics** with **Minimalist Glassmorphism**:\n- Deep, light-absorbing atmospheric surfaces simulate zero-gravity digital space.\n- Razor-sharp optical contrast pairs luminous electric cyan intelligence cues with whisper-quiet structural boundaries.\n- High visual economy: every element serves an informational or contextual purpose. Decisive HUD-inspired telemetry rings, micro-illuminated states, and pristine glass surfaces remove physical clutter while heightening cognitive clarity.\n\n## Colors\n\nThe color architecture is built around absolute dark-room readability, optimized for late-night research and deep work sessions without causing visual fatigue.\n\n### Palette System\n- **Void Bases (Neutral Canvas):** \n  - `Surface Void` (`#090D16`): The ultimate canvas base layer.\n  - `Surface Deck` (`#0D1322`): Elevated canvas tier for module groupings and panels.\n  - `Surface Glass` (`#131B2E` / `rgba(19, 27, 46, 0.75)`): Translucent floating surface for cards and HUD overlays.\n- **Core Intelligence (Primary & Secondary Accents):**\n  - `Electric Cyan` (`#00E5FF`): The primary AI signature. Denotes system recommendations, active focus zones, actionable states, and synthetic neural prompts.\n  - `Neon Azure` (`#00B0FF`): Secondary interactive highlight for passive selections and linked entities.\n  - `Hyperdrive Blue` (`#3B82F6`): Tertiary operational anchor for stable structures, navigational indicators, and deep data linkages.\n- **Diagnostic Feedback Tokens:**\n  - `Neural Emerald` (`#10B981` / `#00E676`): Academic mastery, completed objectives, GPA upside, and balanced schedules.\n  - `Temporal Amber` (`#F59E0B` / `#FF9100`): Near-term exams, unread synthesized briefs, and schedule collisions.\n  - `Critical Crimson` (`#EF4444`): Immediate academic jeopardy, imminent submission deadlines (<3h), and critical omissions.\n- **Text & Stroke Contrast:**\n  - Primary text is crisp pure white (`#FFFFFF`) with secondary supporting telemetry rendered in muted steel blue (`#94A3B8`). Ghost borders utilize high-precision micro-cyan alpha levels (`rgba(0, 229, 255, 0.15)`).\n\n## Typography\n\nThe type ecosystem balances machine-precision telemetry with long-form reading comfort:\n- **Headlines & Telemetry (`Space Grotesk`):** Delivers clean technological character, subtle geometric quirks, and structural presence. All major numerical readouts, HUD labels, and section anchors utilize Space Grotesk to project scientific rigor.\n- **Synthesized Body Text (`Inter`):** Selected for maximum legibility in lecture summaries, syllabus breakdowns, and continuous AI research streams. Optimized micro-spacing ensures swift scanning under low-light conditions.\n- **Label Caps:** Formatted exclusively in uppercase with tracked spacing (`letter-spacing: 0.08em`) to mimic diagnostic HUD telemetry headers without visually overpowering primary task details.\n\n## Layout & Spacing\n\nThe layout operates on a dynamic 8pt mathematical rhythm tailored for rapid thumb navigation on mobile and modular HUD grids on larger viewports.\n\n### Multi-Device Reflow\n- **Mobile (<768px):** Single-column, frictionless linear stack. Primary interactions exist within the lower 40% thumb-zone. The navigation dock is fixed at `4.5rem` (`72px`) elevation above safe area, floating above the scrolling content with a `backdrop-filter: blur(20px)`.\n- **Tablet (768px - 1024px):** Asymmetric 8-column layout. Split between an operational feed (5 columns) and an ambient intelligence context pane (3 columns) containing syllabus deadlines and real-time knowledge graphs.\n- **Desktop (>1024px):** 12-column modular cockpit. Side-docked persistent system navigation, 7-column primary workspace, and a 4-column dedicated neural assistant rail.\n\n### Spacing Rules\n- Micro-spacing (`0.25rem` to `0.5rem`) binds metadata to parent entities (e.g., urgency dot to exam timestamp).\n- Component interior padding adheres strictly to `1rem` or `1.5rem` to preserve atmospheric negative space inside translucent containers.\n\n## Elevation & Depth\n\nVisual hierarchy relies on optical luminosity and translucent layering rather than simulated natural light sources:\n\n1. **Layer 0 (Void Ground):** Pure dark space (`#090D16`), completely matte, non-reflective.\n2. **Layer 1 (Card Matrix):** Translucent glass panels (`rgba(19, 27, 46, 0.75)`) infused with a `24px` backdrop blur. Outlines use a microscopic inner edge glow: `1px solid rgba(0, 229, 255, 0.12)`.\n3. **Layer 2 (Active Modals & Context Flyouts):** Deeper tint (`rgba(13, 19, 34, 0.92)`), paired with a multi-stage ambient glow: `0 8px 32px -4px rgba(0, 0, 0, 0.6), 0 0 20px 0 rgba(0, 229, 255, 0.15)`.\n4. **Layer 3 (The AI Orb & Primary Triggers):** Absolute elevation. Driven by direct radial luminosity: `box-shadow: 0 0 35px 2px rgba(0, 229, 255, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.6)`.\n\n## Shapes\n\nThe shape architecture is calibrated to **Level 2 (Rounded)**:\n- Standard interactive elements, badges, and cards leverage an outer curvature of `1rem` (`16px`), tapering down to `0.5rem` (`8px`) for compact inner chips and buttons.\n- Fully rounded circular geometry (`rounded-full`) is reserved exclusively for the AI Orb, circular HUD progress gauges, and user profile telemetries to signify self-contained, continuous systems.\n- Borders are ultra-thin (`1px`), functioning as precision light-catching bevels on dark glass.\n\n## Components\n\n### 1. Buttons & Triggers\n- **Primary AI Action:** Filled with Electric Cyan (`#00E5FF`) text in deep void (`#090D16`), backed by an ambient cyan bloom. Hover/active shifts luminosity up with a `scale(1.02)` transform.\n- **Secondary Ghost:** Translucent background (`rgba(0, 229, 255, 0.06)`), micro-border `rgba(0, 229, 255, 0.3)`, text in white with active state flashing to `#00E5FF`.\n\n### 2. Glassmorphic Intelligence Cards\n- Configured with `rgba(19, 27, 46, 0.75)` surface, `backdrop-filter: blur(20px)`, and `border: 1px solid rgba(0, 229, 255, 0.15)`.\n- Cards highlight academic modules, synthesized lecture nodes, and auto-generated assignment breakdowns.\n\n### 3. Circular Progress HUD Rings\n- SVG-based dual-track meters: a non-intrusive slate background ring (`rgba(255, 255, 255, 0.05)`) paired with an active stroke rendered in gradient cyan-to-emerald. Displays daily cognitive completion, study velocity, and semester module progress with a centered Space Grotesk readout.\n\n### 4. Neural Status Badges\n- High-contrast pill containers (`padding: 4px 10px`) utilizing `label-caps` typography:\n  - **\"Recommended by JARVIS\":** Background `rgba(0, 229, 255, 0.12)`, border `rgba(0, 229, 255, 0.4)`, text `#00E5FF`, preceded by a pulsating 6px circular cyan beacon.\n  - **\"High Academic Impact\":** Background `rgba(16, 185, 129, 0.12)`, border `rgba(16, 185, 129, 0.4)`, text `#00E676`.\n  - **\"Critical Risk\":** Background `rgba(239, 68, 68, 0.12)`, border `rgba(239, 68, 68, 0.4)`, text `#EF4444`.\n\n### 5. Floating Bottom Navigation Dock\n- Houses 5 high-priority ergonomic anchors: **Home**, **Tasks**, **JARVIS Orb** (raised centerpiece), **Calendar**, and **Profile**.\n- Glass structure styled with `rgba(9, 13, 22, 0.85)` background, horizontal corner radius of `28px`, and top-edge neon cyan micro-line.\n- **JARVIS AI Orb:** Positioned in the center, protruding `14px` above the dock baseline. Multi-layered electric cyan gradient with pulsating core animation responding to ambient voice or touch queries.\n\n### 6. Inputs & Fields\n- Dark recessed containers (`#0D1322`) with `1px solid rgba(148, 163, 184, 0.2)` border. On focus, the border seamlessly transitions to luminous electric cyan (`#00E5FF`) accompanied by an exterior `0 0 12px rgba(0, 229, 255, 0.25)` halo. Placeholder text sits at `rgba(148, 163, 184, 0.5)`.",
+    "font": "SPACE_GROTESK",
+    "headlineFont": "SPACE_GROTESK",
+    "headlineFontFamily": "Space Grotesk",
+    "labelFont": "SPACE_GROTESK",
+    "labelFontFamily": "Space Grotesk",
+    "namedColors": {
+      "background": "#0f131c",
+      "error": "#ffb4ab",
+      "error_container": "#93000a",
+      "inverse_on_surface": "#2c303a",
+      "inverse_primary": "#006875",
+      "inverse_surface": "#dfe2ef",
+      "on_background": "#dfe2ef",
+      "on_error": "#690005",
+      "on_error_container": "#ffdad6",
+      "on_primary": "#00363d",
+      "on_primary_container": "#00626e",
+      "on_primary_fixed": "#001f24",
+      "on_primary_fixed_variant": "#004f58",
+      "on_secondary": "#002e6a",
+      "on_secondary_container": "#e6ecff",
+      "on_secondary_fixed": "#001a42",
+      "on_secondary_fixed_variant": "#004395",
+      "on_surface": "#dfe2ef",
+      "on_surface_variant": "#bac9cc",
+      "on_tertiary": "#003824",
+      "on_tertiary_container": "#006645",
+      "on_tertiary_fixed": "#002113",
+      "on_tertiary_fixed_variant": "#005236",
+      "outline": "#849396",
+      "outline_variant": "#3b494c",
+      "primary": "#c3f5ff",
+      "primary_container": "#00e5ff",
+      "primary_fixed": "#9cf0ff",
+      "primary_fixed_dim": "#00daf3",
+      "secondary": "#adc6ff",
+      "secondary_container": "#0566d9",
+      "secondary_fixed": "#d8e2ff",
+      "secondary_fixed_dim": "#adc6ff",
+      "surface": "#0f131c",
+      "surface_bright": "#353943",
+      "surface_container": "#1c1f29",
+      "surface_container_high": "#262a34",
+      "surface_container_highest": "#31353f",
+      "surface_container_low": "#181b25",
+      "surface_container_lowest": "#0a0e17",
+      "surface_dim": "#0f131c",
+      "surface_tint": "#00daf3",
+      "surface_variant": "#31353f",
+      "tertiary": "#a8ffd2",
+      "tertiary_container": "#5be9ad",
+      "tertiary_fixed": "#6ffbbe",
+      "tertiary_fixed_dim": "#4edea3"
+    },
+    "overrideNeutralColor": "#090d16",
+    "overridePrimaryColor": "#00e5ff",
+    "overrideSecondaryColor": "#3b82f6",
+    "overrideTertiaryColor": "#10b981",
+    "roundness": "ROUND_EIGHT",
+    "spacing": {
+      "dock-height": "4.5rem",
+      "margin-desktop": "3rem",
+      "margin-mobile": "1rem",
+      "margin-tablet": "2rem",
+      "space-2xl": "3rem",
+      "space-2xs": "0.25rem",
+      "space-3xl": "4rem",
+      "space-lg": "1.5rem",
+      "space-md": "1rem",
+      "space-sm": "0.75rem",
+      "space-xl": "2rem",
+      "space-xs": "0.5rem"
+    },
+    "spacingScale": 2,
+    "typography": {
+      "body-lg": {
+        "fontFamily": "Inter",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "letterSpacing": "-0.01em",
+        "lineHeight": "26px"
+      },
+      "body-md": {
+        "fontFamily": "Inter",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "letterSpacing": "0em",
+        "lineHeight": "22px"
+      },
+      "body-sm": {
+        "fontFamily": "Inter",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "letterSpacing": "0.01em",
+        "lineHeight": "18px"
+      },
+      "code-telemetry": {
+        "fontFamily": "JetBrains Mono",
+        "fontSize": "12px",
+        "fontWeight": "500",
+        "letterSpacing": "-0.02em",
+        "lineHeight": "16px"
+      },
+      "display-hero": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "56px",
+        "fontWeight": "700",
+        "letterSpacing": "-0.04em",
+        "lineHeight": "64px"
+      },
+      "display-hero-mobile": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "36px",
+        "fontWeight": "700",
+        "letterSpacing": "-0.03em",
+        "lineHeight": "44px"
+      },
+      "headline-lg": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "32px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.02em",
+        "lineHeight": "40px"
+      },
+      "headline-lg-mobile": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "26px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.02em",
+        "lineHeight": "34px"
+      },
+      "headline-md": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "22px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.01em",
+        "lineHeight": "30px"
+      },
+      "headline-sm": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "18px",
+        "fontWeight": "600",
+        "letterSpacing": "0em",
+        "lineHeight": "26px"
+      },
+      "label-caps": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "letterSpacing": "0.08em",
+        "lineHeight": "14px"
+      },
+      "label-hud": {
+        "fontFamily": "Space Grotesk",
+        "fontSize": "13px",
+        "fontWeight": "500",
+        "letterSpacing": "0.02em",
+        "lineHeight": "16px"
+      }
+    }
+  },
+  "deviceType": "MOBILE",
+  "metadata": {
+    "userRole": "OWNER"
+  },
+  "name": "projects/11174925214121356476",
+  "origin": "STITCH",
+  "projectType": "TEXT_TO_UI_PRO",
+  "screenInstances": [
+    {
+      "height": 1778,
+      "id": "164d8eaf8b3841fe9959b95894f4c321",
+      "sourceScreen": "projects/11174925214121356476/screens/164d8eaf8b3841fe9959b95894f4c321",
+      "width": 390,
+      "x": 2955,
+      "y": 9561
+    },
+    {
+      "height": 1689,
+      "hidden": true,
+      "id": "290785ba2fdf4712a2f6e5182edb0fc8",
+      "sourceScreen": "projects/11174925214121356476/screens/290785ba2fdf4712a2f6e5182edb0fc8",
+      "width": 390,
+      "x": 3294
+    },
+    {
+      "height": 2253,
+      "id": "2a615b1a20a948ab8ae70688f9f801c1",
+      "sourceScreen": "projects/11174925214121356476/screens/2a615b1a20a948ab8ae70688f9f801c1",
+      "width": 390,
+      "x": 1362,
+      "y": 9614
+    },
+    {
+      "height": 1439,
+      "hidden": true,
+      "id": "39fb9404c64e44dfbb3248b5bc52d5c3",
+      "sourceScreen": "projects/11174925214121356476/screens/39fb9404c64e44dfbb3248b5bc52d5c3",
+      "width": 390,
+      "x": 2840
+    },
+    {
+      "height": 2310,
+      "id": "72d186dee5c244adac6567b0cc7938d6",
+      "sourceScreen": "projects/11174925214121356476/screens/72d186dee5c244adac6567b0cc7938d6",
+      "width": 390,
+      "x": -171,
+      "y": 9548
+    },
+    {
+      "height": 1595,
+      "hidden": true,
+      "id": "9939f72eadb24a029e3003b71836c555",
+      "sourceScreen": "projects/11174925214121356476/screens/9939f72eadb24a029e3003b71836c555",
+      "width": 390,
+      "x": 1932
+    },
+    {
+      "height": 2308,
+      "hidden": true,
+      "id": "9a1201abd8e14a249890eeaaa2930636",
+      "sourceScreen": "projects/11174925214121356476/screens/9a1201abd8e14a249890eeaaa2930636",
+      "width": 390,
+      "x": 1024
+    },
+    {
+      "height": 1514,
+      "hidden": true,
+      "id": "aa54a6238df94e1f88c724e885a55e5a",
+      "sourceScreen": "projects/11174925214121356476/screens/aa54a6238df94e1f88c724e885a55e5a",
+      "width": 390,
+      "x": 2386
+    },
+    {
+      "height": 540,
+      "hidden": true,
+      "id": "assets_542700f9307d4efb843bea881ff9ddef",
+      "sourceAsset": "assets/542700f9307d4efb843bea881ff9ddef",
+      "type": "DESIGN_SYSTEM_INSTANCE",
+      "width": 960
+    },
+    {
+      "height": 540,
+      "hidden": true,
+      "id": "assets_60df443c64d646258b210559fba1b8d6",
+      "sourceAsset": "assets/60df443c64d646258b210559fba1b8d6",
+      "type": "DESIGN_SYSTEM_INSTANCE",
+      "width": 960,
+      "y": 3730
+    },
+    {
+      "height": 1786,
+      "id": "b580f7623c404ce6918929f12c756cf3",
+      "sourceScreen": "projects/11174925214121356476/screens/b580f7623c404ce6918929f12c756cf3",
+      "width": 390,
+      "x": 2396,
+      "y": 9548
+    },
+    {
+      "height": 1554,
+      "id": "c3322a3bd24e48bd8a378b81e1ac5623",
+      "sourceScreen": "projects/11174925214121356476/screens/c3322a3bd24e48bd8a378b81e1ac5623",
+      "width": 390,
+      "x": 412,
+      "y": 9636
+    },
+    {
+      "height": 1962,
+      "hidden": true,
+      "id": "cecbbd4dc366448b95f844fbf13d91f8",
+      "sourceScreen": "projects/11174925214121356476/screens/cecbbd4dc366448b95f844fbf13d91f8",
+      "width": 390,
+      "x": 1478
+    },
+    {
+      "height": 2035,
+      "hidden": true,
+      "id": "f9d4ac55ec9e4a8ab3ffac775dbe8ccf",
+      "sourceScreen": "projects/11174925214121356476/screens/f9d4ac55ec9e4a8ab3ffac775dbe8ccf",
+      "width": 390,
+      "x": 3748
+    },
+    {
+      "height": 1398,
+      "id": "fb4b8af9daef4453b42e02c3f74c7eda",
+      "sourceScreen": "projects/11174925214121356476/screens/fb4b8af9daef4453b42e02c3f74c7eda",
+      "width": 390,
+      "x": 1835,
+      "y": 9636
+    },
+    {
+      "height": 1513,
+      "id": "fcc12e43abef47458c5d6764a765f913",
+      "sourceScreen": "projects/11174925214121356476/screens/fcc12e43abef47458c5d6764a765f913",
+      "width": 390,
+      "x": 892,
+      "y": 9677
+    }
+  ],
+  "thumbnailScreenshot": {
+    "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1Xks8N-_6qDnSyFOtUpbXVVo211ufGYR2B-4Z7Nt0W00L0aIocuTygfTduKLoldu6AgGrYivBiYFfGzxu8YNDOVU9FIE2iEnNzUqgPnEo0OZ7kk-c7KcwnHedug6xwodceoVBfTfcD-lS9LLZr_fURJTQlLtLW_K_5QlAYcwGO2xtgRmpRk7xINNEk2cIQQ4zodB2SShTAQP6I9K__vWPz_VyM2yMN5lwXhHVnlicIx2UEcn_xQxdHWbJw",
+    "name": "projects/11174925214121356476/screens/9939f72eadb24a029e3003b71836c555/fileEntries/screenshot"
+  },
+  "title": "JARVIS Student Command Center",
+  "updateTime": "2026-09-08T23:19:10.692161Z",
+  "visibility": "PRIVATE"
+}

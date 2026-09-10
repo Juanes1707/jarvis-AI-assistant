@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS Finance - Cyberpunk Financial Command Center</title>
+<!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined (Exact link mandated) -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Theme Configuration Verbatim -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#31353f",
+            "error": "#ffb4ab",
+            "on-background": "#dfe2ef",
+            "on-primary-fixed": "#001f24",
+            "on-tertiary": "#003824",
+            "on-surface": "#dfe2ef",
+            "surface-dim": "#0f131c",
+            "on-secondary-container": "#e6ecff",
+            "secondary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface": "#0f131c",
+            "surface-tint": "#00daf3",
+            "surface-container-low": "#181b25",
+            "error-container": "#93000a",
+            "on-tertiary-fixed": "#002113",
+            "on-secondary": "#002e6a",
+            "on-surface-variant": "#bac9cc",
+            "secondary": "#adc6ff",
+            "on-tertiary-container": "#006645",
+            "on-primary-container": "#00626e",
+            "primary-fixed-dim": "#00daf3",
+            "tertiary-container": "#5be9ad",
+            "on-secondary-fixed-variant": "#004395",
+            "outline-variant": "#3b494c",
+            "surface-container-lowest": "#0a0e17",
+            "tertiary": "#a8ffd2",
+            "inverse-primary": "#006875",
+            "secondary-fixed": "#d8e2ff",
+            "on-primary-fixed-variant": "#004f58",
+            "inverse-surface": "#dfe2ef",
+            "surface-container-highest": "#31353f",
+            "outline": "#849396",
+            "on-error-container": "#ffdad6",
+            "secondary-container": "#0566d9",
+            "on-primary": "#00363d",
+            "background": "#0f131c",
+            "on-error": "#690005",
+            "surface-container": "#1c1f29",
+            "on-secondary-fixed": "#001a42",
+            "primary-container": "#00e5ff",
+            "primary-fixed": "#9cf0ff",
+            "surface-bright": "#353943",
+            "primary": "#c3f5ff",
+            "tertiary-fixed-dim": "#4edea3",
+            "inverse-on-surface": "#2c303a",
+            "tertiary-fixed": "#6ffbbe",
+            "surface-container-high": "#262a34"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.5rem",
+            "margin-tablet": "2rem",
+            "space-sm": "0.75rem",
+            "margin-desktop": "3rem",
+            "space-2xs": "0.25rem",
+            "space-2xl": "3rem",
+            "dock-height": "4.5rem",
+            "space-md": "1rem",
+            "space-3xl": "4rem",
+            "margin-mobile": "1rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-caps": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Space Grotesk"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-lg-mobile": ["Space Grotesk"],
+            "display-hero-mobile": ["Space Grotesk"],
+            "code-telemetry": ["JetBrains Mono"],
+            "display-hero": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "label-hud": ["Space Grotesk"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "display-hero-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "code-telemetry": ["12px", { "lineHeight": "16px", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "label-hud": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    .hud-glow {
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
+    }
+    .neon-border {
+      border: 1px solid rgba(0, 229, 255, 0.2);
+    }
+    .pulse-cyan {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md antialiased overflow-x-hidden selection:bg-primary-container selection:text-surface-container-lowest relative">
+<!-- Atmospheric Cybernetic Grid Overlay -->
+<div class="fixed inset-0 pointer-events-none z-0 opacity-20 bg-[radial-gradient(#00e5ff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+<div class="fixed -top-40 -left-40 w-96 h-96 bg-primary-container/10 rounded-full blur-[128px] pointer-events-none z-0"></div>
+<div class="fixed top-1/2 -right-40 w-80 h-80 bg-secondary-container/15 rounded-full blur-[128px] pointer-events-none z-0"></div>
+<!-- TOP APP BAR (Mandated JSON Anchor: Shared Component) -->
+<header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-margin-mobile h-16 w-full max-w-7xl mx-auto bg-surface-container-lowest/80 backdrop-blur-xl border-b border-primary-container/20 shadow-[0_4px_24px_-2px_rgba(0,229,255,0.1)]">
+<!-- Leading HUD Avatar & Identity -->
+<div class="flex items-center gap-space-xs">
+<div class="relative flex items-center justify-center w-10 h-10 rounded-full bg-surface-container border border-primary-container/40">
+<span class="font-code-telemetry text-code-telemetry text-primary-container font-bold">JP</span>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-tertiary-container border-2 border-surface-container-lowest"></span>
+</div>
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary-container flex items-center gap-1.5">
+          JARVIS AI
+          <span class="text-label-caps font-label-caps text-[9px] px-1.5 py-0.5 rounded bg-primary-container/10 border border-primary-container/30 text-primary-container">FINANCE</span>
+</span>
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-ping"></span>
+<span class="text-label-caps font-label-caps text-[10px] text-on-surface-variant/80">Presupuesto Mensual Activo</span>
+</div>
+</div>
+</div>
+<!-- Actions & Registar Gasto Trigger -->
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-surface-container-lowest font-headline-sm text-label-hud font-bold shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>+ Gasto</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-high/50 text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<!-- MAIN SCROLLABLE CANVAS -->
+<main class="relative z-10 flex-1 w-full max-w-lg mx-auto px-margin-mobile pt-20 pb-28 flex flex-col gap-space-lg">
+<!-- FINANCIAL COMMAND CENTER: TOTAL BALANCE -->
+<section class="relative rounded-xl p-space-lg bg-surface-container-lowest/85 backdrop-blur-2xl border border-primary-container/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_20px_0_rgba(0,229,255,0.12)] overflow-hidden">
+<!-- Background Cybernetic Watermark -->
+<div class="absolute -right-8 -top-8 text-primary-container/5 select-none pointer-events-none">
+<span class="material-symbols-outlined text-[140px]">account_balance_wallet</span>
+</div>
+<div class="relative z-10 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="text-label-caps font-label-caps text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary-container text-[14px]">sensors</span>
+            TOTAL LIQUID BALANCE
+          </span>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-container/10 border border-tertiary-container/30 text-tertiary text-label-caps font-label-caps text-[10px]">
+            SYNCHRONIZED
+          </span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-display-hero-mobile text-display-hero-mobile text-primary tracking-tight drop-shadow-[0_0_16px_rgba(0,229,255,0.4)] font-bold">
+            $2,450,000
+          </span>
+<span class="font-code-telemetry text-code-telemetry text-primary-container">COP</span>
+</div>
+<!-- Telemetry Metrics Grid (Ingresos, Gastos, Ahorro, Inversiones) -->
+<div class="grid grid-cols-2 gap-space-xs pt-space-xs mt-space-xs border-t border-surface-variant/40">
+<!-- Ingresos -->
+<div class="p-2.5 rounded-lg bg-surface-container-low/60 border border-surface-variant/30 flex flex-col">
+<span class="text-label-caps font-label-caps text-on-surface-variant text-[10px] flex items-center gap-1">
+<span class="material-symbols-outlined text-tertiary-container text-[14px]">arrow_downward</span>
+              INGRESOS
+            </span>
+<span class="font-code-telemetry text-body-md font-bold text-tertiary-container mt-0.5">
+              +$3,200,000
+            </span>
+</div>
+<!-- Gastos Mes -->
+<div class="p-2.5 rounded-lg bg-surface-container-low/60 border border-surface-variant/30 flex flex-col">
+<span class="text-label-caps font-label-caps text-on-surface-variant text-[10px] flex items-center gap-1">
+<span class="material-symbols-outlined text-error text-[14px]">arrow_upward</span>
+              GASTOS DEL MES
+            </span>
+<span class="font-code-telemetry text-body-md font-bold text-on-surface mt-0.5">
+              $1,180,000
+            </span>
+</div>
+<!-- Ahorro Acumulado -->
+<div class="p-2.5 rounded-lg bg-surface-container-low/60 border border-surface-variant/30 flex flex-col">
+<span class="text-label-caps font-label-caps text-on-surface-variant text-[10px] flex items-center gap-1">
+<span class="material-symbols-outlined text-primary-container text-[14px]">savings</span>
+              AHORRO TOTAL
+            </span>
+<span class="font-code-telemetry text-body-md font-bold text-primary-container mt-0.5">
+              $520,000
+            </span>
+</div>
+<!-- Inversiones -->
+<div class="p-2.5 rounded-lg bg-surface-container-low/60 border border-surface-variant/30 flex flex-col">
+<span class="text-label-caps font-label-caps text-on-surface-variant text-[10px] flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[14px]">trending_up</span>
+              INVERSIONES
+            </span>
+<span class="font-code-telemetry text-body-md font-bold text-secondary mt-0.5">
+              $350,000
+            </span>
+</div>
+</div>
+</div>
+</section>
+<!-- MONTHLY BUDGET STATUS BAR HUD -->
+<section class="rounded-xl p-space-md bg-surface-container/70 backdrop-blur-xl border border-primary-container/15 flex flex-col gap-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[18px]">speed</span>
+<span class="text-label-caps font-label-caps text-on-surface font-bold">ESTADO DE PRESUPUESTO</span>
+</div>
+<span class="px-2 py-0.5 rounded text-label-caps font-label-caps text-[10px] bg-tertiary-container/15 text-tertiary border border-tertiary-container/30">
+          RITMO SALUDABLE
+        </span>
+</div>
+<!-- Segmented Cyan Track -->
+<div class="relative w-full h-3 rounded-full bg-surface-container-highest/60 overflow-hidden p-0.5">
+<div class="h-full rounded-full bg-gradient-to-r from-primary-container via-surface-tint to-tertiary-container w-[59%] shadow-[0_0_12px_rgba(0,229,255,0.7)] transition-all duration-500"></div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<p class="leading-tight">
+<span class="font-bold text-primary-container">59%</span> consumido de <span class="font-code-telemetry text-on-surface">$2,000,000 COP</span> (Día 18)
+        </p>
+<span class="font-code-telemetry text-[11px] text-tertiary">41% Restante</span>
+</div>
+</section>
+<!-- AI ADVISOR INSIGHTS CARD (JARVIS NEURAL CORE) -->
+<section class="relative rounded-xl p-space-md bg-surface-container-lowest/90 backdrop-blur-2xl border border-primary-container/40 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_20px_0_rgba(0,229,255,0.2)] flex flex-col gap-space-sm">
+<!-- Neural Header -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-primary-container/20 flex items-center justify-center border border-primary-container">
+<span class="material-symbols-outlined text-primary-container text-[16px] animate-pulse">smart_toy</span>
+</div>
+<span class="text-headline-sm font-headline-sm font-bold text-primary tracking-wide">JARVIS Financial Insights</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-primary-container/15 text-primary-container border border-primary-container/40 text-label-caps font-label-caps text-[10px] flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,229,255,0.3)]">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+          AI FINANCIAL ADVISOR
+        </span>
+</div>
+<!-- Recommendation 1: Proyección -->
+<div class="p-3 rounded-lg bg-surface-container-low/70 border border-primary-container/15 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary-container text-[20px] mt-0.5">auto_graph</span>
+<p class="text-body-sm font-body-sm text-on-surface leading-snug">
+          Has consumido el 59% de tu presupuesto. A este ritmo proyectas un <strong class="text-tertiary-container font-semibold">ahorro neto de $340,000 COP</strong> al cierre del ciclo.
+        </p>
+</div>
+<!-- Recommendation 2: Límite diario sugerido -->
+<div class="p-3 rounded-lg bg-surface-container-low/70 border border-primary-container/15 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-tertiary text-[20px] mt-0.5">verified_user</span>
+<p class="text-body-sm font-body-sm text-on-surface leading-snug">
+<strong class="text-primary-container">Gasto diario sugerido:</strong> Puedes destinar hasta <span class="font-code-telemetry text-tertiary font-bold">$72,000 COP</span> diarios durante los próximos 12 días sin comprometer tu fondo de emergencia.
+        </p>
+</div>
+<!-- Recommendation 3: Warning Alerta Ámbar -->
+<div class="p-3 rounded-lg bg-error-container/20 border border-error/30 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-error text-[20px] mt-0.5">warning</span>
+<p class="text-body-sm font-body-sm text-on-error-container leading-snug">
+<strong class="text-error font-semibold">Advertencia de consumo:</strong> Tu gasto en delivery y restaurantes aumentó <span class="font-code-telemetry font-bold text-error">+18%</span> en comparación con la semana previa.
+        </p>
+</div>
+</section>
+<!-- EXPENSE CATEGORY DISTRIBUTION (HUD BARS & RADIAL) -->
+<section class="rounded-xl p-space-md bg-surface-container/70 backdrop-blur-xl border border-primary-container/15 flex flex-col gap-space-sm shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">donut_small</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Distribución de Gastos</h2>
+</div>
+<span class="font-code-telemetry text-[11px] text-on-surface-variant">Ciclo Activo</span>
+</div>
+<!-- Proportional Category Bar HUD -->
+<div class="flex w-full h-3 rounded-full overflow-hidden gap-0.5 bg-surface-container-lowest">
+<div class="h-full bg-primary-container" style="width: 35%;" title="Comida 35%"></div>
+<div class="h-full bg-secondary" style="width: 18%;" title="Transporte 18%"></div>
+<div class="h-full bg-tertiary-container" style="width: 20%;" title="Universidad 20%"></div>
+<div class="h-full bg-primary-fixed-dim" style="width: 15%;" title="Entretenimiento 15%"></div>
+<div class="h-full bg-secondary-container" style="width: 7%;" title="Suscripciones 7%"></div>
+<div class="h-full bg-outline" style="width: 5%;" title="Otros 5%"></div>
+</div>
+<!-- Categories Detailed Grid -->
+<div class="grid grid-cols-2 gap-2 pt-2">
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-low/50 border border-surface-variant/30">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="text-body-sm font-body-sm text-on-surface">Comida</span>
+</div>
+<span class="font-code-telemetry text-body-sm font-bold text-primary-container">35%</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-low/50 border border-surface-variant/30">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-container"></span>
+<span class="text-body-sm font-body-sm text-on-surface">Universidad</span>
+</div>
+<span class="font-code-telemetry text-body-sm font-bold text-tertiary-container">20%</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-low/50 border border-surface-variant/30">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="text-body-sm font-body-sm text-on-surface">Transporte</span>
+</div>
+<span class="font-code-telemetry text-body-sm font-bold text-secondary">18%</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-low/50 border border-surface-variant/30">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-fixed-dim"></span>
+<span class="text-body-sm font-body-sm text-on-surface">Ocio / Entret.</span>
+</div>
+<span class="font-code-telemetry text-body-sm font-bold text-primary-fixed-dim">15%</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-low/50 border border-surface-variant/30">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-container"></span>
+<span class="text-body-sm font-body-sm text-on-surface">Suscripciones</span>
+</div>
+<span class="font-code-telemetry text-body-sm font-bold text-secondary-fixed">7%</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-low/50 border border-surface-variant/30">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-outline"></span>
+<span class="text-body-sm font-body-sm text-on-surface">Otros</span>
+</div>
+<span class="font-code-telemetry text-body-sm font-bold text-outline">5%</span>
+</div>
+</div>
+</section>
+<!-- FINANCIAL GOALS (METAS FINANCIERAS) -->
+<section class="rounded-xl p-space-md bg-surface-container/70 backdrop-blur-xl border border-primary-container/15 flex flex-col gap-space-sm shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">flag</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Metas Financieras</h2>
+</div>
+<button class="text-label-caps font-label-caps text-[10px] text-primary-container hover:underline">VER TODAS</button>
+</div>
+<!-- Goal 1: Fondo de Emergencia -->
+<div class="p-3 rounded-lg bg-surface-container-low/70 border border-surface-variant/40 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-primary-container/20 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[16px]">shield</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Fondo de Emergencia</p>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Meta prioritaria</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-code-telemetry text-body-md font-bold text-primary-container">60%</span>
+<p class="font-code-telemetry text-[11px] text-on-surface-variant">$1,200,000 / $2,000,000</p>
+</div>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="h-full rounded-full bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.6)]" style="width: 60%;"></div>
+</div>
+</div>
+<!-- Goal 2: Nueva Laptop Developer -->
+<div class="p-3 rounded-lg bg-surface-container-low/70 border border-surface-variant/40 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[16px]">laptop_mac</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-surface">Nueva Laptop Developer</p>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Hardware estudio</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-code-telemetry text-body-md font-bold text-secondary">46%</span>
+<p class="font-code-telemetry text-[11px] text-on-surface-variant">$2,100,000 / $4,500,000</p>
+</div>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="h-full rounded-full bg-secondary shadow-[0_0_8px_rgba(173,198,255,0.5)]" style="width: 46%;"></div>
+</div>
+</div>
+</section>
+<!-- RECENT TRANSACTIONS (LISTADO HUD) -->
+<section class="rounded-xl p-space-md bg-surface-container/70 backdrop-blur-xl border border-primary-container/15 flex flex-col gap-space-sm shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">receipt_long</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Transacciones Recientes</h2>
+</div>
+<span class="text-label-caps font-label-caps text-[10px] text-on-surface-variant">ÚLTIMOS MOVIMIENTOS</span>
+</div>
+<div class="flex flex-col gap-2">
+<!-- TX 1: Almuerzo Restaurante Central -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low/60 hover:bg-surface-container-high/40 border border-surface-variant/30 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-primary-container/15 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[18px]">restaurant</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-body-md font-medium text-on-surface leading-tight">Almuerzo Restaurante Central</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Food • Hoy 13:15</span>
+</div>
+</div>
+<span class="font-code-telemetry text-body-md font-bold text-on-surface">
+            -$32,000 <span class="text-[10px] text-on-surface-variant">COP</span>
+</span>
+</div>
+<!-- TX 2: Uber a Campus Universitario -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low/60 hover:bg-surface-container-high/40 border border-surface-variant/30 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-secondary/15 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">local_taxi</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-body-md font-medium text-on-surface leading-tight">Uber a Campus Universitario</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Transport • Ayer</span>
+</div>
+</div>
+<span class="font-code-telemetry text-body-md font-bold text-on-surface">
+            -$18,500 <span class="text-[10px] text-on-surface-variant">COP</span>
+</span>
+</div>
+<!-- TX 3: Matrícula / Libros Cisco -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low/60 hover:bg-surface-container-high/40 border border-surface-variant/30 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-tertiary-container/15 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined text-[18px]">menu_book</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-body-md font-medium text-on-surface leading-tight">Matrícula / Libros Cisco</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">University • 14 Sep</span>
+</div>
+</div>
+<span class="font-code-telemetry text-body-md font-bold text-on-surface">
+            -$75,000 <span class="text-[10px] text-on-surface-variant">COP</span>
+</span>
+</div>
+<!-- TX 4: Suscripción Spotify Student -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low/60 hover:bg-surface-container-high/40 border border-surface-variant/30 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-primary-fixed-dim/15 flex items-center justify-center text-primary-fixed-dim">
+<span class="material-symbols-outlined text-[18px]">subscriptions</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-body-md font-medium text-on-surface leading-tight">Suscripción Spotify Student</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Subscriptions • 12 Sep</span>
+</div>
+</div>
+<span class="font-code-telemetry text-body-md font-bold text-on-surface">
+            -$14,900 <span class="text-[10px] text-on-surface-variant">COP</span>
+</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BOTTOM NAVIGATION DOCK (Mandated JSON Anchor: Shared Component) -->
+<!-- Active state mapped precisely: 'JARVIS' is the central financial AI intelligent controller destination -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-dock-height max-w-lg mx-auto bg-surface-container-lowest/85 backdrop-blur-2xl border border-primary-container/20 rounded-full bottom-4 inset-x-4 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6),0_0_20px_0_rgba(0,229,255,0.15)]">
+<!-- Home (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90">
+<span class="material-symbols-outlined text-[22px]" data-icon="dashboard">dashboard</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Home</span>
+</button>
+<!-- Tasks (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90">
+<span class="material-symbols-outlined text-[22px]" data-icon="checklist">checklist</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Tasks</span>
+</button>
+<!-- JARVIS Core Centerpiece (Active Item mapped to JARVIS AI Finance Hub) -->
+<div class="relative -top-3">
+<button class="flex flex-col items-center justify-center text-primary-container font-semibold drop-shadow-[0_0_8px_rgba(0,229,255,0.6)] active:scale-90 transition-transform duration-150">
+<div class="w-12 h-12 rounded-full bg-gradient-to-tr from-surface-container-lowest via-primary-container/30 to-primary-container border-2 border-primary-container flex items-center justify-center shadow-[0_0_25px_rgba(0,229,255,0.5)]">
+<span class="material-symbols-outlined fill-icon text-[24px] text-primary" data-icon="smart_toy">smart_toy</span>
+</div>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5 text-primary-container">JARVIS</span>
+</button>
+</div>
+<!-- Calendar (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90">
+<span class="material-symbols-outlined text-[22px]" data-icon="calendar_month">calendar_month</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Calendar</span>
+</button>
+<!-- Profile (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant font-medium opacity-60 hover:text-primary-container transition-colors duration-200 active:scale-90">
+<span class="material-symbols-outlined text-[22px]" data-icon="person">person</span>
+<span class="text-label-caps font-label-caps text-[10px] mt-0.5">Profile</span>
+</button>
+</nav>
+</body></html>
