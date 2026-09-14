@@ -542,7 +542,82 @@ If a Shared Decision must change, document:
 
 ### Current Shared Decisions
 
-No shared decisions yet.
+#### [SD-001] Machined Obsidian replaces the Calm Palette (2026-09-13)
+
+**What changed.** The user directed a full visual redesign. The design system moved from
+"Calm Quiet-Tech Obsidian" (dark navy, cyan/indigo accents, 16px card radius) to
+**"Machined Obsidian"** (graphite substrate, bevelled seams, a single crimson accent used as
+leaked light, radius reduced to 2/6/10). `docs/DESIGN_SYNC.md` is the full specification and
+remains the visual source of truth.
+
+**Why it affects Codex.** The token and primitive API changed, so any Codex frontend touch
+written against the old names will not compile:
+
+- `theme.colors.blue` and `theme.colors.indigo` were **removed**. They named a hue rather than
+  a purpose. Use `accent`, `muted`, `success`, or `warning` by meaning.
+- `theme.colors.accent` is now crimson `#e5322d`, not cyan. Read §8 of `DESIGN_SYNC.md`
+  before using it — it is rationed deliberately, and money must never be coloured by sign.
+- New colour tokens: `edge` (lit bevel), `dim` (tertiary text), `ember` (banked crimson).
+- `Card` → `Plate`; `SectionTitle` → `SectionMarker`; new `Section`, `Seam`, `Rail`, `DataRow`.
+- `Button`'s `secondary` boolean → `variant: "primary" | "secondary" | "ghost" | "danger"`.
+- `Copy` variants are now `body` / `lead` / `section` / `title` / `caption` / `system` /
+  `marker` / `metric` / `metricSmall`. The old `heading`, `label`, and `mono` are gone.
+- `theme.space` gained `hair` (2) and `ms` (12); `theme.motion` is new.
+
+**How to apply.** Reuse the primitives listed in `DESIGN_SYNC.md` §12 instead of styling raw
+views. If a system requirement needs a visual pattern that does not exist yet, raise an
+`X2C-###` request rather than introducing a parallel style.
+
+**Not changed:** the 8-point rhythm, the 16px screen margin, 48pt touch targets, the five-tab
+dock with JARVIS elevated at the centre, and every accessibility label and visible string that
+the existing test suite asserts.
+
+#### [SD-003] Illuminated HUD replaces Machined Obsidian (2026-09-14)
+
+**What changed.** The user supplied a video reference
+(`https://www.youtube.com/watch?v=FzE-UYBe8co`) and reported that the matte graphite/crimson
+system read as bland. The palette moved to a blue-black field with **cyan as the system hue,
+green as live activity, and crimson reserved for genuine urgency**. Full specification in
+`docs/DESIGN_SYNC.md`; this entry lists only what breaks compilation or changes meaning.
+
+**Token changes since SD-001:**
+
+- `theme.colors.accent` is now **cyan** `#22d3ee`, not crimson. Code written against SD-001
+  that used `accent` to mean "urgent" is now wrong in meaning even where it still compiles.
+- `theme.colors.ember` was **removed**; use `accentSoft` (`#164e5c`) for banked cyan such as
+  switch tracks.
+- New: `energy` (`#34d399`, live activity), `theme.glow` (bloom washes), `theme.category`
+  (eight identity hues) and `categoryColor(name)`.
+- Every grey shifted cooler (`background` `#05070c`, `border` `#1b2735`, `edge` `#27384a`, …).
+- Radius grew: `control` 6→10, `plate` 10→16. Command inputs and icon buttons use `pill`.
+
+**New primitives:** `Dot`, `OrbButton`, and `JarvisDial`.
+
+**How to apply.** Crimson now means one thing only: urgency, decided by `isUrgent()` in
+`src/features/tasks/urgency.ts` (deadline passed or within 24h). If Codex surfaces a new
+failure or risk state and wants it to read as urgent, route it through that predicate or raise
+an `X2C-###` request rather than hard-coding `danger`.
+
+**Not changed:** the 8-point rhythm, the 16px screen margin, 48pt touch targets, the five-tab
+dock, the `Section` rhythm, and every accessibility label and visible string asserted by tests.
+
+#### [SD-002] The JARVIS core shows only real state (2026-09-13)
+
+`JarvisCore` (`src/components/jarvis/core.tsx`) is the product's single animated element, and
+its five states each map to genuine application state: `idle`, `listening`, `thinking`,
+`speaking`, `offline`.
+
+**Why.** `DESIGN_SYNC.md` §22 forbids fabricated system telemetry. During this redesign the
+dock's core was briefly wired to show `listening` whenever its tab was focused; that was
+removed before shipping because tab focus is not listening. The dock now reflects only whether
+the local brain is switched on.
+
+**How to apply.** If Codex adds a genuinely new system state worth surfacing (for example a
+sync or a queued write), extend `CoreState` and say what real signal drives it. Never drive the
+core from a value that merely correlates with activity.
+
+Still in force after SD-003: `JarvisDial` consumes the same `CoreState`, so extending it
+updates both the compact indicator and the hero instrument.
 
 ---
 
@@ -565,7 +640,38 @@ When an Integration Note is no longer relevant, it may be marked obsolete or rem
 
 ### Current Integration Notes
 
-No integration notes yet.
+#### [IN-001] Reanimated needs a manual Jest mock (2026-09-13)
+
+**What.** `__mocks__/react-native-reanimated.js` was added at the repository root.
+
+**Why.** The redesign introduced `JarvisCore`, which uses `react-native-reanimated` 4.5.1
+(already a dependency). Reanimated 4 initialises `react-native-worklets` at import time, and
+that calls `loadUnpackers()` on a TurboModule that does not exist under Jest, so *any* suite
+that renders a screen containing the core fails to load. The package's own
+`react-native-reanimated/mock` re-enters the same import path and does not help.
+
+Jest applies manual mocks for node_modules packages automatically when they live in
+`<rootDir>/__mocks__`, so **`jest.config.js` was deliberately left untouched** — no
+`setupFiles`, no `moduleNameMapper`, no change to the shared test architecture Codex owns.
+
+**How to apply.** The shim covers the surface JARVIS actually uses: shared values,
+`useAnimatedStyle`, the `with*` helpers, `Easing`, and `Animated.View`. Animations run for
+real on device; tests assert rendered structure and state text, not animation timing. If you
+add a Reanimated API the app depends on, add it to the shim in the same commit — a missing
+export surfaces as `undefined is not a function` inside a component render.
+
+**Note on Babel.** No `babel.config.js` exists and none is needed: `babel-preset-expo`
+auto-injects `react-native-worklets/plugin` when the package is installed
+(`node_modules/babel-preset-expo/build/configs/expo.js`). Do not add one to "fix" Reanimated.
+
+#### [IN-002] Frontend visual validation is still not device-verified (2026-09-13)
+
+The redesign passed typecheck, lint, and 146 Jest tests, and was reviewed against a
+token-exact HTML approximation rendered at 390px. **That approximation is not the React Native
+render** and does not validate safe areas, the keyboard, fonts, Reanimated on-device
+behaviour, or the tab dock's real measurements. `DESIGN_SYNC.md` §24 still applies: visual
+parity requires Expo Go on a phone. No device was available in the session that produced this
+work.
 
 ---
 

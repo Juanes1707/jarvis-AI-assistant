@@ -16,27 +16,39 @@ export function ProgressEditor({ task }: { task: AcademicTask }) {
     }
     if (await updateProgress(task.id, Number(draft))) setOpen(false);
   }
-  return <View style={{ gap: 12 }}>
-    <Row style={{ justifyContent: "space-between" }}><Copy muted>Progreso del taller</Copy><Copy variant="mono" style={{ color: theme.colors.accent }}>{task.progress}%</Copy></Row>
-    <Progress value={task.progress} label={`Progreso de ${task.title}`} />
+  return <View style={styles.wrap}>
+    <Row style={styles.head}>
+      <Copy variant="caption" muted style={styles.grow}>Progreso</Copy>
+      <Copy variant="system">{task.progress}%</Copy>
+    </Row>
+    <Progress value={task.progress} label={`Progreso de ${task.title}`} tone="accent" />
     <Button label={task.progress === 100 ? "Editar progreso" : "Continuar tarea"} icon="play-outline" onPress={() => { setDraft(String(task.progress)); setOpen(true); }} disabled={busy} />
-    <Modal visible={open} animationType="none" onRequestClose={() => { if (!busy) setOpen(false); }} presentationStyle="pageSheet">
+    <Modal visible={open} animationType="slide" onRequestClose={() => { if (!busy) setOpen(false); }} presentationStyle="pageSheet">
       <SafeAreaView style={styles.modal}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, gap: 24 }}>
-            <Copy variant="heading">Actualizar progreso</Copy>
-            <Copy>{task.title}</Copy>
-            <Copy muted>Registrar 100% marca la tarea como completada.</Copy>
+        <KeyboardAvoidingView style={styles.grow} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.sheet}>
+            <Copy variant="title" accessibilityRole="header">Actualizar progreso</Copy>
+            <Copy variant="body" muted>{task.title}</Copy>
             <TextInput accessibilityLabel="Porcentaje completado" keyboardType="number-pad" value={draft} onChangeText={setDraft} maxLength={3} style={styles.input} selectTextOnFocus autoFocus />
+            <Copy variant="caption" muted>Registrar 100% marca la tarea como completada.</Copy>
             <Button label="Guardar progreso" loading={busy} onPress={() => void save()} />
-            <Button label="Cancelar" secondary disabled={busy} onPress={() => setOpen(false)} />
+            <Button label="Cancelar" variant="ghost" disabled={busy} onPress={() => setOpen(false)} />
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   </View>;
 }
+
 const styles = StyleSheet.create({
+  wrap: { gap: theme.space.ms },
+  head: { gap: theme.space.sm },
+  grow: { flex: 1 },
   modal: { flex: 1, backgroundColor: theme.colors.background },
-  input: { minHeight: 56, padding: 16, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 20, backgroundColor: theme.colors.surface, borderRadius: 12, borderWidth: 1, borderColor: theme.colors.border },
+  sheet: { padding: theme.space.lg, gap: theme.space.md },
+  input: {
+    minHeight: 64, paddingHorizontal: theme.space.md, color: theme.colors.text, fontFamily: theme.fonts.display, fontSize: 34,
+    backgroundColor: theme.colors.surface, borderRadius: theme.radius.control,
+    borderWidth: 1, borderTopColor: theme.colors.edge, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border,
+  },
 });

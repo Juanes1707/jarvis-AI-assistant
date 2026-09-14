@@ -1,14 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from "react";
-import { ActivityIndicator, Alert, AppState } from "react-native";
+import { Alert, AppState, StyleSheet } from "react-native";
 import { openDatabaseAsync } from "expo-sqlite";
 import type { Workspace, AcademicTask } from "../../domain/models";
 import { initializeDatabase, readWorkspace, saveHabitEntry, saveTaskProgress, saveAcademicTask, startAcademicTask, deleteAcademicTask, executeJarvisAction, type LocalDatabase } from "./database";
 import { defaultPreferences, readPreferences, savePreferences, type Preferences } from "./preferences";
 import type { CommandProposal } from "../../features/jarvis/commands";
 import { buildDashboard } from "../../engines/dashboard";
-import { Screen } from "../../components/layout/screen";
+import { Boot } from "../../components/layout/boot";
 import { Button, Copy } from "../../components/ui/primitives";
-import { theme } from "../../theme/tokens";
 
 type WorkspaceContext = {
   data: Workspace; dashboard: ReturnType<typeof buildDashboard>; busy: boolean; preferences: Preferences;
@@ -66,8 +65,11 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     finally { locked.current = false; setBusy(false); }
   }, []);
   const dashboard = useMemo(() => data ? buildDashboard(data, now) : null, [data, now]);
-  if (error) return <Screen title="Tu centro de comando"><Copy>{error}</Copy><Button label="Reintentar" onPress={() => { setError(null); setAttempt(value => value + 1); }} /></Screen>;
-  if (!data || !dashboard) return <Screen title="Preparando JARVIS"><ActivityIndicator color={theme.colors.accent} /><Copy muted>Cargando tus datos locales…</Copy></Screen>;
+  if (error) return <Boot state="offline">
+    <Copy variant="body" style={styles.centered}>{error}</Copy>
+    <Button label="Reintentar" onPress={() => { setError(null); setAttempt(value => value + 1); }} />
+  </Boot>;
+  if (!data || !dashboard) return <Boot state="thinking"><Copy variant="caption" muted>Cargando tus datos locales…</Copy></Boot>;
   return <Context.Provider value={{
     data, dashboard, busy, preferences,
     updateProgress: (id, progress) => mutate(db => saveTaskProgress(db, id, progress)),
@@ -90,6 +92,8 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     }),
   }}>{children}</Context.Provider>;
 }
+const styles = StyleSheet.create({ centered: { textAlign: "center" } });
+
 export function useWorkspace() {
   const context = useContext(Context);
   if (!context) throw new Error("WorkspaceProvider requerido.");

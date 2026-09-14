@@ -107,10 +107,28 @@ The Stitch project itself was not modified during that migration.
 When visual references disagree, use the following precedence:
 
 1. Explicit current user instruction
-2. Current visible Stitch screen
-3. Rendered Stitch HTML/reference
-4. Established Calm Quiet-Tech Obsidian visual system
-5. Legacy global Cybernetic Neural System theme
+2. Established Illuminated HUD visual system (see §6)
+3. Current visible Stitch screen
+4. Rendered Stitch HTML/reference
+5. Legacy Machined Obsidian system (2026-09-13, graphite + crimson, matte)
+6. Legacy Calm Quiet-Tech Obsidian visual system
+7. Legacy global Cybernetic Neural System theme
+
+**Stitch dropped below the native system on 2026-09-13.** The user directed a full visual
+redesign away from the Calm Palette, so the Stitch captures no longer describe the current
+colour, geometry, or accent behaviour. They remain accurate references for *information
+architecture* — which screens exist, what each one contains, and the order of the mobile
+flow — and should still be consulted for that.
+
+**Video reference added 2026-09-14.** The user supplied
+`https://www.youtube.com/watch?v=FzE-UYBe8co` (Damian Malliaros, "I Built My Own JARVIS with
+Claude Code") and asked for its look. The relevant frames are around 0:55–1:15, where the
+desktop build is on screen. What was taken from it: the circular HUD dial with tick rings and
+sweeping arcs, luminous bloom on live elements, monospace letterspaced system labels, coloured
+category dots with right-aligned counts, circular icon controls, and a pill command input.
+What was **not** taken: the desktop three-pane layout and the particle graph, neither of which
+survives a phone screen. The reference is a still image of someone else's product — treat it as
+aesthetic direction, not as a layout to copy.
 
 Do not infer design chronology from Stitch API ordering.
 
@@ -161,25 +179,38 @@ The native implementation should use React Native primitives and the existing Ex
 
 The primary JARVIS design language is:
 
-**Calm Quiet-Tech Obsidian**
+**Illuminated HUD** (adopted 2026-09-14, replacing Machined Obsidian)
+
+The governing metaphor is **a lit instrument panel in a dark room**. Machined Obsidian got the
+structure right but was deliberately matte, and the user reported the result read as bland. The
+correction is luminosity, not more ornament: the same disciplined structure, now with light
+coming out of it.
 
 The product should feel:
 
-- Calm
-- Focused
-- Technical
-- Intelligent
-- Dark
-- Precise
-- Modern
-- Deliberate
+- Dark, precise, instrument-like
+- Alive — something is powered on and paying attention
+- Calm when nothing is happening, luminous when JARVIS is actually working
+
+### The five structural rules
+
+1. **Seams, not cards.** Content sits directly on the field and is divided by hairline seams. A
+   raised plate is reserved for things that genuinely sit above the surface: a pending
+   confirmation, an AI provider status, a message the user wrote.
+2. **Bevelled edges.** Any raised surface carries a lighter top border (`edge`) and darker
+   remaining borders (`border`).
+3. **Bloom belongs to live things only.** Glow is layered translucency (see §12b), never a
+   shadow, and it appears only on elements that are genuinely active: the core's iris, the
+   dial, the microphone. Static content never glows.
+4. **Cyan is the system, green is activity, crimson is urgency.** One hue per job. See §8.
+5. **Soft radius.** The instrument reads as machined metal *behind glass*, not as a cut part.
+   See §10.
 
 It should not feel like:
 
-- A generic SaaS dashboard
+- A generic SaaS dashboard, or content chopped into identical rounded cards
 - A neon cyberpunk template
-- A collection of unrelated cards
-- A desktop interface compressed into a phone
+- Marvel fan art or a literal Ultron recreation
 - A different design system on every screen
 
 JARVIS should visually behave as one coherent product.
@@ -188,140 +219,107 @@ JARVIS should visually behave as one coherent product.
 
 ## 7. Core Color System
 
-### Canvas
+Defined in `src/theme/tokens.ts`. The greys are deliberately cool and close together so they
+read as different metals under one light source rather than as arbitrary greys.
 
-```text
-#0a0e16
-```
+| Token | Value | Role |
+|---|---|---|
+| `background` | `#05070c` | The blue-black field everything sits on |
+| `surface` | `#0a0f18` | Primary raised plate |
+| `secondary` | `#0e141f` | Secondary fill |
+| `elevated` | `#131b28` | Highest plate: primary buttons, user messages |
+| `border` | `#1b2735` | The seam between two plates |
+| `edge` | `#27384a` | The lit top bevel of a plate |
+| `text` | `#e8eef5` | Primary text |
+| `muted` | `#8b9bb0` | Secondary text, instrument meters |
+| `dim` | `#55657a` | Tertiary text, inactive controls |
+| `accent` | `#22d3ee` | Cyan — the system speaking: markers, dial rings, structure |
+| `accentSoft` | `#164e5c` | Banked cyan: switch tracks, dial core border |
+| `accentWash` | `#071820` | Barely-cyan black behind a live plate |
+| `energy` | `#34d399` | Green — live activity. The only colour allowed to bloom |
+| `success` | `#34d399` | Same value as `energy`: completed, on target |
+| `warning` | `#f5b544` | Behind target; attention but not urgency |
+| `danger` | `#e5322d` | Crimson — genuine urgency only (§8) |
 
-### Surfaces
+`theme.glow` holds the translucent bloom washes; `theme.category` holds the eight category hues
+used by `Dot` and `categoryColor()`.
 
-```text
-#151922
-#181c24
-#1f2430
-```
-
-### Primary text
-
-```text
-#dfe2ee
-```
-
-### Secondary text
-
-```text
-#94a3b8
-```
-
-### Calm accents
-
-```text
-#7dd3fc
-#38bdf8
-#93c5fd
-```
-
-### Indigo
-
-```text
-#6366f1
-```
-
-### Success
-
-```text
-#86efac
-```
-
-### Coral / warning-critical accent
-
-```text
-#fca5a5
-```
-
-### Amber
-
-```text
-#fcd34d
-```
+Retired: the Machined Obsidian graphite values (`#07080a`, `#232830`, …) and `ember`, which is
+replaced by `accentSoft`. Earlier still, `blue` and `indigo` were removed outright for naming a
+hue rather than a purpose.
 
 Do not introduce new global colors when an existing token can represent the same semantic purpose.
 
 ---
 
-## 8. Domain Visual Variants
+## 8. Accent Discipline
 
-JARVIS shares one common visual foundation, but selected domains may use controlled specialization.
+Three hues, three jobs, no overlap. Domain-specific palettes (the old Dark HUD cyan and the
+finance teal/green) stay retired — they were the main reason JARVIS read as several products
+stitched together.
 
-### Calm Foundation
+| Hue | Meaning | Where it appears |
+|---|---|---|
+| **Cyan** `accent` | The system speaking, and structure | Section markers, dial rings, focal rails, primary-button underline, active tab, live plate edge |
+| **Green** `energy` | Something is happening right now | Core iris, dial sweep arc, microphone orb, completed items |
+| **Crimson** `danger` | Genuine urgency | Deadline within 24h or overdue, over budget, failed provider check, destructive actions |
 
-Used as the common visual foundation across the product.
+Crimson is governed by `isUrgent()` in `src/features/tasks/urgency.ts` — a deadline that has
+passed or lands within a day. Nothing else may turn an element crimson. This is why a focal
+task is cyan when it is merely the top priority and crimson only when it is actually about to
+be late.
 
-Primary accents include:
+### Where colour must not go
 
-```text
-#7dd3fc
-#38bdf8
-#93c5fd
-```
+- **Money is never coloured by sign.** Income green / expense red is the trading-app tell the
+  product explicitly avoids. Amounts render in `text`; the sign carries the meaning. Only
+  *over budget* earns crimson.
+- **Progress meters default to `muted`.** `tone="accent"` marks the metric JARVIS is pushing;
+  `tone="danger"` only when the deadline is urgent.
+- **Icons default to `muted`.** Any colour must be passed explicitly, so it is always a decision.
+- **Warning stays amber.** A grade below target is not urgent; overloading crimson would
+  dilute both.
+- **Category hues are for identity, not status.** `Dot` and `categoryColor()` give a subject or
+  a spending category a stable hue so it is recognisable across screens. They never mean good
+  or bad.
 
----
-
-### Dark HUD — University / JARVIS Chat
-
-Dark HUD surfaces may use:
-
-```text
-#0b0f17
-```
-
-with cyan accent:
-
-```text
-#67e8f9
-```
-
-This variant should remain compatible with the common JARVIS token system.
-
-It is a specialization of the product identity, not a separate design system.
-
----
-
-### Finance Variant
-
-Finance-specific accents may use:
-
-```text
-#00daf3
-#4edea3
-```
-
-The finance domain should still inherit the shared Calm foundation.
-
-Do not introduce an independent finance component library or unrelated token system.
+At most one crimson region should be competing for attention in a single viewport.
 
 ---
 
 ## 9. Typography
 
-The established type system is:
+The same three families are packaged through `expo-font`, but their **roles were inverted** on
+2026-09-13. Mono was previously used only for 12px labels, which is the commonest tell of a
+templated technical UI. It is now the system's display voice instead.
 
-### Body
+The rule is about *who is speaking*:
 
-**Inter**
+| Family | Speaker | Used for |
+|---|---|---|
+| **JetBrains Mono** | JARVIS, as a system | Section markers, live state, the wordmark, small counters |
+| **Inter** | The user's own life | All human-readable content: titles, briefing, task names, descriptions |
+| **Space Grotesk** | Measured quantities | Money, grades, day numbers, percentages — instrument readouts only |
 
-### Titles / Display
+### Scale (`Copy` variants in `src/components/ui/primitives.tsx`)
 
-**Space Grotesk**
+| Variant | Family | Size / line |
+|---|---|---|
+| `metric` | Grotesk | 34 / 40 |
+| `title` | Inter Medium | 22 / 29 |
+| `metricSmall` | Grotesk | 20 / 26 |
+| `lead` | Inter | 18 / 28 |
+| `section` | Inter Medium | 17 / 24 |
+| `body` | Inter | 15 / 23 |
+| `marker` | Mono | 13 / 18, +0.8 tracking |
+| `caption` | Inter | 13 / 19 |
+| `system` | Mono | 12 / 16, +1.2 tracking |
 
-### Numeric / Technical Data
+### Uppercase is rationed
 
-**JetBrains Mono**
-
-The corresponding TTF assets are packaged for use through `expo-font`.
-
-Use typography semantically and consistently.
+Uppercase is now reserved for **section markers and real system state** (`CEREBRO LOCAL ACTIVO`,
+`HOY`, `LO PRIMERO`). It is no longer used for content categorisation, and no screen opens with
+a caps badge. Never use Grotesk for prose or Mono for a paragraph.
 
 Do not substitute unrelated font families without an explicit design decision.
 
@@ -329,20 +327,32 @@ Do not substitute unrelated font families without an explicit design decision.
 
 ## 10. Spacing and Geometry
 
-The visual system follows an **8-point rhythm**.
-
-Established values include:
+The visual system follows an **8-point rhythm**, with finer steps added for machined detail.
 
 ```text
-Base rhythm: 8
+space: hair 2 · xs 4 · sm 8 · ms 12 · md 16 · lg 24 · xl 32 · xxl 48
 Screen margin: 16
-Common spacing: 16–24
-Card radius: 16
-Control radius: 12
 Bottom dock height: 72 + bottom safe-area inset
 ```
 
-Prefer spacing derived from the established rhythm rather than arbitrary values.
+### Radius (revised 2026-09-14)
+
+```text
+hairline  2   rails, meters, tick marks
+control  10   buttons, chips, badges
+plate    16   raised surfaces, message bubbles
+pill    999   the core, the dial, command inputs, circular controls
+```
+
+The 2/6/10 scale of Machined Obsidian was part of what read as severe. The reference's panels
+are softly rounded and its controls are fully circular, so command inputs and icon buttons now
+take the pill radius.
+
+### Vertical rhythm
+
+The `Section` primitive owns it, so screens do not each invent their own spacing:
+**24 between sections, 12 from seam to marker to content.** Prefer spacing derived from the
+established rhythm rather than arbitrary values.
 
 Avoid accumulating near-identical spacing constants across individual screens.
 
@@ -394,6 +404,85 @@ Avoid introducing web-only layout assumptions.
 
 Reusable project components should be preferred over rebuilding equivalent visual primitives independently.
 
+### Project primitives — `src/components/ui/primitives.tsx`
+
+Reuse these rather than restyling a raw `View`. Codex should reach for them when an
+integration needs UI.
+
+| Primitive | Purpose |
+|---|---|
+| `Copy` | All text. Variants in §9 |
+| `Section` | Seam + marker + content. Owns the vertical rhythm |
+| `SectionMarker` | Mono label followed by a rule running to the edge |
+| `Seam` | A 1px cut between plates |
+| `Plate` | Bevelled raised surface. `tone`: `default` / `live` / `alert` |
+| `Rail` | The 2px vertical light. `tone`: `accent` / `muted` / `success` / `warning` |
+| `DataRow` | Label left, value right; stacks into a scannable column |
+| `Row` | Horizontal flex with the standard gap |
+| `Dot` | Category marker. Pair with `categoryColor()` for a stable per-name hue |
+| `Button` | `variant`: `primary` / `secondary` / `ghost` / `danger` |
+| `OrbButton` | Circular icon control. `tone`: `muted` / `energy` / `accent`; glows when not muted |
+| `Progress` | Instrument meter. `tone`: `default` / `accent` / `danger` |
+| `Badge` | Bordered mono tag. Used only for real system status |
+| `Icon` | Defaults to `muted`; any colour must be explicit |
+
+Layout and identity live alongside them: `Screen` and `SystemBar`
+(`src/components/layout/`), `Boot` for the pre-workspace states, `JarvisCore`
+(`src/components/jarvis/core.tsx`) for the compact indicator, and `JarvisDial`
+(`src/components/jarvis/dial.tsx`) for the hero instrument.
+
+The `secondary` boolean on `Button` was replaced by `variant`, and `Card` / `SectionTitle`
+were replaced by `Plate` / `SectionMarker`.
+
+---
+
+## 12b. Motion, Bloom, and the JARVIS Instruments
+
+Motion lives in exactly two components — `JarvisCore` (compact) and `JarvisDial` (hero). Nothing
+else in the product animates. Concentrating motion is deliberate: scattered entrance fades and
+hover transitions are what make an interface read as generated.
+
+### Bloom
+
+Glow is built from **layered translucent Views**, never from `shadow*` or `elevation`. Android
+elevation shadows cannot be tinted, and `boxShadow` support varies by architecture; stacked
+translucent circles render identically everywhere and cost nothing. The washes live in
+`theme.glow`.
+
+### The dial
+
+`JarvisDial` is the product's hero object and the piece taken most directly from the user's
+video reference: concentric tick rings, a green arc sweeping the outer track, a counter-rotating
+cyan arc, and a labelled core. Tick rings are plain Views placed polar-style with
+`transform: [{ rotate }, { translateY }]`, which is why the project still needs no SVG
+dependency. It appears as the empty state of the JARVIS tab and yields the space to the
+conversation as soon as there are messages.
+
+The shell never moves. Only the light inside it does.
+
+| State | Core | Dial | Real source |
+|---|---|---|---|
+| `idle` | Slow 4.2s breath | 9s arc sweep, slow bloom | Local brain enabled, nothing in flight |
+| `listening` | 1.1s breath plus expanding ring | 2.6s sweep, 1.1s bloom | Speech recognition active |
+| `thinking` | Rotating top arc | 1.4s sweep | Ollama request in flight, or a write being saved |
+| `speaking` | 620ms breath | 2s sweep, 620ms bloom | `expo-speech` is speaking |
+| `offline` | No motion, iris drops to `dim` | No motion, rings drop to `border`, bloom removed | Local brain off, or an availability check failed |
+
+Rules:
+
+- Transform and opacity only, so everything stays on the GPU.
+- `useReducedMotion()` is honoured; the core falls still rather than degrading.
+- **Every state must map to real application state.** Per §22, the core must never animate to
+  look busy. A worked example: the dock's core reflects only whether the local brain is
+  switched on — it deliberately does *not* show `listening` when its tab is focused, because
+  focus is not listening.
+- The same component appears in the chat header, the tab dock, and the boot screen, so JARVIS's
+  real state is legible from anywhere in the product.
+
+Animations are implemented with `react-native-reanimated`, which is already a dependency and
+is auto-configured by `babel-preset-expo` (no `babel.config.js` is required). See the
+Integration Note in `docs/AI_HANDOFF.md` about its Jest manual mock.
+
 ---
 
 ## 13. Mobile Adaptation
@@ -429,6 +518,12 @@ The dock should:
 - Remain touch-accessible
 - Avoid desktop-navigation patterns
 - Preserve the central importance of JARVIS
+
+Current presentation (2026-09-14): the dock sits on `surface` with a lit top edge. The active
+tab is marked by a 2px cyan bar above its icon and a brightening to `text` — the tint no
+longer swaps to an accent hue. Labels are Mono 11 in sentence case. The centre tab renders the
+live `JarvisCore` rather than a static icon, which is what makes the assistant's state visible
+from every screen.
 
 Claude Code owns meaningful changes to the user-facing navigation presentation.
 
@@ -468,16 +563,19 @@ Content should adapt to mobile constraints instead of shrinking desktop layouts.
 
 ## 16. Current Screen Mapping
 
+Every row below was rebuilt in Machined Obsidian on 2026-09-13. The Stitch IDs are retained for
+information-architecture reference only; their colour and geometry no longer apply (§4).
+
 | Stitch Screen | Stitch ID | Expo Router Route | Main Native Elements | Current Design/Implementation Status |
 |---|---|---|---|---|
-| Dashboard Principal — Calm Palette | `72d186dee5c244adac6567b0cc7938d6` | `/(tabs)/index` | Brand, CommandBar, HomeScreen, ProgressEditor, AgendaList, HabitsCard | Initial native port; phone visual comparison still required |
-| Task Manager — Calm Palette | `fcc12e43abef47458c5d6764a765f913` | `/(tabs)/tasks`, `/tasks/new`, `/tasks/[id]`, `/tasks/edit/[id]` | FlatList, filters, TaskEditor, ProgressEditor, priority detail | Core create/edit/reschedule/start/complete/delete flows implemented; phone visual comparison pending |
-| Calendario Semanal — Calm Palette | `fb4b8af9daef4453b42e02c3f74c7eda` | `/(tabs)/calendar` | Daily navigation, AgendaList, projected deadlines | Daily view connected to tasks; week/optimization work remains |
-| Chat y Asistente IA — Dark HUD Edition | `b580f7623c404ce6918929f12c756cf3` | `/(tabs)/jarvis` | Orb, messages, fixed composer, microphone, spoken responses, confirmation card | Local commands and session conversation available; device voice validation pending |
-| University Hub — Dark HUD Edition | `2a615b1a20a948ab8ae70688f9f801c1` | `/university` | Metrics and subject list | Initial native summary |
-| Detalle de Materia — Calm Palette | `c3322a3bd24e48bd8a378b81e1ac5623` | `/university/subjects/[id]` planned | Topics, assessments, materials | Planned |
-| Finanzas Personales — Dark HUD Edition | `164d8eaf8b3841fe9959b95894f4c321` | `/finances` | Balance, budget, transactions | Calculated/read state available; editing/goals remain |
-| Perfil — no dedicated Stitch reference | N/A | `/(tabs)/profile` | Demo profile, preference switches | Native foundation derived from common theme |
+| Dashboard Principal | `72d186dee5c244adac6567b0cc7938d6` | `/(tabs)/index` | SystemBar, briefing lead, CommandBar, PriorityFocus, AgendaList, DataRow money column, HabitsCard | Redesigned: briefing is the typographic hero, one railed focal task, sections replace stacked cards. Phone comparison pending |
+| Task Manager | `fcc12e43abef47458c5d6764a765f913` | `/(tabs)/tasks`, `/tasks/new`, `/tasks/[id]`, `/tasks/edit/[id]` | Memoised FlatList rows, underlined filters, TaskEditor, ProgressEditor | Redesigned: pressable railed rows replace per-item cards and buttons; rail tone encodes focal/normal/done. Phone comparison pending |
+| Calendario Semanal | `fb4b8af9daef4453b42e02c3f74c7eda` | `/(tabs)/calendar` | Week strip, AgendaList, projected deadlines | Redesigned: 7-day strip with per-day busy/deadline marks replaces prev/next buttons. Week optimisation work still remains |
+| Chat y Asistente IA | `b580f7623c404ce6918929f12c756cf3` | `/(tabs)/jarvis` | JarvisCore header, railed assistant turns, raised user turns, live proposal plate, composer | Redesigned: assistant messages are railed text on the substrate rather than bubbles; voice is the primary composer action. Device voice validation still pending |
+| University Hub | `2a615b1a20a948ab8ae70688f9f801c1` | `/university` | Grade metric, railed subject list | Redesigned: rail tone reflects grade against target |
+| Detalle de Materia | `c3322a3bd24e48bd8a378b81e1ac5623` | `/university/subjects/[id]` planned | Topics, assessments, materials | Planned |
+| Finanzas Personales | `164d8eaf8b3841fe9959b95894f4c321` | `/finances` | Balance metric, budget meter, movement rows | Redesigned: amounts are never coloured by sign (§8); editing/goals remain |
+| Perfil — no dedicated Stitch reference | N/A | `/(tabs)/profile` | Identity block, behaviour toggle, nav rows, live system readout | Redesigned as a JARVIS console rather than a settings page |
 
 Detailed implementation progress belongs in:
 

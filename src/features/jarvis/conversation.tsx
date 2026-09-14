@@ -1,10 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import { randomUUID } from "expo-crypto";
-import { Badge, Button, Card, Copy, Icon, Row } from "../../components/ui/primitives";
+import { Button, Copy, Icon, OrbButton, Plate, Rail, Row, SectionMarker } from "../../components/ui/primitives";
 import { AIProviderStatus, type AIProviderStatusValue } from "../../components/jarvis/provider-status";
+import { JarvisCore, type CoreState } from "../../components/jarvis/core";
+import { JarvisDial } from "../../components/jarvis/dial";
 import { useWorkspace } from "../../services/storage/workspace-provider";
 import { recognizeSpeech } from "../../services/voice/recognition";
 import { useJarvisVoice } from "../../services/voice/use-jarvis-voice";
@@ -16,6 +18,8 @@ import { interpretCommand, type CommandProposal } from "./commands";
 
 type Message = { id: string; role: "user" | "assistant"; text: string };
 const welcome = "A tu servicio. Puedo ayudarte con tu agenda y registrar cambios. Dime qué necesitas, Juan.";
+const STARTERS = ["Mis finanzas", "Tareas pendientes", "Agrega un gasto de 100.000 pesos hoy"];
+
 export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?: string }) {
   const { data, preferences, busy, executeCommand, setVoicePreferences, setAiPreferences } = useWorkspace();
   const [draft, setDraft] = useState("");
@@ -146,63 +150,152 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
       else { setProviderStatus("unavailable"); setProviderMessage("Ollama responde, pero no encuentro ese modelo. Revisa el nombre con `ollama list`."); }
     } catch (error) { setProviderStatus("error"); setProviderMessage(error instanceof Error ? error.message : "No pude comprobar Ollama."); }
   }
+
+  const brainDown = !aiEnabled || headerAvailability === "unavailable" || headerAvailability === "error";
   const providerLabel = !aiEnabled ? "A TU SERVICIO"
     : headerAvailability === "checking" ? "COMPROBANDO CEREBRO LOCAL"
     : headerAvailability === "unavailable" || headerAvailability === "error" ? "CEREBRO LOCAL SIN CONEXIÓN"
     : "CEREBRO LOCAL ACTIVO";
   const status = listening ? "ESCUCHANDO" : saving ? "GUARDANDO" : thinking ? "PENSANDO LOCALMENTE" : voice.speaking ? "JARVIS HABLANDO" : providerLabel;
+  const live = listening || saving || thinking || voice.speaking;
+  const coreState: CoreState = listening ? "listening" : saving || thinking ? "thinking" : voice.speaking ? "speaking" : brainDown ? "offline" : "idle";
+  const busyComposing = saving || listening || busy || thinking;
+  // The instrument is the empty state: it introduces JARVIS, then yields the space to the conversation.
+  const showInstrument = messages.length <= 1 && !settings && !proposal;
+
   return <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
     <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <View style={styles.header}>
-        <Row><View style={[styles.orb, (listening || voice.speaking || thinking) && styles.orbActive]}><Icon name="robot-outline" size={28} /></View><View style={styles.grow}><Copy variant="heading" accessibilityRole="header">JARVIS AI</Copy><Copy variant="mono" style={styles.accent} accessibilityLiveRegion="polite">{status}</Copy></View><Button label={settings ? "Cerrar ajustes" : "Ajustes"} secondary icon="tune-variant" onPress={() => setSettings(value => !value)} /></Row>
-      </View>
-      <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content} onContentSizeChange={() => { if (settings) scroll.current?.scrollTo({ y: 0, animated: true }); else scroll.current?.scrollToEnd({ animated: true }); }}>
-        {settings && <Card>
-          <Copy variant="heading">La voz de JARVIS</Copy><Copy muted>Estilo sereno, tono grave y ritmo pausado. El timbre depende de las voces instaladas en tu teléfono.</Copy>
-          <Row><View style={styles.grow}><Copy>Respuestas habladas</Copy></View><Switch accessibilityLabel="Respuestas habladas" value={preferences.voiceEnabled} disabled={busy} trackColor={{ false: theme.colors.elevated, true: theme.colors.blue }} onValueChange={enabled => { if (!enabled) void voice.stop(); void setVoicePreferences({ voiceEnabled: enabled, voiceId: preferences.voiceId }); }} /></Row>
-          <Button label="Probar voz" secondary icon="volume-high" onPress={() => void voice.speak("A tu servicio, Juan. Sistemas preparados. ¿Qué necesitas resolver hoy?")} />
-          <Copy variant="label">VOCES EN ESPAÑOL</Copy>
-          <Button label={`${preferences.voiceId === null ? "✓ " : ""}Selección automática`} secondary disabled={busy} onPress={() => { void voice.stop(); void setVoicePreferences({ voiceEnabled: preferences.voiceEnabled, voiceId: null }); }} />
-          {voice.voices.map(item => <Button key={item.identifier} label={`${preferences.voiceId === item.identifier ? "✓ " : ""}${item.name} · ${item.language}`} secondary disabled={busy} onPress={() => { void voice.stop(); void setVoicePreferences({ voiceEnabled: preferences.voiceEnabled, voiceId: item.identifier }); }} />)}
-          {!voice.voices.length && <Copy muted>Se usará la voz del sistema. Puedes instalar más voces en los ajustes de tu teléfono.</Copy>}
-          <Copy variant="heading">Cerebro local: Ollama</Copy>
-          <Copy muted>El modelo se ejecuta en tu computador. Las acciones que cambian datos siguen pidiendo tu confirmación.</Copy>
-          <Row><View style={styles.grow}><Copy>Usar Ollama para conversar</Copy></View><Switch accessibilityLabel="Usar Ollama para conversar" value={preferences.aiEnabled} disabled={busy} trackColor={{ false: theme.colors.elevated, true: theme.colors.blue }} onValueChange={enabled => { void (async () => { await setAiPreferences({ aiEnabled: enabled, ollamaUrl: ollamaUrl.trim(), ollamaModel: ollamaModel.trim() || "qwen3.5:4b" }); if (enabled) void refreshHeaderAvailability(); })(); }} /></Row>
-          <TextInput accessibilityLabel="Dirección de Ollama" value={ollamaUrl} onChangeText={setOllamaUrl} autoCapitalize="none" autoCorrect={false} placeholder="http://192.168.1.20:11434" placeholderTextColor={theme.colors.muted} editable={!busy} style={styles.input} />
-          <TextInput accessibilityLabel="Modelo de Ollama" value={ollamaModel} onChangeText={setOllamaModel} autoCapitalize="none" autoCorrect={false} placeholder="qwen3.5:4b" placeholderTextColor={theme.colors.muted} editable={!busy} style={styles.input} />
-          <Button label="Guardar cerebro local" secondary disabled={busy} onPress={() => void saveBrainSettings()} />
-          {providerStatus === null && <Button label="Probar conexión" secondary icon="lan-connect" disabled={busy} onPress={() => void testBrainConnection()} />}
-          {providerStatus !== null && <AIProviderStatus status={providerStatus} message={providerMessage} retrying={providerStatus === "checking"} onRetry={() => void testBrainConnection()} />}
-          <Copy muted>En el celular usa la IP privada de tu computador, no `localhost`. Ambos deben estar en la misma Wi‑Fi y Ollama debe aceptar conexiones de red.</Copy>
-        </Card>}
-        <View style={styles.starters}><Badge>ÓRDENES Y CONSULTAS</Badge><Row style={styles.wrap}>{["Mis finanzas", "Tareas pendientes", "Agrega un gasto de 100.000 pesos hoy"].map(prompt => <Button key={prompt} label={prompt} secondary disabled={busy || saving || listening || thinking} onPress={() => void ask(prompt)} />)}</Row></View>
-        {messages.map(message => <View key={message.id} style={message.role === "user" ? styles.userMessage : styles.assistantMessage}>
-          <Copy variant="label" style={message.role === "assistant" ? styles.accent : undefined}>{message.role === "user" ? "TÚ" : "JARVIS"}</Copy>
-          <Copy selectable>{message.text}</Copy>
-        </View>)}
-        {proposal && <Card tone="accent"><Row><Icon name="clipboard-check-outline" /><Copy variant="heading">{proposal.title}</Copy></Row><Copy>{proposal.detail}</Copy><Copy muted>Se guardará al confirmar. También puedes pulsar el micrófono y decir «confirmar» o «cancelar».</Copy><Button label="Confirmar cambio" icon="check" loading={saving} disabled={busy || listening} onPress={() => void confirm()} /><Button label="Cancelar" secondary disabled={saving || busy || listening} onPress={cancel} /></Card>}
-        <Copy variant="mono" muted>Órdenes locales · fecha de Bogotá · conversación de esta sesión</Copy>
+      <Row style={styles.header}>
+        <JarvisCore state={coreState} size={38} />
+        <View style={styles.grow}>
+          <Copy variant="marker" style={styles.mark}>JARVIS</Copy>
+          <Copy variant="system" accessibilityLiveRegion="polite" style={live ? styles.accent : styles.muted}>{status}</Copy>
+        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel={settings ? "Cerrar ajustes" : "Ajustes"} hitSlop={10} onPress={() => setSettings(value => !value)} style={styles.gear}>
+          <Icon name={settings ? "close" : "tune-variant"} size={20} color={theme.colors.muted} />
+        </Pressable>
+      </Row>
+
+      <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}
+        onContentSizeChange={() => { if (settings) scroll.current?.scrollTo({ y: 0, animated: true }); else scroll.current?.scrollToEnd({ animated: true }); }}>
+        {settings ? <View style={styles.settings}>
+          <SectionMarker label="VOZ" />
+          <Copy variant="caption" muted>Estilo sereno, tono grave y ritmo pausado. El timbre depende de las voces instaladas en tu teléfono.</Copy>
+          <Row style={styles.toggle}>
+            <Copy variant="body" style={styles.grow}>Respuestas habladas</Copy>
+            <Switch accessibilityLabel="Respuestas habladas" value={preferences.voiceEnabled} disabled={busy} trackColor={{ false: theme.colors.elevated, true: theme.colors.accentSoft }} thumbColor={preferences.voiceEnabled ? theme.colors.accent : theme.colors.muted}
+              onValueChange={enabled => { if (!enabled) void voice.stop(); void setVoicePreferences({ voiceEnabled: enabled, voiceId: preferences.voiceId }); }} />
+          </Row>
+          <Button label="Probar voz" variant="secondary" icon="volume-high" onPress={() => void voice.speak("A tu servicio, Juan. Sistemas preparados. ¿Qué necesitas resolver hoy?")} />
+          <Copy variant="caption" muted>Voces en español instaladas en este teléfono.</Copy>
+          <Button label={`${preferences.voiceId === null ? "✓ " : ""}Selección automática`} variant="secondary" disabled={busy} onPress={() => { void voice.stop(); void setVoicePreferences({ voiceEnabled: preferences.voiceEnabled, voiceId: null }); }} />
+          {voice.voices.map(item => <Button key={item.identifier} label={`${preferences.voiceId === item.identifier ? "✓ " : ""}${item.name} · ${item.language}`} variant="secondary" disabled={busy} onPress={() => { void voice.stop(); void setVoicePreferences({ voiceEnabled: preferences.voiceEnabled, voiceId: item.identifier }); }} />)}
+          {voice.voices.length ? null : <Copy variant="caption" muted>Se usará la voz del sistema. Puedes instalar más voces en los ajustes de tu teléfono.</Copy>}
+
+          <SectionMarker label="CEREBRO LOCAL" />
+          <Copy variant="caption" muted>El modelo se ejecuta en tu computador. Las acciones que cambian datos siguen pidiendo tu confirmación.</Copy>
+          <Row style={styles.toggle}>
+            <Copy variant="body" style={styles.grow}>Usar Ollama para conversar</Copy>
+            <Switch accessibilityLabel="Usar Ollama para conversar" value={preferences.aiEnabled} disabled={busy} trackColor={{ false: theme.colors.elevated, true: theme.colors.accentSoft }} thumbColor={preferences.aiEnabled ? theme.colors.accent : theme.colors.muted}
+              onValueChange={enabled => { void (async () => { await setAiPreferences({ aiEnabled: enabled, ollamaUrl: ollamaUrl.trim(), ollamaModel: ollamaModel.trim() || "qwen3.5:4b" }); if (enabled) void refreshHeaderAvailability(); })(); }} />
+          </Row>
+          <TextInput accessibilityLabel="Dirección de Ollama" value={ollamaUrl} onChangeText={setOllamaUrl} autoCapitalize="none" autoCorrect={false} placeholder="http://192.168.1.20:11434" placeholderTextColor={theme.colors.dim} editable={!busy} style={styles.field} />
+          <TextInput accessibilityLabel="Modelo de Ollama" value={ollamaModel} onChangeText={setOllamaModel} autoCapitalize="none" autoCorrect={false} placeholder="qwen3.5:4b" placeholderTextColor={theme.colors.dim} editable={!busy} style={styles.field} />
+          <Button label="Guardar cerebro local" variant="secondary" disabled={busy} onPress={() => void saveBrainSettings()} />
+          {providerStatus === null
+            ? <Button label="Probar conexión" variant="secondary" icon="lan-connect" disabled={busy} onPress={() => void testBrainConnection()} />
+            : <AIProviderStatus status={providerStatus} message={providerMessage} retrying={providerStatus === "checking"} onRetry={() => void testBrainConnection()} />}
+          <Copy variant="caption" muted>En el celular usa la IP privada de tu computador, no `localhost`. Ambos deben estar en la misma Wi‑Fi y Ollama debe aceptar conexiones de red.</Copy>
+        </View> : null}
+
+        {messages.map(message => message.role === "user"
+          ? <View key={message.id} style={styles.userTurn}>
+            <Copy selectable accessibilityLabel={`Tú: ${message.text}`}>{message.text}</Copy>
+          </View>
+          : <Row key={message.id} style={styles.assistantTurn}>
+            <Rail tone={brainDown ? "muted" : "accent"} />
+            <Copy selectable accessibilityLabel={`JARVIS: ${message.text}`} style={styles.grow}>{message.text}</Copy>
+          </Row>)}
+
+        {proposal ? <Plate tone="live">
+          <Row style={styles.proposalHead}>
+            <Icon name="clipboard-check-outline" size={18} color={theme.colors.accent} />
+            <Copy variant="section" style={styles.grow}>{proposal.title}</Copy>
+          </Row>
+          <Copy variant="body">{proposal.detail}</Copy>
+          <Copy variant="caption" muted>Se guardará al confirmar. También puedes pulsar el micrófono y decir «confirmar» o «cancelar».</Copy>
+          <Button label="Confirmar cambio" icon="check" loading={saving} disabled={busy || listening} onPress={() => void confirm()} />
+          <Button label="Cancelar" variant="ghost" disabled={saving || busy || listening} onPress={cancel} />
+        </Plate> : null}
+
+        {messages.length <= 1 ? <Row style={styles.starters}>
+          {STARTERS.map(prompt => <Pressable key={prompt} accessibilityRole="button" accessibilityLabel={prompt} disabled={busyComposing} onPress={() => void ask(prompt)} style={({ pressed }) => [styles.chip, pressed ? styles.pressed : null]}>
+            <Copy variant="caption" muted>{prompt}</Copy>
+          </Pressable>)}
+        </Row> : null}
+        {showInstrument ? <View style={styles.instrument}>
+          <JarvisDial state={coreState} size={224} />
+          <Copy variant="caption" muted style={styles.instrumentHint}>Pulsa el micrófono y habla, o escribe una orden.</Copy>
+        </View> : null}
       </ScrollView>
+
       <View style={styles.composer}>
-        {!!(notice || voice.error) && <Copy accessibilityLiveRegion="polite" style={styles.warning}>{notice || voice.error}</Copy>}
-        {voice.speaking && <Button label="Detener voz" secondary icon="stop" onPress={() => void voice.stop()} />}
-        <TextInput ref={input} accessibilityLabel="Mensaje para JARVIS" value={draft} onChangeText={setDraft} placeholder="Escribe o dicta una orden…" placeholderTextColor={theme.colors.muted} multiline maxLength={1000} editable={!saving && !listening && !thinking} style={styles.input} />
-        <Row><View style={styles.grow}><Button label={listening ? "Escuchando…" : "Hablar con JARVIS"} icon="microphone" secondary disabled={listening || saving || busy || thinking} onPress={() => void listen()} /></View><Button label="Enviar" icon="arrow-up" disabled={!draft.trim() || saving || listening || busy || thinking} onPress={() => void ask(draft)} /></Row>
-        <Copy muted style={styles.hint}>{Platform.OS === "android" ? "El dictado usa el servicio de voz de Android y puede necesitar Internet." : "Dicta con el micrófono del teclado y pulsa Enviar."}</Copy>
+        {notice || voice.error ? <Row style={styles.notice}>
+          <Rail tone="warning" />
+          <Copy variant="caption" accessibilityLiveRegion="polite" style={styles.warning}>{notice || voice.error}</Copy>
+        </Row> : null}
+        {voice.speaking ? <Button label="Detener voz" variant="secondary" icon="stop" onPress={() => void voice.stop()} /> : null}
+        <Row style={styles.slot}>
+          <Copy variant="system" style={styles.slotLabel}>ASK</Copy>
+          <TextInput ref={input} accessibilityLabel="Mensaje para JARVIS" value={draft} onChangeText={setDraft} placeholder="«organiza mi día»" placeholderTextColor={theme.colors.dim}
+            multiline maxLength={1000} editable={!saving && !listening && !thinking} style={styles.slotInput} />
+        </Row>
+        <Row style={styles.actions}>
+          <OrbButton label={listening ? "Escuchando…" : "Hablar con JARVIS"} icon="microphone" tone={listening ? "accent" : "energy"}
+            disabled={listening || saving || busy || thinking} onPress={() => void listen()} />
+          <View style={styles.grow} />
+          <OrbButton label="Enviar" icon="arrow-up" tone={draft.trim() ? "accent" : "muted"} disabled={!draft.trim() || busyComposing} onPress={() => void ask(draft)} />
+        </Row>
       </View>
     </KeyboardAvoidingView>
   </SafeAreaView>;
 }
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.background },
-  header: { padding: theme.space.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
-  content: { padding: theme.space.md, gap: theme.space.md, paddingBottom: theme.space.lg },
-  composer: { padding: theme.space.md, gap: theme.space.sm, borderTopWidth: 1, borderTopColor: theme.colors.border, backgroundColor: theme.colors.surface },
-  input: { minHeight: 48, maxHeight: 100, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 16, lineHeight: 24, padding: 10, borderRadius: theme.radius.control, backgroundColor: theme.colors.background },
-  orb: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.accentWash, alignItems: "center", justifyContent: "center" },
-  orbActive: { borderColor: theme.colors.accent, backgroundColor: theme.colors.elevated },
-  grow: { flex: 1 }, wrap: { flexWrap: "wrap" }, starters: { gap: theme.space.sm },
-  userMessage: { marginLeft: theme.space.xl, padding: theme.space.md, gap: theme.space.sm, backgroundColor: theme.colors.elevated, borderRadius: theme.radius.card, borderTopRightRadius: 4 },
-  assistantMessage: { marginRight: theme.space.md, padding: theme.space.md, gap: theme.space.sm, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.card, borderTopLeftRadius: 4, backgroundColor: theme.colors.surface },
-  accent: { color: theme.colors.accent }, warning: { color: theme.colors.warning }, hint: { fontSize: 12, lineHeight: 18 },
+  header: { paddingHorizontal: theme.space.md, paddingVertical: theme.space.ms, gap: theme.space.ms, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
+  mark: { color: theme.colors.text, letterSpacing: 2.5 },
+  gear: { width: theme.touchTarget, height: theme.touchTarget, alignItems: "flex-end", justifyContent: "center" },
+  content: { padding: theme.space.md, gap: theme.space.lg, paddingBottom: theme.space.lg },
+  settings: { gap: theme.space.ms, paddingBottom: theme.space.sm },
+  toggle: { minHeight: theme.touchTarget, gap: theme.space.ms },
+  field: {
+    minHeight: theme.touchTarget, maxHeight: 120, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 15, lineHeight: 22,
+    paddingHorizontal: theme.space.ms, paddingVertical: theme.space.ms, borderRadius: theme.radius.control, backgroundColor: theme.colors.background,
+    borderWidth: 1, borderTopColor: theme.colors.border, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border,
+  },
+  userTurn: {
+    alignSelf: "flex-end", maxWidth: "85%", paddingHorizontal: theme.space.ms, paddingVertical: theme.space.sm, backgroundColor: theme.colors.elevated, borderRadius: theme.radius.plate,
+    borderWidth: 1, borderTopColor: theme.colors.edge, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border,
+  },
+  assistantTurn: { alignItems: "stretch", gap: theme.space.ms, paddingRight: theme.space.lg },
+  instrument: { alignItems: "center", gap: theme.space.md, paddingVertical: theme.space.md },
+  instrumentHint: { textAlign: "center" },
+  slot: {
+    minHeight: theme.touchTarget, paddingHorizontal: theme.space.ms, gap: theme.space.ms, backgroundColor: theme.colors.background, borderRadius: theme.radius.pill,
+    borderWidth: 1, borderColor: theme.colors.border,
+  },
+  slotLabel: { color: theme.colors.dim },
+  slotInput: { flex: 1, minHeight: theme.touchTarget, maxHeight: 120, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 15, lineHeight: 22, paddingVertical: theme.space.ms },
+  proposalHead: { gap: theme.space.sm },
+  starters: { flexWrap: "wrap", gap: theme.space.sm },
+  chip: { minHeight: 36, justifyContent: "center", paddingHorizontal: theme.space.ms, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.border },
+  pressed: { opacity: 0.6 },
+  composer: { padding: theme.space.md, gap: theme.space.sm, borderTopWidth: 1, borderTopColor: theme.colors.edge, backgroundColor: theme.colors.surface },
+  notice: { alignItems: "stretch", gap: theme.space.sm },
+  actions: { gap: theme.space.sm },
+  grow: { flex: 1 },
+  accent: { color: theme.colors.accent },
+  muted: { color: theme.colors.muted },
+  warning: { color: theme.colors.warning, flex: 1 },
 });

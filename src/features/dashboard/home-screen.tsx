@@ -1,58 +1,106 @@
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import { Brand, Screen } from "../../components/layout/screen";
-import { Badge, Button, Card, Copy, Icon, Progress, Row, SectionTitle } from "../../components/ui/primitives";
+import { Screen } from "../../components/layout/screen";
+import { SystemBar } from "../../components/layout/system-bar";
+import { Button, Copy, DataRow, Icon, Progress, Rail, Row, Section, SectionMarker } from "../../components/ui/primitives";
 import { CommandBar } from "../../components/jarvis/command-bar";
 import { useWorkspace } from "../../services/storage/workspace-provider";
-import { formatDate, formatGrade, formatMoney } from "../../lib/utils/format";
-import { ProgressEditor } from "../tasks/progress-editor";
+import { formatDate, formatGrade, formatMoney, formatTime } from "../../lib/utils/format";
 import { AgendaList } from "./agenda-list";
 import { HabitsCard } from "./habits-card";
-import { theme } from "../../theme/tokens";
+import { PriorityFocus } from "./priority-focus";
+import { categoryColor, theme } from "../../theme/tokens";
+
+function greet(now: Date) {
+  const hour = Number(formatTime(now).slice(0, 2));
+  return hour < 12 ? "Buenos días" : hour < 19 ? "Buenas tardes" : "Buenas noches";
+}
 
 export default function HomeScreen() {
   const { data, dashboard: vm, preferences } = useWorkspace();
+  const now = new Date();
+  const subject = vm.priority ? data.subjects.find(item => item.id === vm.priority?.subjectId)?.name : undefined;
+  const overspent = vm.finance.remaining !== null && vm.finance.remaining < 0n;
   return <Screen>
-    <Brand />
-    <View style={{ gap: 8 }}><Copy variant="title" accessibilityRole="header">Hola, <Copy variant="title" style={{ color: theme.colors.accent }}>{data.user.name}.</Copy></Copy><Copy muted>Esto es lo que necesita tu atención hoy.</Copy><Copy variant="mono" muted>DATOS LOCALES · {vm.date} · BOGOTÁ</Copy></View>
+    <SystemBar state={preferences.aiEnabled ? "idle" : "offline"} right={<Copy variant="marker">{formatTime(now)}</Copy>} />
+
+    <View style={styles.briefing}>
+      <Copy variant="title" accessibilityRole="header">{greet(now)}, {data.user.name}.</Copy>
+      <Copy variant="lead" muted>{vm.briefing}</Copy>
+    </View>
+
     <CommandBar />
-    <Card tone="accent">
-      <Badge>RECOMENDADO POR JARVIS</Badge>
-      <Copy style={{ fontSize: 17, lineHeight: 28 }}>{vm.briefing}</Copy>
-      <Row><Icon name="creation-outline" color={theme.colors.success} /><Copy variant="mono" muted>Análisis local por reglas</Copy></Row>
-      <Button label="Ver mi agenda" icon="arrow-right" secondary onPress={() => router.navigate("/calendar")} />
-    </Card>
-    {vm.priority ? <Card tone="danger">
-      <Badge color={theme.colors.danger}>ALTO IMPACTO ACADÉMICO</Badge>
-      <Copy variant="heading">{vm.priority.title}</Copy>
-      <Row style={{ alignItems: "stretch" }}>
-        <View style={{ flex: 1, gap: 4 }}><Copy variant="label" muted>ENTREGA</Copy><Copy>{vm.priority.deadline ? formatDate(vm.priority.deadline) : "Sin fecha"}</Copy></View>
-        <View style={{ flex: 1, gap: 4 }}><Copy variant="label" muted>IMPACTO</Copy><Copy style={{ color: theme.colors.accent }}>{vm.priority.academicImpact}% de la nota</Copy></View>
-      </Row>
-      <Copy variant="mono" style={{ color: theme.colors.success }}>PRIORIDAD {vm.priority.ranking.score}/100 · {vm.priority.progress}% completado</Copy>
-      <ProgressEditor task={vm.priority} />
-      <Copy muted>{vm.priority.ranking.reasons[0]}</Copy>
-    </Card> : <Card><Icon name="check-circle-outline" color={theme.colors.success} /><Copy variant="heading">Todo al día</Copy><Copy muted>No tienes tareas pendientes.</Copy></Card>}
-    <SectionTitle title="Tu agenda de hoy" subtitle="Clases y espacios de estudio" />
-    <Card><AgendaList events={vm.events} /><Button label="Abrir agenda" secondary onPress={() => router.navigate("/calendar")} /></Card>
-    <SectionTitle title="Tu semestre, en perspectiva" />
-    <Card><Row><Icon name="school-outline" /><Copy variant="heading">Universidad</Copy></Row>
-      <Row style={{ alignItems: "flex-end", justifyContent: "space-between" }}><Copy variant="title">{vm.academic.averageGrade === null ? "—" : formatGrade(vm.academic.averageGrade)}<Copy muted> / 5,00</Copy></Copy><Copy variant="mono" muted>{vm.academic.credits} CRÉDITOS</Copy></Row>
-      <Copy muted>Promedio ponderado · semestre {data.user.semester}</Copy><Progress value={vm.academic.progress} label="Avance del semestre" />
-      <Button label="Ver mis materias" icon="arrow-right" secondary onPress={() => router.push("/university")} />
-    </Card>
-    <LinearGradient colors={["#142332", "#171b2b"]} style={{ padding: 20, borderRadius: 16, borderWidth: 1, borderColor: theme.colors.border, gap: 16 }}>
-      <Row><Icon name="wallet-outline" /><Copy variant="heading">Finanzas personales</Copy></Row>
-      <Copy variant="label" muted>SALDO DISPONIBLE · COP</Copy><Copy variant="title">{formatMoney(vm.finance.balance)}</Copy>
-      <Copy muted>Gastos del mes: {formatMoney(vm.finance.spent)}</Copy><Copy style={{ color: theme.colors.success }}>Por día según presupuesto: {vm.finance.daily === null ? "Sin presupuesto" : formatMoney(vm.finance.daily)}</Copy>
-      <Button label="Ver mis finanzas" secondary onPress={() => router.push("/finances")} />
-    </LinearGradient>
-    <SectionTitle title="Pequeños hábitos, grandes avances" subtitle="Registra tu progreso de hoy" />
-    <Card><HabitsCard /></Card>
-    <SectionTitle title="En el horizonte" />
-    <Card>{data.exams.map(exam => <Row key={exam.id}><Icon name="calendar-alert-outline" color={theme.colors.warning} /><View style={{ flex: 1 }}><Copy>{exam.title}</Copy><Copy muted>{formatDate(exam.startsAt)} · {exam.weight}% de la nota</Copy></View></Row>)}</Card>
-    {vm.alerts.length > 0 && <><SectionTitle title="Necesita tu atención" /><Card>{vm.alerts.slice(0, 3).map(alert => <View key={alert.id} style={{ gap: 4 }}><Copy style={{ color: theme.colors.warning }}>{alert.title}</Copy><Copy muted>{alert.reason}</Copy></View>)}</Card></>}
-    {preferences.showSuggestions && vm.suggestions.length > 0 && <><SectionTitle title="Siguiente paso sugerido" />{vm.suggestions.map(action => <Card key={action.id} tone="accent"><Copy variant="heading">{action.title}</Copy><Copy muted>{action.reason}</Copy><Button label="Ir a mis tareas" icon="arrow-right" onPress={() => router.navigate("/tasks")} /></Card>)}</>}
+
+    {vm.priority ? <View style={styles.focus}>
+      <SectionMarker label="LO PRIMERO" />
+      <PriorityFocus task={vm.priority} subject={subject} />
+    </View> : <Row style={styles.clear}>
+      <Icon name="check-circle-outline" color={theme.colors.success} />
+      <Copy variant="body" muted>No tienes tareas pendientes.</Copy>
+    </Row>}
+
+    <Section label="HOY" trailing={<Button label="Agenda" variant="ghost" onPress={() => router.navigate("/calendar")} />}>
+      <AgendaList events={vm.events} />
+    </Section>
+
+    <Section label="DINERO" trailing={<Button label="Detalle" variant="ghost" onPress={() => router.push("/finances")} />}>
+      <View>
+        <DataRow label="Saldo disponible" value={formatMoney(vm.finance.balance)} />
+        <DataRow label="Gastado este mes" value={formatMoney(vm.finance.spent)} tone="muted" />
+        <DataRow label="Puedes gastar por día" value={vm.finance.daily === null ? "Sin presupuesto" : formatMoney(vm.finance.daily)}
+          tone={overspent ? "danger" : "muted"} note={overspent ? "Presupuesto superado" : undefined} />
+      </View>
+    </Section>
+
+    <Section label="SEMESTRE" trailing={<Button label="Materias" variant="ghost" onPress={() => router.push("/university")} />}>
+      <View style={styles.semester}>
+        <Row style={styles.grade}>
+          <Copy variant="metric">{vm.academic.averageGrade === null ? "—" : formatGrade(vm.academic.averageGrade)}</Copy>
+          <View style={styles.gradeMeta}>
+            <Copy variant="caption" muted>de 5,00</Copy>
+            <Copy variant="caption" muted>{vm.academic.credits} créditos</Copy>
+          </View>
+        </Row>
+        <Progress value={vm.academic.progress} label="Avance del semestre" />
+        <Copy variant="caption" muted>Promedio ponderado del semestre {data.user.semester}.</Copy>
+      </View>
+    </Section>
+
+    <Section label="HÁBITOS"><HabitsCard /></Section>
+
+    {data.exams.length ? <Section label="EN EL HORIZONTE">
+      <View>{data.exams.map(exam => <DataRow key={exam.id} dot={categoryColor(exam.title)} label={exam.title} note={`${exam.weight}% de la nota`} value={formatDate(exam.startsAt)} tone="muted" />)}</View>
+    </Section> : null}
+
+    {vm.alerts.length ? <Section label="REQUIERE ATENCIÓN">
+      <View style={styles.alerts}>{vm.alerts.slice(0, 3).map(alert => <Row key={alert.id} style={styles.alert}>
+        <Rail tone={alert.severity === "critical" ? "danger" : "warning"} />
+        <View style={styles.grow}>
+          <Copy variant="body">{alert.title}</Copy>
+          <Copy variant="caption" muted>{alert.reason}</Copy>
+        </View>
+      </Row>)}</View>
+    </Section> : null}
+
+    {preferences.showSuggestions && vm.suggestions.length ? <Section label="SIGUIENTE PASO">
+      {vm.suggestions.map(action => <View key={action.id} style={styles.suggestion}>
+        <Copy variant="body">{action.title}</Copy>
+        <Copy variant="caption" muted>{action.reason}</Copy>
+        <Button label="Ver mis tareas" variant="secondary" onPress={() => router.navigate("/tasks")} />
+      </View>)}
+    </Section> : null}
   </Screen>;
 }
+
+const styles = StyleSheet.create({
+  briefing: { gap: theme.space.sm },
+  focus: { gap: theme.space.ms },
+  clear: { gap: theme.space.sm },
+  semester: { gap: theme.space.ms },
+  grade: { alignItems: "baseline", gap: theme.space.ms },
+  gradeMeta: { gap: theme.space.hair },
+  grow: { flex: 1 },
+  alerts: { gap: theme.space.md },
+  alert: { alignItems: "stretch", gap: theme.space.ms },
+  suggestion: { gap: theme.space.sm },
+});

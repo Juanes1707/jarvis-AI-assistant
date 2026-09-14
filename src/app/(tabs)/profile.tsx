@@ -1,14 +1,73 @@
-import { Switch, View } from "react-native";
+import { Pressable, StyleSheet, Switch, View } from "react-native";
 import { router } from "expo-router";
 import { Screen } from "../../components/layout/screen";
-import { Badge, Button, Card, Copy, Row } from "../../components/ui/primitives";
+import { SystemBar } from "../../components/layout/system-bar";
+import { Copy, DataRow, Icon, Row, Section, type IconName } from "../../components/ui/primitives";
 import { useWorkspace } from "../../services/storage/workspace-provider";
 import { theme } from "../../theme/tokens";
+
+function NavRow({ label, icon, onPress }: { label: string; icon: IconName; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.nav, pressed ? styles.pressed : null]}>
+    <Icon name={icon} size={18} color={theme.colors.muted} />
+    <Copy variant="body" style={styles.grow}>{label}</Copy>
+    <Icon name="chevron-right" size={18} color={theme.colors.dim} />
+  </Pressable>;
+}
+
 export default function ProfileScreen() {
   const { data, preferences, toggleSuggestions, busy } = useWorkspace();
-  return <Screen title="Tu espacio"><Card><Copy variant="title">{data.user.name}</Copy><Copy muted>Semestre {data.user.semester} · Bogotá · COP</Copy><Badge>PERFIL DE DEMOSTRACIÓN</Badge></Card>
-    <Card><Copy variant="heading">Preferencias</Copy><Row><View style={{ flex: 1 }}><Copy>Sugerencias en Inicio</Copy><Copy muted>Mostrar el siguiente paso recomendado.</Copy></View><Switch accessibilityLabel="Mostrar sugerencias en Inicio" value={preferences.showSuggestions} disabled={busy} onValueChange={() => void toggleSuggestions()} trackColor={{ false: "#334155", true: "#0369a1" }} thumbColor={theme.colors.accent} /></Row></Card>
-    <Button label="Universidad" secondary icon="school-outline" onPress={() => router.push("/university")} /><Button label="Finanzas" secondary icon="wallet-outline" onPress={() => router.push("/finances")} />
-    <Card><Copy variant="heading">JARVIS Mobile</Copy><Copy muted>Datos guardados en este dispositivo. Incluye registros de ejemplo de septiembre de 2026. Las órdenes y los resúmenes usan la fecha actual en Bogotá.</Copy><Copy variant="mono" muted>VERSIÓN 0.2 · REACT NATIVE + EXPO</Copy></Card>
+  const initials = data.user.name.split(" ").slice(0, 2).map(part => part[0]).join("");
+  return <Screen>
+    <SystemBar state={preferences.aiEnabled ? "idle" : "offline"} />
+
+    <Row style={styles.identity}>
+      <View style={styles.avatar}><Copy variant="marker" style={styles.initials}>{initials.toLocaleUpperCase("es")}</Copy></View>
+      <View style={styles.grow}>
+        <Copy variant="title" accessibilityRole="header">{data.user.name}</Copy>
+        <Copy variant="caption" muted>Semestre {data.user.semester} · Bogotá</Copy>
+      </View>
+    </Row>
+
+    <Section label="COMPORTAMIENTO">
+      <Row style={styles.toggle}>
+        <View style={styles.grow}>
+          <Copy variant="body">Sugerencias en Inicio</Copy>
+          <Copy variant="caption" muted>Mostrar el siguiente paso recomendado.</Copy>
+        </View>
+        <Switch accessibilityLabel="Mostrar sugerencias en Inicio" value={preferences.showSuggestions} disabled={busy} onValueChange={() => void toggleSuggestions()}
+          trackColor={{ false: theme.colors.elevated, true: theme.colors.accentSoft }} thumbColor={preferences.showSuggestions ? theme.colors.accent : theme.colors.muted} />
+      </Row>
+      <Copy variant="caption" muted>La voz y el cerebro local se configuran dentro de JARVIS, junto a la conversación.</Copy>
+    </Section>
+
+    <Section label="TU VIDA">
+      <View>
+        <NavRow label="Universidad" icon="school-outline" onPress={() => router.push("/university")} />
+        <NavRow label="Finanzas" icon="wallet-outline" onPress={() => router.push("/finances")} />
+      </View>
+    </Section>
+
+    <Section label="SISTEMA">
+      <View>
+        <DataRow label="Cerebro local" value={preferences.aiEnabled ? "Activo" : "Apagado"} tone="muted" note={preferences.aiEnabled ? preferences.ollamaModel : "Ollama sin usar"} />
+        <DataRow label="Respuestas habladas" value={preferences.voiceEnabled ? "Activas" : "Silenciadas"} tone="muted" />
+        <DataRow label="Datos" value="En este dispositivo" tone="muted" note="SQLite local, sin servidor" />
+        <DataRow label="Versión" value="0.2.0" tone="muted" note="React Native y Expo" />
+      </View>
+      <Copy variant="caption" muted>Incluye registros de ejemplo de septiembre de 2026. Las órdenes y los resúmenes usan la fecha actual en Bogotá.</Copy>
+    </Section>
   </Screen>;
 }
+
+const styles = StyleSheet.create({
+  identity: { gap: theme.space.md },
+  avatar: {
+    width: 52, height: 52, alignItems: "center", justifyContent: "center", borderRadius: theme.radius.plate, backgroundColor: theme.colors.surface,
+    borderWidth: 1, borderTopColor: theme.colors.edge, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border,
+  },
+  initials: { color: theme.colors.accent, letterSpacing: 1 },
+  toggle: { minHeight: theme.touchTarget, gap: theme.space.ms },
+  nav: { flexDirection: "row", alignItems: "center", gap: theme.space.ms, minHeight: theme.touchTarget },
+  pressed: { opacity: 0.6 },
+  grow: { flex: 1 },
+});

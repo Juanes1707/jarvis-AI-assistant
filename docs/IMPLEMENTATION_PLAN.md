@@ -11,7 +11,7 @@ React Native + Expo reemplaza el plan web anterior. No construir todas las fases
 | 4 · Finanzas | Movimientos, presupuestos, metas e insights | Alta de gastos/ingresos por órdenes; edición avanzada y metas pendientes |
 | 5 · Personal | Hábitos completos, proyectos, documentos e insights | Pendiente |
 | 6 · Inteligencia | Contexto, historial, acciones propuestas, inbox y proveedor IA | Voz y órdenes locales confirmadas; Ollama LAN opcional integrado; historial persistente pendiente |
-| 7 · Polish | Android/iOS, accesibilidad, teclado y comparación visual | Pendiente |
+| 7 · Polish | Android/iOS, accesibilidad, teclado y comparación visual | Rediseño visual completo aplicado; comparación en teléfono pendiente |
 | 8 · Producción | Seguridad, arquitectura, builds e interfaces backend | Pendiente |
 
 Foundation: npx expo start desde la raíz, rutas nativas, persistencia sin Node, pruebas de lógica y componentes, bundles Android/iOS. Verificación en dispositivo registrada por separado, nunca inferida de un preview web.
@@ -56,3 +56,31 @@ Validación: 123 pruebas en 11 suites, typecheck y lint aprobados; Android/iOS e
 JARVIS integra el endpoint nativo `/api/chat` de Ollama para que `qwen3.5:4b` responda la conversación desde el computador del usuario. La URL y modelo se guardan en AsyncStorage y el chat ofrece una comprobación de `/api/tags`. El modelo recibe un contexto acotado y de solo lectura; las acciones de gastos, tareas y hábitos permanecen en el intérprete local y requieren confirmación antes de SQLite. Android permite tráfico HTTP únicamente para la LAN privada configurada por el usuario; no se expone un backend ni un túnel para Ollama.
 
 La validación automatizada cubre cliente, modelo instalado y delimitación del contexto, además de la compatibilidad de preferencias anteriores. Typecheck, lint y Jest se ejecutaron. La conexión real desde teléfono y el comportamiento/latencia de `qwen3.5:4b` siguen pendientes de validación en la red del usuario; una exportación o mock no la sustituye.
+
+## Rediseño visual «Machined Obsidian» — 13 de septiembre de 2026
+
+Rediseño solicitado explícitamente por el usuario: la interfaz anterior se sentía estática y genérica. El sistema visual pasa de Calm Palette (azul marino y cian) a grafito con acento carmesí usado como luz que escapa por las juntas. La especificación completa está en `docs/DESIGN_SYNC.md`; los cambios que cruzan el límite con Codex están en `docs/AI_HANDOFF.md` (SD-001, SD-002, IN-001, IN-002).
+
+Fundación: `src/theme/tokens.ts` reescrito (grafitos, `edge`, `dim`, `ember`; radios 2/6/10; escala de espacio y duraciones de motion). `primitives.tsx` sustituye `Card`/`SectionTitle` por `Plate`/`SectionMarker` y añade `Section`, `Seam`, `Rail`, `DataRow`; `Button` cambia el booleano `secondary` por `variant`. Se eliminaron los tokens `blue` e `indigo`.
+
+Núcleo: `src/components/jarvis/core.tsx` es el único elemento animado; sus cinco estados se derivan de estado real (escucha, petición a Ollama, escritura en curso, voz hablando, cerebro local apagado o inalcanzable). Solo transform y opacidad; respeta `useReducedMotion`. Aparece en el encabezado del chat, en el dock y en el arranque.
+
+Pantallas rehechas: Inicio (el briefing es el titular tipográfico y una sola tarea focal lleva el riel carmesí), chat de JARVIS (las respuestas son texto con riel en lugar de burbujas; la voz es la acción primaria), Tareas (filas pulsables memoizadas en lugar de tarjetas con botón por ítem), Agenda (tira semanal con marcas reales de ocupación y entregas), Finanzas (importes sin color por signo), Universidad, Perfil (consola del sistema) y los estados de arranque y error.
+
+Validación ejecutada: `npx tsc --noEmit` sin errores, `npm run lint` con cero advertencias y `npm test` con 146 pruebas en 15 suites, incluida una suite nueva del núcleo. Se conservaron todas las etiquetas de accesibilidad y los textos visibles que las pruebas existentes verifican.
+
+Pendiente y no sustituible por lo anterior: comprobación en teléfono de safe areas, teclado, tipografías, rendimiento de la animación y medidas reales del dock. La revisión visual de esta sesión se hizo sobre una aproximación HTML con los mismos tokens a 390 px, que no es el render de React Native.
+
+## Rediseño visual «Illuminated HUD» — 14 de septiembre de 2026
+
+El usuario indicó que el sistema anterior (grafito mate con carmesí) se veía soso y aportó un video de referencia: `https://www.youtube.com/watch?v=FzE-UYBe8co`. Se inspeccionaron los fotogramas del minuto 0:55 al 1:15, donde aparece la aplicación real. De ahí se tomaron el dial HUD circular, el brillo sobre elementos vivos, las etiquetas monoespaciadas con tracking, los puntos de color por categoría y los controles circulares. No se tomó la disposición de tres paneles ni el grafo de partículas, que no caben en un teléfono.
+
+Paleta elegida por el usuario: cian como color del sistema, verde como actividad viva y carmesí reservado a urgencias reales. Ese último punto está codificado en `isUrgent()` (`src/features/tasks/urgency.ts`): una entrega vencida o a menos de 24 horas. Nada más puede poner un elemento en rojo.
+
+Nuevo: `src/components/jarvis/dial.tsx` (instrumento principal, anillos de marcas y arcos giratorios construidos con Views y transforms, sin dependencia de SVG), primitivos `Dot` y `OrbButton`, y `categoryColor()` para dar a cada materia o categoría de gasto un tono estable. El núcleo compacto (`core.tsx`) recibió halo de brillo. Radios ampliados a 10/16 y controles de comando en forma de píldora.
+
+El dial aparece como estado vacío de la pestaña JARVIS y cede el espacio a la conversación en cuanto hay mensajes; el compositor pasó a campo tipo píldora con micrófono y envío circulares.
+
+Validación ejecutada: `npx tsc --noEmit` sin errores, `npm run lint` con cero advertencias y `npm test` con 152 pruebas en 16 suites, incluida una suite nueva del dial. Se conservaron todas las etiquetas de accesibilidad y los textos verificados por las pruebas.
+
+Sigue pendiente la comprobación en teléfono: brillo real sobre OLED, rendimiento de los 72 Views del dial en gama media, safe areas y teclado. La revisión visual se hizo de nuevo sobre una aproximación HTML a 390 px con los mismos tokens, que no sustituye al render nativo.

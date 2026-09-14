@@ -1,54 +1,164 @@
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type TextProps, type ViewStyle, type StyleProp, type ColorValue } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { theme } from "../../theme/tokens";
 
 export type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
-export function Icon({ name, color = theme.colors.accent, size = 22 }: { name: IconName; color?: ColorValue; size?: number }) {
+export function Icon({ name, color = theme.colors.muted, size = 20 }: { name: IconName; color?: ColorValue; size?: number }) {
   return <MaterialCommunityIcons name={name} color={color} size={size} accessible={false} />;
 }
-export function Copy({ variant = "body", muted, style, ...props }: TextProps & { variant?: "body" | "title" | "heading" | "label" | "mono"; muted?: boolean }) {
-  return <Text {...props} style={[styles.copy, styles[variant], muted && { color: theme.colors.muted }, style]} />;
+
+type CopyVariant = "body" | "lead" | "section" | "title" | "caption" | "system" | "marker" | "metric" | "metricSmall";
+export function Copy({ variant = "body", muted, style, ...props }: TextProps & { variant?: CopyVariant; muted?: boolean }) {
+  return <Text {...props} style={[text.base, text[variant], muted ? text.muted : null, style]} />;
 }
-export function Card({ children, tone = "default", style }: PropsWithChildren<{ tone?: "default" | "accent" | "danger"; style?: StyleProp<ViewStyle> }>) {
-  return <View style={[styles.card, tone === "accent" && styles.accentCard, tone === "danger" && styles.dangerCard, style]}>{children}</View>;
+
+type Tone = "accent" | "energy" | "danger" | "warning" | "muted";
+const TONE: Record<Tone, string> = {
+  accent: theme.colors.accent, energy: theme.colors.energy, danger: theme.colors.danger,
+  warning: theme.colors.warning, muted: theme.colors.border,
+};
+
+/** A lit panel: cyan top bevel, darker seam on the remaining sides. */
+export function Plate({ children, tone = "default", style }: PropsWithChildren<{ tone?: "default" | "live" | "alert"; style?: StyleProp<ViewStyle> }>) {
+  return <View style={[surface.plate, tone === "live" ? surface.live : null, tone === "alert" ? surface.alert : null, style]}>{children}</View>;
 }
+
+/** The cut between two sections. */
+export function Seam({ style }: { style?: StyleProp<ViewStyle> }) {
+  return <View style={[surface.seam, style]} />;
+}
+
+/** Light escaping a seam. Marks the one thing that matters, never decoration. */
+export function Rail({ tone = "accent" }: { tone?: Tone }) {
+  return <View style={[surface.rail, { backgroundColor: TONE[tone] }]} />;
+}
+
+/** Category marker. The reference colour-codes every node by kind; this is that device. */
+export function Dot({ color, size = 8, glow = false }: { color: string; size?: number; glow?: boolean }) {
+  return <View style={[surface.dotFrame, { width: size * 2, height: size * 2 }]}>
+    {glow ? <View style={{ position: "absolute", width: size * 2, height: size * 2, borderRadius: size, backgroundColor: color, opacity: 0.18 }} /> : null}
+    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }} />
+  </View>;
+}
+
 export function Row({ children, style }: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>) {
-  return <View style={[styles.row, style]}>{children}</View>;
+  return <View style={[surface.row, style]}>{children}</View>;
 }
-export function Badge({ children, color = theme.colors.accent }: PropsWithChildren<{ color?: string }>) {
-  return <View style={[styles.badge, { borderColor: color + "40" }]}><Copy variant="label" style={{ color }}>{children}</Copy></View>;
+
+/** Section header: system marker followed by the seam that runs to the edge. */
+export function SectionMarker({ label, trailing }: { label: string; trailing?: ReactNode }) {
+  return <Row style={surface.marker}>
+    <Copy variant="marker" accessibilityRole="header">{label}</Copy>
+    <View style={surface.markerRule} />
+    {trailing}
+  </Row>;
 }
-export function Button({ label, onPress, icon, disabled, loading, secondary = false }: { label: string; onPress: () => void; icon?: IconName; disabled?: boolean; loading?: boolean; secondary?: boolean }) {
-  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: disabled || loading, busy: loading }} disabled={disabled || loading} onPress={onPress} style={({ pressed }) => [styles.button, secondary && styles.secondaryButton, (disabled || loading) && styles.disabled, pressed && styles.pressed]}>
-    {loading ? <ActivityIndicator color={theme.colors.accent} /> : icon ? <Icon name={icon} color={secondary ? theme.colors.accent : "#ffffff"} size={20} /> : null}
-    <Copy style={[styles.buttonLabel, secondary && { color: theme.colors.accent }]}>{label}</Copy>
+
+/** Cut, marker, content. Holds the vertical rhythm steady across every screen. */
+export function Section({ label, trailing, children }: PropsWithChildren<{ label: string; trailing?: ReactNode }>) {
+  return <View style={surface.section}>
+    <Seam />
+    <SectionMarker label={label} trailing={trailing} />
+    {children}
+  </View>;
+}
+
+/** Label left, value right — reads as a column when stacked. */
+export function DataRow({ label, value, tone = "default", note, dot }: { label: string; value: string; tone?: "default" | "accent" | "danger" | "muted"; note?: string; dot?: string }) {
+  return <Row style={surface.dataRow}>
+    {dot ? <Dot color={dot} /> : null}
+    <View style={surface.grow}>
+      <Copy variant="body">{label}</Copy>
+      {note ? <Copy variant="caption" muted>{note}</Copy> : null}
+    </View>
+    <Copy variant="metricSmall" style={tone === "accent" ? text.accent : tone === "danger" ? text.danger : tone === "muted" ? text.muted : null}>{value}</Copy>
+  </Row>;
+}
+
+export function Badge({ children, color = theme.colors.muted }: PropsWithChildren<{ color?: string }>) {
+  return <View style={[surface.badge, { borderColor: color }]}><Copy variant="system" style={{ color }}>{children}</Copy></View>;
+}
+
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export function Button({ label, onPress, icon, disabled, loading, variant = "primary" }: { label: string; onPress: () => void; icon?: IconName; disabled?: boolean; loading?: boolean; variant?: ButtonVariant }) {
+  const inert = disabled || loading;
+  const tint = variant === "primary" ? theme.colors.text : variant === "danger" ? theme.colors.danger : theme.colors.muted;
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: inert, busy: loading }} disabled={inert} onPress={onPress}
+    style={({ pressed }) => [control.button, control[variant], inert ? control.inert : null, pressed ? control.pressed : null]}>
+    {loading ? <ActivityIndicator color={theme.colors.accent} size="small" /> : icon ? <Icon name={icon} color={tint} size={18} /> : null}
+    <Copy variant={variant === "ghost" ? "caption" : "body"} style={[control.label, { color: tint }]}>{label}</Copy>
   </Pressable>;
 }
-export function Progress({ value, label }: { value: number; label: string }) {
+
+/** Circular control, as used for the reference's microphone and tool row. */
+export function OrbButton({ label, icon, onPress, disabled, tone = "muted", size = 48 }: { label: string; icon: IconName; onPress: () => void; disabled?: boolean; tone?: "muted" | "energy" | "accent"; size?: number }) {
+  const color = tone === "muted" ? theme.colors.muted : tone === "energy" ? theme.colors.energy : theme.colors.accent;
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled }} disabled={disabled} onPress={onPress}
+    style={({ pressed }) => [control.orb, { width: size, height: size, borderRadius: size / 2, borderColor: tone === "muted" ? theme.colors.border : color }, disabled ? control.inert : null, pressed ? control.pressed : null]}>
+    {tone === "muted" ? null : <View style={[control.orbGlow, { borderRadius: size / 2, backgroundColor: tone === "energy" ? theme.glow.energy : theme.glow.accent }]} />}
+    <Icon name={icon} color={color} size={Math.round(size * 0.42)} />
+  </Pressable>;
+}
+
+/** Crimson is reserved for urgency; cyan for the metric JARVIS is actively pushing. */
+export function Progress({ value, label, tone = "default" }: { value: number; label: string; tone?: "default" | "accent" | "danger" }) {
   const percent = Math.min(100, Math.max(0, value));
-  return <View accessible accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{ min: 0, max: 100, now: percent }} style={styles.track}><View style={[styles.fill, { width: `${percent}%` }]} /></View>;
+  return <View accessible accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{ min: 0, max: 100, now: percent }} style={control.track}>
+    <View style={[control.fill, tone === "accent" ? control.fillAccent : tone === "danger" ? control.fillDanger : null, { width: `${percent}%` }]} />
+  </View>;
 }
-export function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return <View style={{ gap: 4 }}><Copy variant="heading" accessibilityRole="header">{title}</Copy>{subtitle ? <Copy muted>{subtitle}</Copy> : null}</View>;
-}
-export const styles = StyleSheet.create({
-  copy: { color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 14, lineHeight: 22 },
+
+const text = StyleSheet.create({
+  base: { color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 15, lineHeight: 23 },
   body: {},
-  title: { fontFamily: theme.fonts.heading, fontSize: 28, lineHeight: 35 },
-  heading: { fontFamily: theme.fonts.heading, fontSize: 20, lineHeight: 27 },
-  label: { fontFamily: theme.fonts.heading, fontSize: 12, lineHeight: 18, letterSpacing: 1 },
-  mono: { fontFamily: theme.fonts.mono, fontSize: 12, lineHeight: 19 },
-  card: { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.card, padding: 16, gap: 16 },
-  accentCard: { backgroundColor: "#111b27", borderColor: "#244257" },
-  dangerCard: { backgroundColor: "#1b1b25", borderColor: "#50313e" },
-  row: { flexDirection: "row", alignItems: "center", gap: 12 },
-  badge: { alignSelf: "flex-start", borderWidth: 1, borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: "#0e1a25" },
-  button: { minHeight: 48, borderRadius: 12, backgroundColor: "#0369a1", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 16, gap: 8 },
-  secondaryButton: { backgroundColor: theme.colors.elevated, borderColor: theme.colors.border, borderWidth: 1 },
-  buttonLabel: { color: "#ffffff", fontFamily: theme.fonts.medium, textAlign: "center", flexShrink: 1 },
-  disabled: { opacity: 0.5 },
-  pressed: { opacity: 0.75, transform: [{ scale: 0.99 }] },
-  track: { height: 6, borderRadius: 6, overflow: "hidden", backgroundColor: "#2b3342" },
-  fill: { height: "100%", borderRadius: 6, backgroundColor: theme.colors.accent },
+  lead: { fontSize: 18, lineHeight: 28 },
+  section: { fontFamily: theme.fonts.medium, fontSize: 17, lineHeight: 24 },
+  title: { fontFamily: theme.fonts.medium, fontSize: 22, lineHeight: 29 },
+  caption: { fontSize: 13, lineHeight: 19 },
+  system: { fontFamily: theme.fonts.mono, fontSize: 12, lineHeight: 16, letterSpacing: 1.2 },
+  marker: { fontFamily: theme.fonts.mono, fontSize: 12, lineHeight: 18, letterSpacing: 1.6, color: theme.colors.dim },
+  metric: { fontFamily: theme.fonts.display, fontSize: 34, lineHeight: 40 },
+  metricSmall: { fontFamily: theme.fonts.display, fontSize: 20, lineHeight: 26 },
+  muted: { color: theme.colors.muted },
+  accent: { color: theme.colors.accent },
+  danger: { color: theme.colors.danger },
+});
+
+const surface = StyleSheet.create({
+  plate: {
+    backgroundColor: theme.colors.surface, borderRadius: theme.radius.plate, padding: theme.space.md, gap: theme.space.ms,
+    borderWidth: 1, borderTopColor: theme.colors.edge, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border,
+  },
+  // Only the top edge lights up. A fully tinted box would drown the rails that mark real focus.
+  live: { backgroundColor: theme.colors.accentWash, borderTopColor: theme.colors.accent, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border },
+  alert: { backgroundColor: theme.colors.dangerWash, borderTopColor: theme.colors.danger, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border },
+  seam: { height: 1, backgroundColor: theme.colors.border },
+  rail: { width: theme.space.hair, alignSelf: "stretch", borderRadius: theme.radius.hairline },
+  dotFrame: { alignItems: "center", justifyContent: "center" },
+  row: { flexDirection: "row", alignItems: "center", gap: theme.space.ms },
+  marker: { gap: theme.space.ms },
+  markerRule: { flex: 1, height: 1, backgroundColor: theme.colors.border },
+  section: { gap: theme.space.ms },
+  dataRow: { minHeight: 44, gap: theme.space.ms },
+  grow: { flex: 1 },
+  badge: { alignSelf: "flex-start", borderWidth: 1, borderRadius: theme.radius.control, paddingHorizontal: theme.space.sm, paddingVertical: theme.space.xs },
+});
+
+const control = StyleSheet.create({
+  button: { minHeight: theme.touchTarget, borderRadius: theme.radius.control, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: theme.space.ms, paddingHorizontal: theme.space.md, gap: theme.space.sm, borderWidth: 1 },
+  // The lit key: system light escapes along the bottom edge of the primary action.
+  primary: { backgroundColor: theme.colors.elevated, borderTopColor: theme.colors.edge, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomWidth: 2, borderBottomColor: theme.colors.accent },
+  secondary: { backgroundColor: "transparent", borderColor: theme.colors.border },
+  ghost: { backgroundColor: "transparent", borderColor: "transparent", paddingHorizontal: theme.space.sm },
+  danger: { backgroundColor: theme.colors.dangerWash, borderColor: theme.colors.danger },
+  label: { fontFamily: theme.fonts.medium, textAlign: "center", flexShrink: 1 },
+  inert: { opacity: 0.4 },
+  pressed: { opacity: 0.7 },
+  orb: { alignItems: "center", justifyContent: "center", borderWidth: 1, backgroundColor: theme.colors.surface },
+  orbGlow: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  track: { height: 3, overflow: "hidden", backgroundColor: theme.colors.border, borderRadius: theme.radius.hairline },
+  fill: { height: "100%", backgroundColor: theme.colors.muted, borderRadius: theme.radius.hairline },
+  fillAccent: { backgroundColor: theme.colors.accent },
+  fillDanger: { backgroundColor: theme.colors.danger },
 });

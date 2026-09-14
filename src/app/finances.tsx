@@ -1,14 +1,68 @@
-import { View } from "react-native";
+import { useMemo } from "react";
+import { StyleSheet, View } from "react-native";
 import { Screen } from "../components/layout/screen";
-import { Badge, Card, Copy, Row, SectionTitle } from "../components/ui/primitives";
+import { Copy, DataRow, Dot, Progress, Rail, Row, Section, Seam } from "../components/ui/primitives";
 import { useWorkspace } from "../services/storage/workspace-provider";
 import { formatDate, formatMoney } from "../lib/utils/format";
-import { theme } from "../theme/tokens";
+import { categoryColor, theme } from "../theme/tokens";
+
 export default function FinancesScreen() {
   const { data, dashboard: { finance } } = useWorkspace();
-  return <Screen title="Finanzas personales" back><Badge>REGISTROS LOCALES · COP</Badge>
-    <Card tone="accent"><Copy variant="label" muted>SALDO DISPONIBLE</Copy><Copy variant="title">{formatMoney(finance.balance)}</Copy><Copy muted>Ingresos del mes: {formatMoney(finance.income)}</Copy><Copy muted>Gastos del mes: {formatMoney(finance.spent)}</Copy></Card>
-    <Card><Copy variant="heading">Tu presupuesto</Copy><Copy>Presupuesto: {finance.budget === null ? "Sin definir" : formatMoney(finance.budget)}</Copy><Copy>Restante: {finance.remaining === null ? "—" : formatMoney(finance.remaining)}</Copy><Copy style={{ color: theme.colors.success }}>Por día: {finance.daily === null ? "—" : formatMoney(finance.daily)}</Copy><Copy muted>Calculado desde hoy hasta fin de mes, en Bogotá.</Copy></Card>
-    <SectionTitle title="Movimientos recientes" />{[...data.transactions].sort((a, b) => +b.occurredAt - +a.occurredAt).map(transaction => <Card key={transaction.id}><Row style={{ flexWrap: "wrap" }}><View style={{ flex: 1, minWidth: 140 }}><Copy>{transaction.title}</Copy><Copy muted>{formatDate(transaction.occurredAt)} · {transaction.category}</Copy></View><Copy style={{ color: transaction.type === "INCOME" ? theme.colors.success : theme.colors.text }}>{transaction.type === "EXPENSE" ? "−" : "+"}{formatMoney(transaction.amountMinor)}</Copy></Row></Card>)}
+  const movements = useMemo(() => [...data.transactions].sort((a, b) => +b.occurredAt - +a.occurredAt), [data.transactions]);
+  const overspentBy = finance.remaining !== null && finance.remaining < 0n ? -finance.remaining : null;
+  const overspent = overspentBy !== null;
+  const used = finance.budget !== null && finance.budget > 0n ? Number(finance.spent * 100n / finance.budget) : null;
+
+  return <Screen title="Finanzas" subtitle="Registros locales en pesos colombianos." back>
+    <View style={styles.balance}>
+      <Copy variant="metric">{formatMoney(finance.balance)}</Copy>
+      <Copy variant="caption" muted>Saldo disponible</Copy>
+    </View>
+
+    <Section label="ESTE MES">
+      <View>
+        <DataRow label="Ingresos" value={formatMoney(finance.income)} tone="muted" />
+        <DataRow label="Gastos" value={formatMoney(finance.spent)} />
+        <DataRow label="Presupuesto" value={finance.budget === null ? "Sin definir" : formatMoney(finance.budget)} tone="muted" />
+      </View>
+      {used === null ? null : <View style={styles.budget}>
+        <Progress value={used} label="Presupuesto consumido" tone={overspent ? "danger" : "default"} />
+        <Copy variant="caption" muted>{used}% del presupuesto consumido.</Copy>
+      </View>}
+      {overspentBy === null
+        ? <DataRow label="Puedes gastar por día" note="Desde hoy hasta fin de mes" value={finance.daily === null ? "—" : formatMoney(finance.daily)} />
+        : <Row style={styles.warn}>
+          <Rail tone="danger" />
+          <Copy variant="caption" style={styles.warnText}>Superaste el presupuesto en {formatMoney(overspentBy)}.</Copy>
+        </Row>}
+    </Section>
+
+    <Section label="MOVIMIENTOS">
+    <View>{movements.map((transaction, index) => <View key={transaction.id}>
+      {index === 0 ? null : <Seam />}
+      <Row style={styles.movement}>
+        <Dot color={categoryColor(transaction.category)} />
+        <View style={styles.grow}>
+          <Copy variant="body">{transaction.title}</Copy>
+          <Row style={styles.movementMeta}>
+            <Copy variant="caption" muted>{formatDate(transaction.occurredAt)}</Copy>
+            <Copy variant="caption" style={styles.category}>{transaction.category}</Copy>
+          </Row>
+        </View>
+        <Copy variant="metricSmall">{transaction.type === "EXPENSE" ? "−" : "+"}{formatMoney(transaction.amountMinor)}</Copy>
+      </Row>
+    </View>)}</View>
+    </Section>
   </Screen>;
 }
+
+const styles = StyleSheet.create({
+  balance: { gap: theme.space.xs },
+  budget: { gap: theme.space.sm, paddingTop: theme.space.sm },
+  warn: { alignItems: "stretch", gap: theme.space.ms },
+  warnText: { color: theme.colors.danger, flex: 1 },
+  movement: { minHeight: 52, gap: theme.space.md },
+  movementMeta: { gap: theme.space.sm },
+  category: { color: theme.colors.dim },
+  grow: { flex: 1 },
+});
