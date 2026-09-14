@@ -10,6 +10,7 @@ import { demoSubjects, demoTasks, demoEvents, demoTransactions, demoHabits } fro
 jest.mock("../src/services/storage/workspace-provider", () => ({ useWorkspace: jest.fn() }));
 jest.mock("../src/services/voice/recognition", () => ({ recognizeSpeech: jest.fn() }));
 jest.mock("../src/services/voice/use-jarvis-voice", () => ({ useJarvisVoice: jest.fn() }));
+jest.mock("../src/services/ai/provider", () => ({ getAIProviderStatus: jest.fn() }));
 jest.mock("expo-router", () => ({ useFocusEffect: () => {} }));
 jest.mock("expo-crypto", () => { let id = 0; return { randomUUID: () => `test-${++id}` }; });
 jest.mock("react-native-safe-area-context", () => {

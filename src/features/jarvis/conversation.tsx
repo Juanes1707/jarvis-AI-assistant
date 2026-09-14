@@ -10,6 +10,7 @@ import { recognizeSpeech } from "../../services/voice/recognition";
 import { useJarvisVoice } from "../../services/voice/use-jarvis-voice";
 import { buildJarvisSystemPrompt } from "../../services/ai/context";
 import { askOllama, checkOllama, type ChatMessage } from "../../services/ai/ollama";
+import { getAIProviderStatus } from "../../services/ai/provider";
 import { theme } from "../../theme/tokens";
 import { interpretCommand, type CommandProposal } from "./commands";
 
@@ -33,6 +34,7 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
   const [ollamaModel, setOllamaModel] = useState(preferences.ollamaModel);
   const [providerStatus, setProviderStatus] = useState<AIProviderStatusValue | null>(null);
   const [providerMessage, setProviderMessage] = useState<string | undefined>(undefined);
+  const [headerAvailability, setHeaderAvailability] = useState<AIProviderStatusValue | null>(null);
   const pending = useRef<CommandProposal | null>(null);
   const locked = useRef(false);
   const recognitionActive = useRef(false);
@@ -43,10 +45,17 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
   const input = useRef<TextInput>(null);
   const voice = useJarvisVoice(preferences.voiceId);
   const { stop } = voice;
+  const refreshHeaderAvailability = useCallback(async () => {
+    setHeaderAvailability("checking");
+    const result = await getAIProviderStatus();
+    setHeaderAvailability(result.status);
+  }, []);
+  const aiEnabled = preferences.aiEnabled;
   useFocusEffect(useCallback(() => {
     focused.current = true;
+    if (aiEnabled) void refreshHeaderAvailability();
     return () => { focused.current = false; void stop(); };
-  }, [stop]));
+  }, [stop, aiEnabled, refreshHeaderAvailability]));
 
   function append(role: Message["role"], text: string) {
     messageHistory.current = [...messageHistory.current, { id: randomUUID(), role, text }].slice(-40);
@@ -124,7 +133,10 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
   }
   async function saveBrainSettings() {
     const saved = await setAiPreferences({ aiEnabled: preferences.aiEnabled, ollamaUrl: ollamaUrl.trim(), ollamaModel: ollamaModel.trim() || "qwen3.5:4b" });
-    if (saved) setNotice("Configuración del cerebro local guardada.");
+    if (saved) {
+      setNotice("Configuración del cerebro local guardada.");
+      if (preferences.aiEnabled) void refreshHeaderAvailability();
+    }
   }
   async function testBrainConnection() {
     setProviderStatus("checking"); setProviderMessage(undefined);
@@ -134,7 +146,11 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
       else { setProviderStatus("unavailable"); setProviderMessage("Ollama responde, pero no encuentro ese modelo. Revisa el nombre con `ollama list`."); }
     } catch (error) { setProviderStatus("error"); setProviderMessage(error instanceof Error ? error.message : "No pude comprobar Ollama."); }
   }
-  const status = listening ? "ESCUCHANDO" : saving ? "GUARDANDO" : thinking ? "PENSANDO LOCALMENTE" : voice.speaking ? "JARVIS HABLANDO" : preferences.aiEnabled ? "CEREBRO LOCAL ACTIVO" : "A TU SERVICIO";
+  const providerLabel = !aiEnabled ? "A TU SERVICIO"
+    : headerAvailability === "checking" ? "COMPROBANDO CEREBRO LOCAL"
+    : headerAvailability === "unavailable" || headerAvailability === "error" ? "CEREBRO LOCAL SIN CONEXIÓN"
+    : "CEREBRO LOCAL ACTIVO";
+  const status = listening ? "ESCUCHANDO" : saving ? "GUARDANDO" : thinking ? "PENSANDO LOCALMENTE" : voice.speaking ? "JARVIS HABLANDO" : providerLabel;
   return <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
     <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <View style={styles.header}>
@@ -151,7 +167,7 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
           {!voice.voices.length && <Copy muted>Se usará la voz del sistema. Puedes instalar más voces en los ajustes de tu teléfono.</Copy>}
           <Copy variant="heading">Cerebro local: Ollama</Copy>
           <Copy muted>El modelo se ejecuta en tu computador. Las acciones que cambian datos siguen pidiendo tu confirmación.</Copy>
-          <Row><View style={styles.grow}><Copy>Usar Ollama para conversar</Copy></View><Switch accessibilityLabel="Usar Ollama para conversar" value={preferences.aiEnabled} disabled={busy} trackColor={{ false: theme.colors.elevated, true: theme.colors.blue }} onValueChange={enabled => void setAiPreferences({ aiEnabled: enabled, ollamaUrl: ollamaUrl.trim(), ollamaModel: ollamaModel.trim() || "qwen3.5:4b" })} /></Row>
+          <Row><View style={styles.grow}><Copy>Usar Ollama para conversar</Copy></View><Switch accessibilityLabel="Usar Ollama para conversar" value={preferences.aiEnabled} disabled={busy} trackColor={{ false: theme.colors.elevated, true: theme.colors.blue }} onValueChange={enabled => { void (async () => { await setAiPreferences({ aiEnabled: enabled, ollamaUrl: ollamaUrl.trim(), ollamaModel: ollamaModel.trim() || "qwen3.5:4b" }); if (enabled) void refreshHeaderAvailability(); })(); }} /></Row>
           <TextInput accessibilityLabel="Dirección de Ollama" value={ollamaUrl} onChangeText={setOllamaUrl} autoCapitalize="none" autoCorrect={false} placeholder="http://192.168.1.20:11434" placeholderTextColor={theme.colors.muted} editable={!busy} style={styles.input} />
           <TextInput accessibilityLabel="Modelo de Ollama" value={ollamaModel} onChangeText={setOllamaModel} autoCapitalize="none" autoCorrect={false} placeholder="qwen3.5:4b" placeholderTextColor={theme.colors.muted} editable={!busy} style={styles.input} />
           <Button label="Guardar cerebro local" secondary disabled={busy} onPress={() => void saveBrainSettings()} />
