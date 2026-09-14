@@ -374,15 +374,33 @@ Your job is to keep JARVIS technically reliable, understandable, maintainable, a
 
 ## AI Handoff Protocol
 
-When your frontend or product work requires changes owned by Codex, record the requirement in:
+When your architecture, backend, integration, business logic, AI, storage, debugging, testing, or system work requires frontend, UI, UX, visual, or product-design changes owned by Claude Code, record the requirement in:
 
 `docs/AI_HANDOFF.md`
 
-Use the `Claude Code → Codex Requests` section.
+Use the `Codex → Claude Code Requests` section.
 
-Before starting work that may depend on backend or system changes, check `docs/AI_HANDOFF.md` for relevant contracts, requests, or shared decisions.
+Before starting work that may affect frontend integration or depend on frontend changes, check `docs/AI_HANDOFF.md` for relevant contracts, requests, or shared decisions.
 
-Do not implement Codex-owned architecture merely to bypass a pending handoff.
+Do not redesign or substantially modify Claude Code-owned UI merely to bypass a pending handoff.
+
+### Handoff Direction
+
+The direction of a handoff indicates who is requesting work from whom.
+
+- If Codex needs frontend, UI, UX, visual, or product-design work from Claude Code, Codex MUST write the request under:
+
+  `Codex → Claude Code Requests`
+
+- If Claude Code needs architecture, backend, integration, services, business logic, debugging, testing, or system work from Codex, that request belongs under:
+
+  `Claude Code → Codex Requests`
+
+Never place a Codex request for Claude Code under `Claude Code → Codex Requests`.
+
+Never reverse these directions.
+
+
 
 ## Collaboration Rule
 
