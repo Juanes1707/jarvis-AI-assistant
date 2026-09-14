@@ -25,7 +25,8 @@
       "supportsTablet": false
     },
     "android": {
-      "predictiveBackGestureEnabled": true
+      "predictiveBackGestureEnabled": true,
+      "usesCleartextTraffic": true
     }
   }
 }

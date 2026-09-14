@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { AcademicTask, Habit, HabitEntry, Workspace } from "../../domain/models";
+import type { CommandProposal } from "../../features/jarvis/commands";
 import { eventSchema, subjectSchema, taskSchema, transactionSchema } from "../../lib/database/validation";
 import { bogotaDayBounds } from "../../lib/calendar/time";
 import { demoSubjects, demoTasks, demoEvents, demoTransactions, demoHabits } from "./demo-data";
@@ -34,14 +35,19 @@ export const migrationV2 = `
   ALTER TABLE tasks_v2 RENAME TO tasks;
   PRAGMA user_version = 2;
 `;
+export const migrationV3 = `
+  CREATE TABLE jarvis_actions (id TEXT PRIMARY KEY NOT NULL, payload TEXT NOT NULL CHECK(json_valid(payload)));
+  PRAGMA user_version = 3;
+`;
 
 export async function initializeDatabase(db: LocalDatabase) {
   await db.execAsync("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;");
   const version = await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-  if ((version?.user_version ?? 0) > 2) throw new Error("Esta base requiere una versión más reciente de JARVIS.");
+  if ((version?.user_version ?? 0) > 3) throw new Error("Esta base requiere una versión más reciente de JARVIS.");
   await db.withTransactionAsync(async () => {
     if (!version?.user_version) await db.execAsync(migrationV1);
     if ((version?.user_version ?? 0) < 2) await db.execAsync(migrationV2);
+    if ((version?.user_version ?? 0) < 3) await db.execAsync(migrationV3);
     const seeded = await db.getFirstAsync("SELECT value FROM settings WHERE key = 'seed_version'");
     if (seeded) return;
     for (const row of demoSubjects) await db.runAsync("INSERT INTO subjects VALUES (?, ?)", row.id, serialize(row));
@@ -116,4 +122,31 @@ export async function startAcademicTask(db: LocalDatabase, id: string) {
 export async function deleteAcademicTask(db: LocalDatabase, id: string) {
   const result = await db.runAsync("DELETE FROM tasks WHERE id = ?", id);
   if (!result.changes) throw new Error("La tarea ya no existe.");
+}
+
+/** Called only after the user confirms the displayed proposal. Atomic receipt makes retries safe. */
+export async function executeJarvisAction(db: LocalDatabase, proposal: CommandProposal) {
+  const id = z.string().min(1).max(100).parse(proposal.id);
+  const action = proposal.action;
+  const payload = serialize(action);
+  await db.withTransactionAsync(async () => {
+    const previous = await db.getFirstAsync<PayloadRow>("SELECT payload FROM jarvis_actions WHERE id = ?", id);
+    if (previous) {
+      if (previous.payload !== payload) throw new Error("La propuesta ya fue usada para otra acción.");
+      return;
+    }
+    switch (action.type) {
+      case "add_transaction": {
+        const transaction = transactionSchema.parse(action.transaction);
+        await db.runAsync("INSERT INTO transactions (id, payload) VALUES (?, ?)", transaction.id, serialize(transaction));
+        break;
+      }
+      case "create_task": await saveAcademicTask(db, action.task, "create"); break;
+      case "complete_task": await saveTaskProgress(db, action.taskId, 100); break;
+      case "start_task": await startAcademicTask(db, action.taskId); break;
+      case "complete_habit": await saveHabitEntry(db, action.habitId, action.date, true); break;
+      default: throw new Error("Acción no admitida.");
+    }
+    await db.runAsync("INSERT INTO jarvis_actions (id, payload) VALUES (?, ?)", id, payload);
+  });
 }

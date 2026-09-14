@@ -1,0 +1,51 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
+import * as Speech from "expo-speech";
+
+export function useJarvisVoice(voiceId: string | null) {
+  const [voices, setVoices] = useState<Speech.Voice[]>([]);
+  const [speaking, setSpeaking] = useState(false);
+  const [error, setError] = useState("");
+  const generation = useRef(0);
+  const alive = useRef(true);
+  const stop = useCallback(async () => {
+    generation.current++;
+    if (alive.current) setSpeaking(false);
+    await Speech.stop().catch(() => {});
+  }, []);
+  useEffect(() => {
+    alive.current = true;
+    Speech.getAvailableVoicesAsync().then(available => {
+      if (alive.current) setVoices(available.filter(voice => /^es(?:[-_]|$)/i.test(voice.language)).sort((a, b) => {
+        const score = (v: Speech.Voice) => (/^es[-_]CO$/i.test(v.language) ? 4 : /^es[-_]MX$/i.test(v.language) ? 2 : 0) + (v.quality === Speech.VoiceQuality.Enhanced ? 1 : 0);
+        return score(b) - score(a);
+      }));
+    }).catch(() => { if (alive.current) setError("No pude cargar las voces. Prueba la voz predeterminada del teléfono."); });
+    return () => { alive.current = false; void stop(); };
+  }, [stop]);
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", state => { if (state !== "active") void stop(); });
+    return () => subscription.remove();
+  }, [stop]);
+  const speak = useCallback(async (text: string) => {
+    const current = ++generation.current;
+    try {
+      await Speech.stop();
+      if (!alive.current || current !== generation.current) return;
+      setError(""); setSpeaking(true);
+      const selected = voices.find(voice => voice.identifier === voiceId) ?? voices[0];
+      const finish = () => { if (alive.current && current === generation.current) setSpeaking(false); };
+      Speech.speak(text.slice(0, Math.min(Speech.maxSpeechInputLength || 3800, 3800)), {
+        language: selected?.language ?? "es-CO", voice: selected?.identifier,
+        pitch: 0.88, rate: 0.94,
+        onDone: finish, onStopped: finish,
+        onError: () => {
+          if (alive.current && current === generation.current) { setError("No pude reproducir la voz. Revisa el volumen y las voces instaladas; en iPhone desactiva el modo silencio."); setSpeaking(false); }
+        },
+      });
+    } catch {
+      if (alive.current && current === generation.current) { setSpeaking(false); setError("No pude reproducir la voz. El mensaje sigue disponible en el chat."); }
+    }
+  }, [voiceId, voices]);
+  return { speak, stop, speaking, voices, error };
+}

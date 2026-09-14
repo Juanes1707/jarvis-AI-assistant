@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { existsSync, unlinkSync } from "node:fs";
 import { beforeEach, afterEach, describe, expect, it } from "@jest/globals";
-import { initializeDatabase, migrationV1, readWorkspace, saveAcademicTask, startAcademicTask, deleteAcademicTask, saveHabitEntry, saveTaskProgress, type LocalDatabase } from "../src/services/storage/database";
+import { initializeDatabase, migrationV1, migrationV2, readWorkspace, saveAcademicTask, startAcademicTask, deleteAcademicTask, saveHabitEntry, saveTaskProgress, executeJarvisAction, type LocalDatabase } from "../src/services/storage/database";
+import { interpretCommand, type CommandProposal } from "../src/features/jarvis/commands";
 import { createTaskDraft, parseTaskDraft } from "../src/domain/task-draft";
 import { taskDeadlines } from "../src/engines/task-list";
 import { buildDashboard } from "../src/engines/dashboard";
@@ -13,6 +14,11 @@ import { buildDashboard } from "../src/engines/dashboard";
 let sqlite: DatabaseSync;
 let database: LocalDatabase;
 let persistedPath: string | undefined;
+async function proposalFor(text: string, id: string): Promise<CommandProposal> {
+  const result = interpretCommand(text, await readWorkspace(database), new Date("2026-09-10T15:00:00Z"), id);
+  if (result.kind !== "proposal") throw new Error("Expected a command proposal");
+  return result.proposal;
+}
 beforeEach(() => {
   sqlite = new DatabaseSync(":memory:");
   database = {
@@ -39,6 +45,68 @@ afterEach(() => {
 });
 
 describe("almacenamiento móvil con SQLite real", () => {
+  it("migra v2 a v3 sin perder tareas ni movimientos previos", async () => {
+    await database.execAsync(migrationV1);
+    await database.execAsync(migrationV2);
+    await database.runAsync("INSERT INTO settings VALUES ('seed_version', '1')");
+    await saveAcademicTask(database, parseTaskDraft({ ...createTaskDraft(), title: "Tarea conservada" }, "old-task"), "create");
+    const transaction = { id: "old-expense", title: "Gasto anterior", type: "EXPENSE", category: "other", amountMinor: "100001", occurredAt: "2026-09-10T14:00:00Z" };
+    await database.runAsync("INSERT INTO transactions VALUES (?, ?)", transaction.id, JSON.stringify(transaction));
+    await initializeDatabase(database);
+    const data = await readWorkspace(database);
+    expect(data.tasks[0].title).toBe("Tarea conservada");
+    expect(data.transactions[0].amountMinor).toBe(100001n);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 3 });
+  });
+  it("guarda el gasto confirmado una sola vez incluso después de reabrir SQLite", async () => {
+    sqlite.close();
+    persistedPath = join(tmpdir(), "jarvis-command-test-" + randomUUID() + ".db");
+    sqlite = new DatabaseSync(persistedPath);
+    await initializeDatabase(database);
+    const proposal = await proposalFor("agrega un gasto de 100.000 pesos hoy", "expense-command");
+    await executeJarvisAction(database, proposal);
+    sqlite.close(); sqlite = new DatabaseSync(persistedPath);
+    await initializeDatabase(database);
+    await executeJarvisAction(database, proposal);
+    const data = await readWorkspace(database);
+    expect(data.transactions).toHaveLength(6);
+    expect(data.transactions.find(t => t.id === proposal.id)?.amountMinor).toBe(10000000n);
+    const dashboard = buildDashboard(data, new Date("2026-09-10T15:00:00Z"));
+    expect(dashboard.finance.spent).toBe(65000000n);
+    expect(dashboard.finance.balance).toBe(235000000n);
+    expect(dashboard.finance.remaining).toBe(135000000n);
+  });
+  it("revierte el gasto si no puede guardar su recibo y permite un reintento", async () => {
+    await initializeDatabase(database);
+    const proposal = await proposalFor("agrega un gasto de cien mil pesos hoy", "retry-command");
+    const failing: LocalDatabase = { ...database, async runAsync(sql, ...args) {
+      if (sql.startsWith("INSERT INTO jarvis_actions")) throw new Error("Storage unavailable");
+      return database.runAsync(sql, ...args);
+    } };
+    await expect(executeJarvisAction(failing, proposal)).rejects.toThrow("Storage unavailable");
+    expect((await readWorkspace(database)).transactions).toHaveLength(5);
+    expect(await database.getFirstAsync("SELECT id FROM jarvis_actions WHERE id = ?", proposal.id)).toBeNull();
+    await executeJarvisAction(database, proposal);
+    expect((await readWorkspace(database)).transactions).toHaveLength(6);
+  });
+  it("rechaza reutilizar una confirmación para una orden diferente", async () => {
+    await initializeDatabase(database);
+    await executeJarvisAction(database, await proposalFor("agrega un gasto de 100 pesos hoy", "same-id"));
+    await expect(executeJarvisAction(database, await proposalFor("agrega un gasto de 200 pesos hoy", "same-id"))).rejects.toThrow("otra acción");
+    expect((await readWorkspace(database)).transactions).toHaveLength(6);
+  });
+  it("ejecuta las órdenes confirmadas de tareas, hábitos e ingresos", async () => {
+    await initializeDatabase(database);
+    for (const [text, id] of [["crea una tarea repasar integrales", "new-task"], ["inicia la tarea repasar integrales", "start-task"], ["completa la tarea repasar integrales", "complete-task"], ["completa el habito aleman hoy", "habit"], ["registra un ingreso de cien mil pesos hoy", "income"]]) {
+      const proposal = await proposalFor(text, id);
+      await executeJarvisAction(database, proposal);
+      await executeJarvisAction(database, proposal);
+    }
+    const data = await readWorkspace(database);
+    expect(data.tasks.find(t => t.id === "new-task")).toMatchObject({ status: "COMPLETED", progress: 100 });
+    expect(data.habitEntries).toEqual([{ habitId: "demo-german", date: "2026-09-10" }]);
+    expect(data.transactions.find(t => t.id === "income")).toMatchObject({ type: "INCOME", amountMinor: 10000000n });
+  });
   it("migra una base v1 preservando tareas modificadas", async () => {
     await database.execAsync(migrationV1);
     await database.runAsync("INSERT INTO settings VALUES ('seed_version', '1')");
@@ -47,7 +115,7 @@ describe("almacenamiento móvil con SQLite real", () => {
     await database.runAsync("INSERT INTO tasks VALUES (?, ?, ?)", task.id, "subject", JSON.stringify({ ...task, subjectId: "subject" }));
     await initializeDatabase(database);
     expect((await readWorkspace(database)).tasks[0].progress).toBe(75);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 2 });
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 3 });
     await saveAcademicTask(database, parseTaskDraft({ ...createTaskDraft(), title: "Inbox nuevo" }, "new"), "create");
     expect((await readWorkspace(database)).tasks).toHaveLength(2);
   });
@@ -136,7 +204,7 @@ describe("almacenamiento móvil con SQLite real", () => {
   });
   it("rechaza versiones futuras sin reiniciar datos", async () => {
     await initializeDatabase(database);
-    await database.execAsync("PRAGMA user_version = 3");
+    await database.execAsync("PRAGMA user_version = 4");
     await expect(initializeDatabase(database)).rejects.toThrow("versión más reciente");
     expect((await readWorkspace(database)).tasks).toHaveLength(3);
   });

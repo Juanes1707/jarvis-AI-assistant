@@ -15,7 +15,7 @@ export default function HomeScreen() {
   const { data, dashboard: vm, preferences } = useWorkspace();
   return <Screen>
     <Brand />
-    <View style={{ gap: 8 }}><Copy variant="title" accessibilityRole="header">Buenas tardes, <Copy variant="title" style={{ color: theme.colors.accent }}>{data.user.name}.</Copy></Copy><Copy muted>Esto es lo que necesita tu atención hoy.</Copy><Copy variant="mono" muted>DEMO LOCAL · 08 SEP 2026 · 14:00 BOG</Copy></View>
+    <View style={{ gap: 8 }}><Copy variant="title" accessibilityRole="header">Hola, <Copy variant="title" style={{ color: theme.colors.accent }}>{data.user.name}.</Copy></Copy><Copy muted>Esto es lo que necesita tu atención hoy.</Copy><Copy variant="mono" muted>DATOS LOCALES · {vm.date} · BOGOTÁ</Copy></View>
     <CommandBar />
     <Card tone="accent">
       <Badge>RECOMENDADO POR JARVIS</Badge>

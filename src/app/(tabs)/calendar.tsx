@@ -18,7 +18,7 @@ export default function CalendarScreen() {
     <Row><View style={{ flex: 1 }}><Button label="Anterior" icon="chevron-left" secondary onPress={() => move(-1)} /></View><View style={{ flex: 1 }}><Button label="Siguiente" icon="chevron-right" secondary onPress={() => move(1)} /></View></Row>
     <Copy variant="heading">{formatDate(bounds.start)} · {date.slice(0, 4)}</Copy>
     <Card><AgendaList events={events} /></Card>
-    {date !== dashboard.date && <Button label="Volver al día de demostración" secondary onPress={() => setDate(dashboard.date)} />}
+    {date !== dashboard.date && <Button label="Volver a hoy" secondary onPress={() => setDate(dashboard.date)} />}
     <Copy muted>Vista diaria local. Las propuestas para reorganizar tu semana se incorporarán en la fase académica.</Copy>
   </Screen>;
 }

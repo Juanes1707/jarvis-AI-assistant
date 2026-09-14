@@ -15,7 +15,7 @@ Precedencia: pantalla visible → HTML renderizado → Calm Quiet-Tech Obsidian 
 | Dashboard Principal (Calm Palette) · 72d186dee5c244adac6567b0cc7938d6 | /(tabs)/index | Brand, CommandBar, HomeScreen, ProgressEditor, AgendaList, HabitsCard | Portado inicial nativo; comparación en teléfono pendiente |
 | Task Manager (Calm Palette) · fcc12e43abef47458c5d6764a765f913 | /(tabs)/tasks; /tasks/new; /tasks/[id]; /tasks/edit/[id] | FlatList, filtros, TaskEditor, ProgressEditor, detalle de prioridad | Crear/editar/reprogramar/iniciar/completar/eliminar implementados; prueba visual en teléfono pendiente |
 | Calendario Semanal (Calm Palette) · fb4b8af9daef4453b42e02c3f74c7eda | /(tabs)/calendar | navegación diaria, AgendaList, entregas proyectadas | Vista diaria enlazada a tareas; semana/optimización pendientes |
-| Chat y Asistente IA (Dark HUD Edition) · b580f7623c404ce6918929f12c756cf3 | /(tabs)/jarvis | orbe, quick actions, TextInput, respuesta contextual | Consulta por reglas; conversación completa fase 6 |
+| Chat y Asistente IA (Dark HUD Edition) · b580f7623c404ce6918929f12c756cf3 | /(tabs)/jarvis | orbe, mensajes, compositor fijo, micrófono, respuestas habladas, tarjeta de confirmación | Órdenes locales y conversación de sesión; validación de voz en dispositivo pendiente |
 | University Hub (Dark HUD Edition) · 2a615b1a20a948ab8ae70688f9f801c1 | /university | métricas y lista de materias | Resumen nativo inicial; detalle y flujo académico fase 3 |
 | Detalle de Materia (Calm Palette) · c3322a3bd24e48bd8a378b81e1ac5623 | /university/subjects/[id] (prevista) | temas, evaluaciones, materiales | Pendiente fase 3 |
 | Finanzas Personales (Dark HUD Edition) · 164d8eaf8b3841fe9959b95894f4c321 | /finances | saldo, presupuesto, movimientos | Lectura calculada; edición/metas fase 4 |
@@ -38,7 +38,9 @@ Flujo vertical: saludo → comando → briefing → prioridad → agenda → aca
 
 SafeAreaProvider, SafeAreaView, manejo de teclado, modales nativos, controles de 48 puntos, etiquetas de 12 puntos y fuente escalable. Las listas de tareas se virtualizan. Se conserva jerarquía y se adapta contenido largo mediante flexWrap y scroll.
 
-Los avatares AIDA de Stitch se sustituyen por iniciales; MaterialCommunityIcons aporta un robot genérico. No se reproducen “Synced”, latencias, confianza ni modelo IA ficticios. El modo local y la fecha de demostración son explícitos. Voz y Add global no se muestran como acciones disponibles en foundation.
+Los avatares AIDA de Stitch se sustituyen por iniciales; MaterialCommunityIcons aporta un robot genérico. No se reproducen “Synced”, latencias, confianza ni modelo IA ficticios. Los datos de ejemplo y el modo local son explícitos. Los resúmenes y órdenes ahora usan la fecha real de Bogotá. Add global sigue pendiente.
+
+El chat se consultó nuevamente con get_screen del MCP google_stitch y se inspeccionó su captura. Se conservan encabezado con orbe, mensajes del usuario desplazados a la derecha, tarjetas del asistente, acento azul, accesos rápidos y compositor inferior con micrófono. Los estados Escuchando/Hablando/Guardando corresponden a operaciones reales. La tarjeta de confirmación muestra importe/fecha o tarea/hábito antes de persistir. Los ajustes de voz usan tokens y controles nativos.
 
 ## Verificación
 

@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from "react";
-import { ActivityIndicator, Alert } from "react-native";
+import { ActivityIndicator, Alert, AppState } from "react-native";
 import { openDatabaseAsync } from "expo-sqlite";
 import type { Workspace, AcademicTask } from "../../domain/models";
-import { initializeDatabase, readWorkspace, saveHabitEntry, saveTaskProgress, saveAcademicTask, startAcademicTask, deleteAcademicTask, type LocalDatabase } from "./database";
-import { readPreferences, savePreferences, type Preferences } from "./preferences";
+import { initializeDatabase, readWorkspace, saveHabitEntry, saveTaskProgress, saveAcademicTask, startAcademicTask, deleteAcademicTask, executeJarvisAction, type LocalDatabase } from "./database";
+import { defaultPreferences, readPreferences, savePreferences, type Preferences } from "./preferences";
+import type { CommandProposal } from "../../features/jarvis/commands";
 import { buildDashboard } from "../../engines/dashboard";
 import { Screen } from "../../components/layout/screen";
 import { Button, Copy } from "../../components/ui/primitives";
@@ -17,6 +18,9 @@ type WorkspaceContext = {
   saveTask: (task: AcademicTask, mode: "create" | "update") => Promise<boolean>;
   startTask: (id: string) => Promise<boolean>;
   deleteTask: (id: string) => Promise<boolean>;
+  executeCommand: (proposal: CommandProposal) => Promise<boolean>;
+  setVoicePreferences: (options: Pick<Preferences, "voiceEnabled" | "voiceId">) => Promise<boolean>;
+  setAiPreferences: (options: Pick<Preferences, "aiEnabled" | "ollamaUrl" | "ollamaModel">) => Promise<boolean>;
 };
 const Context = createContext<WorkspaceContext | null>(null);
 let databasePromise: Promise<LocalDatabase> | undefined;
@@ -26,11 +30,18 @@ function getDatabase() {
 }
 export function WorkspaceProvider({ children }: PropsWithChildren) {
   const [data, setData] = useState<Workspace | null>(null);
-  const [preferences, setPreferences] = useState<Preferences>({ showSuggestions: true });
+  const [preferences, setPreferences] = useState<Preferences>({ ...defaultPreferences });
+  const [now, setNow] = useState(() => new Date());
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const locked = useRef(false);
+  useEffect(() => {
+    const updateClock = () => setNow(new Date());
+    const timer = setInterval(updateClock, 60000);
+    const listener = AppState.addEventListener("change", state => { if (state === "active") updateClock(); });
+    return () => { clearInterval(timer); listener.remove(); };
+  }, []);
   useEffect(() => {
     let active = true;
     getDatabase()
@@ -49,12 +60,12 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     try {
       const db = await getDatabase();
       await action(db);
-      setData(await readWorkspace(db));
+      setData(await readWorkspace(db)); setNow(new Date());
       return true;
     } catch { Alert.alert("No se pudo guardar", "La operación no pudo confirmarse. Vuelve a intentarlo."); return false; }
     finally { locked.current = false; setBusy(false); }
   }, []);
-  const dashboard = useMemo(() => data ? buildDashboard(data) : null, [data]);
+  const dashboard = useMemo(() => data ? buildDashboard(data, now) : null, [data, now]);
   if (error) return <Screen title="Tu centro de comando"><Copy>{error}</Copy><Button label="Reintentar" onPress={() => { setError(null); setAttempt(value => value + 1); }} /></Screen>;
   if (!data || !dashboard) return <Screen title="Preparando JARVIS"><ActivityIndicator color={theme.colors.accent} /><Copy muted>Cargando tus datos locales…</Copy></Screen>;
   return <Context.Provider value={{
@@ -63,6 +74,15 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     saveTask: (task, mode) => mutate(db => saveAcademicTask(db, task, mode)),
     startTask: id => mutate(db => startAcademicTask(db, id)),
     deleteTask: id => mutate(db => deleteAcademicTask(db, id)),
+    executeCommand: proposal => mutate(db => executeJarvisAction(db, proposal)),
+    setVoicePreferences: options => mutate(async () => {
+      const next = { ...preferences, ...options };
+      await savePreferences(next); setPreferences(next);
+    }),
+    setAiPreferences: options => mutate(async () => {
+      const next = { ...preferences, ...options };
+      await savePreferences(next); setPreferences(next);
+    }),
     toggleHabit: id => mutate(db => saveHabitEntry(db, id, dashboard.date, !data.habitEntries.some(e => e.habitId === id && e.date === dashboard.date))),
     toggleSuggestions: () => mutate(async () => {
       const next = { ...preferences, showSuggestions: !preferences.showSuggestions };

@@ -11,13 +11,14 @@ Aplicación nativa Android/iOS con React Native, Expo y Expo Router en la raíz.
 - src/features: composición de pantallas, sin cálculos de dominio en JSX.
 - src/engines y src/lib: lógica pura de prioridad, agenda, briefing y dinero.
 - src/services/storage: migraciones SQLite, seed idempotente, repositorios y preferencias.
-- src/services/ai: proveedor local determinista reemplazable.
+- src/features/jarvis: intérprete puro de órdenes, importes hablados y conversación con propuestas.
+- src/services/voice: dictado Android y respuestas con expo-speech; adaptadores separados de los cambios de datos.
 
 UI → contexto local → repositorios → SQLite. Funciones puras producen los resúmenes. Escrituras validadas y actualización de UI después de persistir. Sin Prisma, servidores ni HTTP en el dispositivo.
 
 ## Datos y tiempo
 
-Datos de demostración identificados. Fecha del escenario: 8 de septiembre de 2026, 14:00 Bogotá; no se presenta como fecha real. Instantes UTC y fechas civiles separados. Dinero en centavos bigint en motores y cadenas decimales al persistir, sin pérdida por Number.
+Datos de ejemplo identificados de septiembre de 2026. WorkspaceProvider usa el reloj actual, lo actualiza cada minuto y al volver al primer plano; «hoy» se resuelve en Bogotá. Las pruebas puras pueden inyectar una fecha fija. Instantes UTC y fechas civiles separados. Dinero en centavos bigint en motores y cadenas decimales al persistir, sin pérdida por Number.
 
 Migraciones versionadas y seed transaccional único. Reiniciar no reinicia progreso ni hábitos. Preferencias pequeñas en AsyncStorage. Sin credenciales bancarias ni tokens remotos.
 
@@ -25,6 +26,14 @@ SQLite v2 permite tareas sin materia/fecha para Inbox y conserva datos v1 median
 
 ## Alcance y validación
 
-Fundación móvil y portado inicial del Home existente. Otras áreas empiezan como vistas locales navegables; sus flujos completos pertenecen a fases posteriores. Asistente local por reglas, sin simular IA remota, voz ni sincronización.
+Fundación móvil y portado inicial del Home existente. Otras áreas empiezan como vistas locales navegables; sus flujos completos pertenecen a fases posteriores. Asistente por reglas con entrada de voz y respuestas habladas; IA remota y sincronización pendientes.
+
+## Órdenes por voz
+
+Dictado del sistema → texto → interpretCommand (puro, sin escrituras) → propuesta visible/hablada → confirmación → executeJarvisAction → SQLite → recarga del contexto. La misma ruta recibe mensajes escritos. Solo se admiten acciones tipadas; no se evalúa código ni SQL procedente del texto.
+
+SQLite v3 añade jarvis_actions. Cada propuesta tiene un UUID y el recibo se confirma en la misma transacción que la escritura. Reintentos de la misma propuesta no duplican gastos ni tareas, incluso si la recarga de UI falló después del commit. Reutilizar un ID para otro contenido se rechaza. Las versiones v1/v2 se migran sin reponer seed ni perder datos.
+
+Reconocimiento mediante RecognizerIntent en Android; iOS conserva el dictado del teclado. expo-speech selecciona una voz instalada en español, permite silenciar y detiene la cola al escuchar o abandonar la pantalla. El servicio de reconocimiento del sistema puede enviar audio a su proveedor; la app no almacena grabaciones. No requiere backend ni credenciales de IA.
 
 TypeScript, ESLint, Jest, React Native Testing Library y exportación Metro Android/iOS. Exportar comprueba el grafo y bytecode; safe areas, teclado, fuentes y persistencia nativa requieren ejecución en Expo Go. Windows no ofrece simulador iOS.

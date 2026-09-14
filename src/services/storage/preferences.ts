@@ -1,11 +1,26 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { z } from "zod";
-const schema = z.object({ showSuggestions: z.boolean() });
+const schema = z.object({
+  showSuggestions: z.boolean(),
+  voiceEnabled: z.boolean().default(true),
+  voiceId: z.string().nullable().default(null),
+  aiEnabled: z.boolean().default(false),
+  ollamaUrl: z.string().trim().max(256).default(""),
+  ollamaModel: z.string().trim().min(1).max(128).default("qwen3.5:4b"),
+});
 export type Preferences = z.infer<typeof schema>;
+export const defaultPreferences: Preferences = {
+  showSuggestions: true,
+  voiceEnabled: true,
+  voiceId: null,
+  aiEnabled: false,
+  ollamaUrl: "",
+  ollamaModel: "qwen3.5:4b",
+};
 const key = "jarvis:preferences:v1";
 export async function readPreferences(): Promise<Preferences> {
   const raw = await AsyncStorage.getItem(key);
-  if (!raw) return { showSuggestions: true };
+  if (!raw) return { ...defaultPreferences };
   const parsed = schema.safeParse(JSON.parse(raw));
   if (!parsed.success) throw new Error("No se pudieron leer las preferencias guardadas.");
   return parsed.data;

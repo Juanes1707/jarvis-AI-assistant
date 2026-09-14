@@ -29,21 +29,38 @@ Antes del primer arranque en Windows:
 
 El authtoken se cifra con DPAPI en %LOCALAPPDATA%/JARVIS/ngrok-token.dpapi. Solo tu usuario de Windows puede descifrarlo. El token no se pasa al proceso Metro ni al bundle móvil. Para reemplazarlo, repite ngrok:configure. No pegar tokens en el chat ni en archivos versionados.
 
-Comprobación del 9 de septiembre de 2026: el túnel incorporado de Expo devolvió ERR_NGROK_108 por el límite de sesiones de su cuenta compartida. Por eso se usa la cuenta propia. El arranque real con tu cuenta queda pendiente hasta introducir su token. Puedes comprobar las utilidades con npm run test:tunnel.
+El túnel incorporado de Expo devolvió ERR_NGROK_108 por el límite de sesiones de su cuenta compartida. Por eso se usa la cuenta propia; la conexión personal se comprobó el 10 de septiembre de 2026. Puedes comprobar las utilidades con npm run test:tunnel.
 
-Demo local sin cuenta, claves, base externa ni navegador. Fecha del escenario: 8 de septiembre de 2026, 14:00 Bogotá, indicada en Inicio.
+Demo local sin cuenta, claves, base externa ni navegador. Incluye datos de ejemplo de septiembre de 2026; las órdenes, agenda y resúmenes usan la fecha actual en Bogotá.
 
 ## Implementado
 
 - Cinco pestañas nativas: Inicio, Tareas, JARVIS, Agenda y Perfil.
 - Home con briefing, prioridad explicada, agenda, resumen académico/financiero, hábitos y alertas.
 - Tareas: crear, editar, reprogramar, iniciar, completar y eliminar con confirmación; Inbox y seis filtros.
-- Tareas y hábitos en SQLite; preferencias en AsyncStorage. Entregas enlazadas a la agenda.
+- Tareas, hábitos y movimientos en SQLite; preferencias en AsyncStorage. Entregas enlazadas a la agenda.
 - Agenda diaria, materias y finanzas de consulta.
-- Asistente local por reglas, con respuestas del estado.
+- Asistente local por reglas con dictado en Android, respuestas habladas, conversación de sesión y cambios confirmados.
+- Cerebro conversacional opcional con Ollama y `qwen3.5:4b`, conectado directamente por la red local; las acciones siguen siendo deterministas y confirmadas.
 - Inter, Space Grotesk, JetBrains Mono; tema Calm y dock central de Stitch.
 
-El sistema académico completo, finanzas editables, proyectos, documentos, voz e IA remota avanzan por fases. El asistente actual no guarda conversaciones.
+El sistema académico completo, edición avanzada de finanzas, proyectos, documentos e IA remota avanzan por fases. El asistente conserva los últimos 40 mensajes mientras está montado; el historial persistente sigue pendiente.
+
+## Hablar con JARVIS
+
+En Expo Go Android, abre JARVIS y pulsa **Hablar con JARVIS**. Se abrirá el reconocimiento de voz del sistema. Di «agrega un gasto de cien mil pesos hoy»; JARVIS mostrará y leerá el importe y la fecha. Pulsa de nuevo el micrófono y di «confirmar», o toca Confirmar cambio. «Cancelar» descarta la propuesta. El gasto se reflejará en Finanzas e Inicio y seguirá guardado al cerrar la app.
+
+También entiende «registra un ingreso de dos millones hoy», «crea una tarea repasar integrales», «completa la tarea taller de Lagrange» y «marca el hábito alemán hoy». Interpreta una acción a la vez; los ejemplos y límites están en docs/JARVIS_VOICE.md.
+
+El botón **Voz** permite escuchar una muestra, elegir una voz en español del teléfono y desactivar las respuestas habladas. El perfil tiene tono grave y ritmo sereno; no reproduce una grabación ni una clonación de la voz de la película.
+
+Usa expo-speech y expo-intent-launcher, incluidos en Expo Go. Android necesita un servicio que atienda el reconocimiento de voz; este puede usar Internet. En iPhone, dicta con el micrófono del teclado y pulsa Enviar; la respuesta hablada funciona con el modo silencio desactivado. No hay escucha continua ni palabra de activación en segundo plano.
+
+## Conectar Ollama como cerebro local
+
+JARVIS puede consultar tu instalación local de Ollama para responder conversaciones y analizar el contexto de tu agenda, tareas y finanzas. Abre **JARVIS → Ajustes → Cerebro local: Ollama**, escribe la IPv4 privada de tu computador y el nombre exacto de tu modelo (el valor inicial es `qwen3.5:4b`), prueba la conexión y activa el interruptor.
+
+En un teléfono no uses `localhost`: apunta a una dirección como `http://192.168.1.20:11434`, mantén ambos equipos en la misma Wi‑Fi y ejecuta Ollama escuchando en la red local. Consulta la guía completa, incluida la configuración de Windows y el Firewall, en [docs/OLLAMA_LOCAL.md](docs/OLLAMA_LOCAL.md). El modelo no ejecuta cambios por sí mismo: gastos, tareas y hábitos se siguen proponiendo y confirmando localmente.
 
 ## Comprobaciones
 
@@ -55,7 +72,7 @@ npm run export:native
 npx expo-doctor
 ```
 
-43 pruebas aprobadas, incluyendo SQLite con cierre/reapertura, migración preservando progreso, CRUD, filtros y controles nativos. Typecheck, lint, bundles Android/iOS y Expo Doctor 21/21 aprobados. Falta ejecución en teléfono para teclado, safe areas, almacenamiento nativo y comparación final con Stitch. Avisos transitivos npm documentados en el plan antes de distribución.
+123 pruebas aprobadas, incluyendo órdenes dictadas, confirmación/cancelación, errores de voz, dinero exacto, migración SQLite v3 y reintentos sin duplicación después de reabrir el archivo. Typecheck, lint y bundles Android/iOS aprobados. El bundle de desarrollo Android servido por Metro contiene los nuevos módulos. La voz, el dictado y la comparación visual siguen pendientes de validación en teléfono. Avisos transitivos npm documentados en el plan antes de distribución.
 
 Documentación: docs/ARCHITECTURE.md, docs/DESIGN_SYNC.md, docs/IMPLEMENTATION_PLAN.md, docs/DECISIONS.md y docs/MASTER_PROMPT.md.
 
