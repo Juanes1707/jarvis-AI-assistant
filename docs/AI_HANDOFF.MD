@@ -299,7 +299,32 @@ When promoting a handoff contract into an Active Contract:
 
 ### Current Active Contracts
 
-No active contracts yet.
+#### AI provider availability (origin: C2X-001)
+
+`src/services/ai/provider.ts` exports the shared, provider-independent status boundary:
+
+```ts
+type CheckAIProviderInput = {
+  url?: string;
+  model?: string;
+} | void;
+
+type AIProviderCheckResult =
+  | { status: "available" }
+  | {
+      status: "unavailable";
+      reason: "disabled" | "not_configured" | "model_missing";
+    }
+  | { status: "error"; message: string };
+
+type AIAvailability = { status: "checking" } | AIProviderCheckResult;
+
+function getAIProviderStatus(
+  input?: CheckAIProviderInput
+): Promise<AIProviderCheckResult>;
+```
+
+`disabled` is derived from the persisted `aiEnabled` preference. Optional input fields override the persisted Ollama URL/model so the frontend can check unsaved edits. Blank effective URL or model maps to `not_configured`; an Ollama tags response without the selected model maps to `model_missing`; connection, timeout, validation, HTTP, and preference-read failures map to `error` while preserving the existing human-readable error message. `checking` remains frontend-owned transient state.
 
 ---
 
@@ -317,7 +342,7 @@ Request IDs use:
 
 ### [C2X-001] Stable AI provider availability contract
 
-**Status:** Pending
+**Status:** Ready for Integration
 **Owner:** Codex
 **Requested by:** Claude Code
 **Created:** 2026-09-13
@@ -412,12 +437,12 @@ Network/timeout/HTTP failures map to `{ status: "error", message }`, reusing the
 
 #### Acceptance Criteria
 
-- [ ] `getAIProviderStatus` (or equivalent) resolves to the `AIProviderCheckResult` shape defined above.
-- [ ] `unavailable.reason` correctly distinguishes disabled vs not-configured vs model-missing.
-- [ ] Network/timeout/HTTP errors surface as `{ status: "error", message }` using existing message strings from `ollama.ts`.
-- [ ] The existing `AIProvider` interface and its consumers (`provider.ts`, `conversation.tsx`) keep working with no breaking change.
-- [ ] The existing `testBrainConnection` flow in `conversation.tsx` can be swapped to call the new function with no visual regression (the frontend `AIProviderStatus` component already consumes exactly this shape).
-- [ ] Existing tests (`tests/ollama.test.ts`) and behavior are preserved or updated by Codex if the contract requires changes there.
+- [x] `getAIProviderStatus` (or equivalent) resolves to the `AIProviderCheckResult` shape defined above.
+- [x] `unavailable.reason` correctly distinguishes disabled vs not-configured vs model-missing.
+- [x] Network/timeout/HTTP errors surface as `{ status: "error", message }` using existing message strings from `ollama.ts`.
+- [x] The existing `AIProvider` interface and its consumers (`provider.ts`, `conversation.tsx`) keep working with no breaking change.
+- [x] The existing `testBrainConnection` flow in `conversation.tsx` can be swapped to call the new function with no visual regression (the frontend `AIProviderStatus` component already consumes exactly this shape).
+- [x] Existing tests (`tests/ollama.test.ts`) and behavior are preserved or updated by Codex if the contract requires changes there.
 
 #### Relevant Files
 
@@ -437,9 +462,23 @@ Frontend side is already implemented against this proposed contract using the ap
 
 This mapping only reuses reasons the code can already honestly assert (it doesn't yet distinguish "disabled" or "not_configured" as separate `unavailable` reasons — those require Codex's classification). Once Codex ships `getAIProviderStatus`, `conversation.tsx`'s `testBrainConnection` can call it directly instead of `checkOllama`, and the header status badge can be upgraded to reflect real connectivity instead of just the `aiEnabled` toggle.
 
+Codex implementation completed 2026-09-13:
+
+- Added the requested types and `getAIProviderStatus` to `src/services/ai/provider.ts` without changing the existing `AIProvider`, `createOllamaProvider`, `checkOllama`, or `askOllama` interfaces.
+- Reused `readPreferences()` as the sole source of truth for `aiEnabled`, URL, and model. Optional input overrides only URL/model and uses nullish fallback so intentionally blank unsaved values classify as `not_configured`.
+- Preserved errors thrown by the existing Ollama client as `{ status: "error", message }`; no parallel error-message taxonomy was introduced.
+- Added public-boundary system tests in `tests/ai-provider.test.ts` for disabled, not configured, model missing, available, unsaved overrides, and error-message preservation.
+- No frontend files or visual behavior were changed.
+
 #### Validation
 
-Not yet validated (Codex side not implemented). Frontend side validated: see completion report in conversation history dated 2026-09-13 (TypeScript, ESLint, and Jest all passing; new tests in `tests/jarvis-provider-status.test.tsx`).
+Codex side validated 2026-09-13:
+
+- `npm run typecheck` — passed.
+- `npm run lint` — passed with zero warnings.
+- `npm test` — passed: 14 suites, 136 tests.
+
+Frontend side previously validated: see completion report in conversation history dated 2026-09-13 (TypeScript, ESLint, and Jest all passing; new tests in `tests/jarvis-provider-status.test.tsx`).
 
 ---
 
