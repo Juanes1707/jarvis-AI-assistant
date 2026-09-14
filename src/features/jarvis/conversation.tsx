@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import { randomUUID } from "expo-crypto";
 import { Badge, Button, Card, Copy, Icon, Row } from "../../components/ui/primitives";
+import { AIProviderStatus, type AIProviderStatusValue } from "../../components/jarvis/provider-status";
 import { useWorkspace } from "../../services/storage/workspace-provider";
 import { recognizeSpeech } from "../../services/voice/recognition";
 import { useJarvisVoice } from "../../services/voice/use-jarvis-voice";
@@ -30,6 +31,8 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
   const [settings, setSettings] = useState(false);
   const [ollamaUrl, setOllamaUrl] = useState(preferences.ollamaUrl);
   const [ollamaModel, setOllamaModel] = useState(preferences.ollamaModel);
+  const [providerStatus, setProviderStatus] = useState<AIProviderStatusValue | null>(null);
+  const [providerMessage, setProviderMessage] = useState<string | undefined>(undefined);
   const pending = useRef<CommandProposal | null>(null);
   const locked = useRef(false);
   const recognitionActive = useRef(false);
@@ -124,11 +127,12 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
     if (saved) setNotice("Configuración del cerebro local guardada.");
   }
   async function testBrainConnection() {
-    setNotice("Comprobando conexión con Ollama…");
+    setProviderStatus("checking"); setProviderMessage(undefined);
     try {
       const result = await checkOllama({ url: ollamaUrl, model: ollamaModel || "qwen3.5:4b" });
-      setNotice(result.installed ? "Ollama está listo y el modelo está instalado." : "Ollama responde, pero no encuentro ese modelo. Revisa el nombre con `ollama list`.");
-    } catch (error) { setNotice(error instanceof Error ? error.message : "No pude comprobar Ollama."); }
+      if (result.installed) { setProviderStatus("available"); setProviderMessage("Ollama está listo y el modelo está instalado."); }
+      else { setProviderStatus("unavailable"); setProviderMessage("Ollama responde, pero no encuentro ese modelo. Revisa el nombre con `ollama list`."); }
+    } catch (error) { setProviderStatus("error"); setProviderMessage(error instanceof Error ? error.message : "No pude comprobar Ollama."); }
   }
   const status = listening ? "ESCUCHANDO" : saving ? "GUARDANDO" : thinking ? "PENSANDO LOCALMENTE" : voice.speaking ? "JARVIS HABLANDO" : preferences.aiEnabled ? "CEREBRO LOCAL ACTIVO" : "A TU SERVICIO";
   return <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -151,7 +155,8 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
           <TextInput accessibilityLabel="Dirección de Ollama" value={ollamaUrl} onChangeText={setOllamaUrl} autoCapitalize="none" autoCorrect={false} placeholder="http://192.168.1.20:11434" placeholderTextColor={theme.colors.muted} editable={!busy} style={styles.input} />
           <TextInput accessibilityLabel="Modelo de Ollama" value={ollamaModel} onChangeText={setOllamaModel} autoCapitalize="none" autoCorrect={false} placeholder="qwen3.5:4b" placeholderTextColor={theme.colors.muted} editable={!busy} style={styles.input} />
           <Button label="Guardar cerebro local" secondary disabled={busy} onPress={() => void saveBrainSettings()} />
-          <Button label="Probar conexión" secondary icon="lan-connect" disabled={busy} onPress={() => void testBrainConnection()} />
+          {providerStatus === null && <Button label="Probar conexión" secondary icon="lan-connect" disabled={busy} onPress={() => void testBrainConnection()} />}
+          {providerStatus !== null && <AIProviderStatus status={providerStatus} message={providerMessage} retrying={providerStatus === "checking"} onRetry={() => void testBrainConnection()} />}
           <Copy muted>En el celular usa la IP privada de tu computador, no `localhost`. Ambos deben estar en la misma Wi‑Fi y Ollama debe aceptar conexiones de red.</Copy>
         </Card>}
         <View style={styles.starters}><Badge>ÓRDENES Y CONSULTAS</Badge><Row style={styles.wrap}>{["Mis finanzas", "Tareas pendientes", "Agrega un gasto de 100.000 pesos hoy"].map(prompt => <Button key={prompt} label={prompt} secondary disabled={busy || saving || listening || thinking} onPress={() => void ask(prompt)} />)}</Row></View>

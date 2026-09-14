@@ -313,7 +313,133 @@ Request IDs use:
 
 ### Current Requests
 
-No pending requests.
+---
+
+### [C2X-001] Stable AI provider availability contract
+
+**Status:** Pending
+**Owner:** Codex
+**Requested by:** Claude Code
+**Created:** 2026-09-13
+
+#### Context
+
+The product now needs a user-facing AI provider status experience (checking / available / unavailable / error, with Retry) per an explicit user request. Investigation of the current implementation found:
+
+- A real local-AI integration already exists: `src/services/ai/ollama.ts` (`checkOllama`, `askOllama`) and `src/services/ai/provider.ts` (`AIProvider`, `createOllamaProvider`).
+- The only existing status check is a manual "Probar conexión" button inside the JARVIS chat settings panel (`src/features/jarvis/conversation.tsx`), which calls `checkOllama` and shows its result as a plain notice string.
+- `checkOllama` only returns `{ installed: boolean }` or throws a generic `Error` with a human-readable Spanish message. It does not distinguish *why* the provider is unavailable (disabled by the user, not configured, model not installed) from a transient/network error, and there is no shared, observable status other screens can read.
+- The persistent status badge in the JARVIS header (`conversation.tsx`, the `status` value showing `CEREBRO LOCAL ACTIVO` / `A TU SERVICIO`) is currently derived only from the `aiEnabled` preference toggle, not from real connectivity — it cannot currently tell the user "available" vs "configured but unreachable" per `docs/DESIGN_SYNC.md` §22 (Data and System Truthfulness) and §18 (voice/system states must correspond to real state, no fabricated telemetry).
+
+I did not invent a provider-health architecture or a new reason taxonomy to avoid this handoff — that classification is a system/domain decision.
+
+#### Requirement
+
+Expose a stable, queryable AI provider availability status that reflects real connectivity to the configured provider (currently Ollama), with a defined taxonomy for why it is unavailable, so any screen can consume it without re-implementing the check.
+
+#### Contract
+
+##### Operation
+
+Query (and manually re-trigger, for Retry) the current AI provider availability.
+
+##### Inputs
+
+```ts
+// Optional: allows checking unsaved settings the user is currently editing,
+// mirroring the existing testBrainConnection usage in conversation.tsx.
+type CheckAIProviderInput = {
+  url?: string;
+  model?: string;
+} | void;
+```
+
+##### Outputs
+
+```ts
+type AIProviderCheckResult =
+  | { status: "available" }
+  | {
+      status: "unavailable";
+      reason: "disabled" | "not_configured" | "model_missing";
+    }
+  | { status: "error"; message: string };
+
+type AIAvailability =
+  | { status: "checking" }
+  | AIProviderCheckResult;
+
+function getAIProviderStatus(
+  input?: CheckAIProviderInput
+): Promise<AIProviderCheckResult>;
+```
+
+##### Loading Behavior
+
+`checking` is a frontend/transient state and is not expected to be returned
+as the resolved value of `getAIProviderStatus`.
+
+The frontend sets:
+
+`{ status: "checking" }`
+
+immediately before awaiting the provider check.
+
+The resolved system result is one of:
+
+- `available`
+- `unavailable`
+- `error`
+
+No observable/polling architecture is required for this request.
+
+##### Empty Behavior
+
+N/A — there is always a defined status.
+
+##### Error Behavior
+
+Network/timeout/HTTP failures map to `{ status: "error", message }`, reusing the existing human-readable Spanish messages already produced in `ollama.ts` (`request()`, `errorForResponse()`). Please don't introduce a second error-message system — reuse or wrap the existing one.
+
+##### Assumptions
+
+- Only one AI provider is configured at a time (Ollama today), matching the current `AIProvider.mode` in `provider.ts`.
+- Retry is on-demand only. No background polling is required by this request.
+  If background monitoring is later considered necessary, it should be treated
+  as a separate system/product decision rather than introduced implicitly as
+  part of this contract.
+- The `unavailable.reason` taxonomy is a starting proposal; Codex may adjust it if the real failure modes differ, per the Contract Change Protocol (§12) — please document any change here rather than silently redefining it.
+
+#### Acceptance Criteria
+
+- [ ] `getAIProviderStatus` (or equivalent) resolves to the `AIProviderCheckResult` shape defined above.
+- [ ] `unavailable.reason` correctly distinguishes disabled vs not-configured vs model-missing.
+- [ ] Network/timeout/HTTP errors surface as `{ status: "error", message }` using existing message strings from `ollama.ts`.
+- [ ] The existing `AIProvider` interface and its consumers (`provider.ts`, `conversation.tsx`) keep working with no breaking change.
+- [ ] The existing `testBrainConnection` flow in `conversation.tsx` can be swapped to call the new function with no visual regression (the frontend `AIProviderStatus` component already consumes exactly this shape).
+- [ ] Existing tests (`tests/ollama.test.ts`) and behavior are preserved or updated by Codex if the contract requires changes there.
+
+#### Relevant Files
+
+- `src/services/ai/ollama.ts` (existing `checkOllama`/`askOllama`)
+- `src/services/ai/provider.ts` (existing `AIProvider` interface — suggested home for the new function)
+- `src/features/jarvis/conversation.tsx` (current manual check + header status badge; frontend integration point)
+- `src/components/jarvis/provider-status.tsx` (new, Claude-owned, presentational `AIProviderStatus` component already built to consume this exact `AIAvailability` shape — checking/available/unavailable/error + Retry)
+- `tests/ollama.test.ts` (Codex-owned business-logic tests)
+
+#### Implementation Notes
+
+Frontend side is already implemented against this proposed contract using the app's *existing* `checkOllama` outcomes, mapped honestly (no fabricated states):
+- `checking` while the check is in flight.
+- `available` when `checkOllama` resolves `{ installed: true }`.
+- `unavailable` when `checkOllama` resolves `{ installed: false }` (model not found).
+- `error` when `checkOllama` throws.
+
+This mapping only reuses reasons the code can already honestly assert (it doesn't yet distinguish "disabled" or "not_configured" as separate `unavailable` reasons — those require Codex's classification). Once Codex ships `getAIProviderStatus`, `conversation.tsx`'s `testBrainConnection` can call it directly instead of `checkOllama`, and the header status badge can be upgraded to reflect real connectivity instead of just the `aiEnabled` toggle.
+
+#### Validation
+
+Not yet validated (Codex side not implemented). Frontend side validated: see completion report in conversation history dated 2026-09-13 (TypeScript, ESLint, and Jest all passing; new tests in `tests/jarvis-provider-status.test.tsx`).
 
 ---
 
@@ -515,6 +641,11 @@ Use `N/A` when not applicable.
 List assumptions the implementing agent must know.
 
 Use `None` when there are no relevant assumptions.
+
+- `disabled` should be derived from the application's existing AI-enabled
+  preference/source of truth rather than inferred from connectivity.
+  Codex should reuse the established preference/state mechanism instead of
+  creating a second AI-enabled flag.
 
 #### Acceptance Criteria
 
