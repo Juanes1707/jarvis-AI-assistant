@@ -14,13 +14,13 @@ Aplicación nativa Android/iOS con React Native, Expo y Expo Router en la raíz.
 - src/features/jarvis: intérprete puro de órdenes, importes hablados y conversación con propuestas.
 - src/services/voice: dictado Android y respuestas con expo-speech; adaptadores separados de los cambios de datos.
 
-JARVIS conserva dos modos explícitos. El modo local funciona como antes: UI → contexto local → repositorios → SQLite del dispositivo. El modo distribuido exigido por el taller usa UI móvil → cliente tipado → FastAPI por Tailscale → orquestador → agentes → SQLite del servidor. Funciones puras producen los resúmenes y todas las escrituras conversacionales requieren confirmación. No se ejecuta SQL ni código procedente del texto del usuario.
+JARVIS conserva dos modos explícitos. El modo local funciona como antes: UI → contexto local → repositorios → SQLite del dispositivo. El modo distribuido exigido por el taller usa UI móvil → cliente tipado → FastAPI por Tailscale → orquestador → agentes → PostgreSQL. Funciones puras producen los resúmenes y todas las escrituras conversacionales requieren confirmación. No se ejecuta SQL ni código procedente del texto del usuario.
 
 ## Modo distribuido multi-agente
 
 `backend/app` contiene un servidor FastAPI autoalojado. El orquestador entrega a Ollama un catálogo cerrado de funciones; las llamadas se validan con Pydantic y se delegan a Secretaría, Finanzas o a ambos. Secretaría gestiona tareas, recordatorios, correo IMAP de solo lectura y borradores. Finanzas gestiona movimientos, liquidez, pasivos y metas. El webhook bancario usa salida JSON estructurada y una credencial independiente.
 
-La persistencia del servidor usa SQLite relacional como alternativa justificada a Supabase/PocketBase: claves foráneas, checks, índices y migraciones transaccionales. La interfaz de repositorios permite reemplazarla por PostgreSQL sin cambiar el contrato HTTP. El detalle técnico, secuencias y esquema están en `docs/MULTI_AGENT_BACKEND.md`.
+La persistencia del servidor usa PostgreSQL mediante SQLAlchemy y psycopg. El arranque normal exige `JARVIS_DATABASE_URL`; SQLite queda limitado al modo local del teléfono y a pruebas aisladas del backend. Perfil, recuerdos confirmados, conversaciones y mensajes son persistentes. JARVIS recupera únicamente recuerdos activos relevantes; actualizar el perfil, recordar u olvidar desde lenguaje natural crea una propuesta que no escribe hasta confirmarse. El detalle técnico, secuencias y esquema están en `docs/MULTI_AGENT_BACKEND.md`.
 
 ## Datos y tiempo
 

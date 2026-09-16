@@ -28,6 +28,46 @@ export type BackendConfirmation = {
   result: Record<string, unknown>;
   replayed: boolean;
 };
+export type BackendUserProfile = {
+  user_id: string;
+  display_name?: string | null;
+  preferred_name?: string | null;
+  timezone?: string | null;
+  locale?: string | null;
+  country?: string | null;
+  city?: string | null;
+  occupation?: string | null;
+  study_program?: string | null;
+  onboarding_completed: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+export type BackendProfileUpdate = Partial<Pick<
+  BackendUserProfile,
+  "display_name" | "preferred_name" | "timezone" | "locale" | "country" | "city" |
+  "occupation" | "study_program" | "onboarding_completed"
+>>;
+export type BackendMemoryKind = "preference" | "fact" | "goal" | "constraint";
+export type BackendMemory = {
+  id: string;
+  user_id?: string;
+  kind: BackendMemoryKind;
+  content: string;
+  source?: "manual" | "conversation" | "import";
+  importance?: number;
+  status: "active" | "forgotten";
+  expires_at?: string | null;
+  confirmed_at?: string;
+  forgotten_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+export type BackendMemoryCreate = {
+  kind: BackendMemoryKind;
+  content: string;
+  importance?: number;
+  expires_at?: string | null;
+};
 
 function endpoint(settings: BackendSettings, path: string) {
   const normalized = settings.url.trim().replace(/\/+$/, "");
@@ -89,3 +129,36 @@ export async function confirmJarvisBackendAction(settings: BackendSettings, acti
   });
 }
 
+export async function getJarvisProfile(settings: BackendSettings) {
+  return request<BackendUserProfile>(settings, "/v1/profile", { method: "GET" });
+}
+
+export async function updateJarvisProfile(settings: BackendSettings, update: BackendProfileUpdate) {
+  return request<BackendUserProfile>(settings, "/v1/profile", {
+    method: "PATCH",
+    body: JSON.stringify(update),
+  });
+}
+
+export async function listJarvisMemories(
+  settings: BackendSettings,
+  filters: { query?: string; kind?: BackendMemoryKind; limit?: number } = {},
+) {
+  const parameters: string[] = [];
+  if (filters.query?.trim()) parameters.push(`query=${encodeURIComponent(filters.query.trim())}`);
+  if (filters.kind) parameters.push(`kind=${encodeURIComponent(filters.kind)}`);
+  if (filters.limit !== undefined) parameters.push(`limit=${encodeURIComponent(String(filters.limit))}`);
+  const suffix = parameters.length ? `?${parameters.join("&")}` : "";
+  return request<{ memories: BackendMemory[] }>(settings, `/v1/memories${suffix}`, { method: "GET" });
+}
+
+export async function createJarvisMemory(settings: BackendSettings, memory: BackendMemoryCreate) {
+  return request<BackendMemory>(settings, "/v1/memories", {
+    method: "POST",
+    body: JSON.stringify(memory),
+  });
+}
+
+export async function forgetJarvisMemory(settings: BackendSettings, memoryId: string) {
+  return request<void>(settings, `/v1/memories/${encodeURIComponent(memoryId)}`, { method: "DELETE" });
+}

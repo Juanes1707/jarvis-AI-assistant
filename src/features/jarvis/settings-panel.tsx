@@ -21,7 +21,7 @@ export function JarvisSettings({ backend, voice, onNotice }: {
   voice: ReturnType<typeof useJarvisVoice>;
   onNotice: (message: string) => void;
 }) {
-  const { preferences, busy, setVoicePreferences, setAiPreferences, setBackendPreferences } = useWorkspace();
+  const { data, preferences, busy, setVoicePreferences, setAiPreferences, setBackendPreferences } = useWorkspace();
   const mode = assistantMode(preferences);
 
   const [backendUrl, setBackendUrl] = useState(preferences.backendUrl ?? "");
@@ -117,7 +117,7 @@ export function JarvisSettings({ backend, voice, onNotice }: {
           onValueChange={enabled => { if (!enabled) void voice.stop(); void setVoicePreferences({ voiceEnabled: enabled, voiceId: preferences.voiceId }); }} />
       </Row>
       <Button label="Probar voz" variant="secondary" icon="volume-high"
-        onPress={() => void voice.speak("A tu servicio, Juan. Sistemas preparados. ¿Qué necesitas resolver hoy?")} />
+        onPress={() => void voice.speak(`A tu servicio, ${data.user.name}. Sistemas preparados. ¿Qué necesitas resolver hoy?`)} />
       <View style={styles.voices}>
         <OptionRow label="Selección automática" note="La mejor voz en español que encuentre este teléfono"
           selected={preferences.voiceId === null} disabled={busy}

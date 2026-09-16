@@ -40,7 +40,7 @@ El modo local sigue funcionando sin cuenta, claves, base externa ni navegador. E
 - Tareas: crear, editar, reprogramar, iniciar, completar y eliminar con confirmación; Inbox y seis filtros.
 - Tareas, hábitos y movimientos en SQLite; preferencias en AsyncStorage. Entregas enlazadas a la agenda.
 - Agenda diaria, materias y finanzas de consulta.
-- Asistente local por reglas con dictado en Android, respuestas habladas, conversación de sesión y cambios confirmados.
+- Entrada libre sin preguntas sugeridas ni respuestas fingidas: en modo Servidor u Ollama cada consulta va al modelo; el motor básico por reglas queda identificado únicamente como fallback explícito.
 - Cerebro conversacional opcional con Ollama y `qwen3.5:4b`, conectado directamente por la red local; las acciones siguen siendo deterministas y confirmadas.
 - Backend local multi-agente con orquestador, Secretaría, Finanzas, function calling, correo IMAP, webhook bancario y persistencia relacional.
 - Inter, Space Grotesk, JetBrains Mono; sistema visual Illuminated HUD y dock central nativo.
@@ -49,7 +49,7 @@ El sistema académico completo, edición avanzada de finanzas, proyectos, docume
 
 ## Backend multi-agente y Tailscale
 
-El backend del taller vive en `backend/`. No reemplaza silenciosamente el modo local: es un modo distribuido separado y el cliente móvil tipado está en `src/services/backend/client.ts`. En Windows, `npm run backend:secrets` genera y cifra con DPAPI los dos tokens, `npm run backend:tailscale` configura el HTTPS privado y `npm run backend:start` arranca FastAPI sin exponer el puerto a la LAN. Consulta [backend/README.md](backend/README.md) para la preparación completa y [docs/MULTI_AGENT_BACKEND.md](docs/MULTI_AGENT_BACKEND.md) para la topología, secuencias, esquema relacional y configuración de Tailscale.
+El backend del taller vive en `backend/`. No reemplaza silenciosamente el modo local: es un modo distribuido separado y el cliente móvil tipado está en `src/services/backend/client.ts`. En Windows, `npm run backend:secrets` genera y cifra con DPAPI los dos tokens, `npm run backend:tailscale` configura el HTTPS privado, `npm run backend:start` arranca FastAPI sin exponer el puerto a la LAN y `npm run backend:pair` copia el token al portapapeles sin imprimirlo para configurar el teléfono. Consulta [backend/README.md](backend/README.md) para la preparación completa y [docs/MULTI_AGENT_BACKEND.md](docs/MULTI_AGENT_BACKEND.md) para la topología, secuencias, esquema relacional y configuración de Tailscale.
 
 La integración visual para guardar URL/token y mostrar propuestas del backend está registrada en `docs/AI_HANDOFF.md` como `X2C-001`, porque pertenece al frontend. Mientras se completa, la aplicación visible mantiene el modo local y Ollama directo.
 

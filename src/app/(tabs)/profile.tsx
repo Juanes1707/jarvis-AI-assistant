@@ -26,19 +26,32 @@ function backendHost(url: string): string {
 }
 
 export default function ProfileScreen() {
-  const { data, preferences, toggleSuggestions, busy } = useWorkspace();
+  const { data, preferences, backendProfile, toggleSuggestions, busy } = useWorkspace();
   const mode = assistantMode(preferences);
-  const initials = data.user.name.split(" ").slice(0, 2).map(part => part[0]).join("");
+  const identityName = backendProfile?.display_name || data.user.name;
+  const initials = identityName.split(" ").slice(0, 2).map(part => part[0]).join("");
+  const location = [backendProfile?.city, backendProfile?.country].filter(Boolean).join(", ");
+  const identityDetail = backendProfile
+    ? [backendProfile.preferred_name, backendProfile.occupation].filter(Boolean).join(" · ")
+    : `Semestre ${data.user.semester} · Bogotá`;
   return <Screen>
     <SystemBar state={modeCoreState(preferences)} />
 
     <Row style={styles.identity}>
       <View style={styles.avatar}><Copy variant="marker" style={styles.initials}>{initials.toLocaleUpperCase("es")}</Copy></View>
       <View style={styles.grow}>
-        <Copy variant="title" accessibilityRole="header">{data.user.name}</Copy>
-        <Copy variant="caption" muted>Semestre {data.user.semester} · Bogotá</Copy>
+        <Copy variant="title" accessibilityRole="header">{identityName}</Copy>
+        <Copy variant="caption" muted>{identityDetail}</Copy>
       </View>
     </Row>
+
+    {backendProfile ? <Section label="PERFIL REAL">
+      <View>
+        {location ? <DataRow label="Ubicación" value={location} /> : null}
+        {backendProfile.study_program ? <DataRow label="Estudios" value={backendProfile.study_program} /> : null}
+        {backendProfile.timezone ? <DataRow label="Zona horaria" value={backendProfile.timezone} tone="muted" /> : null}
+      </View>
+    </Section> : null}
 
     <Section label="COMPORTAMIENTO">
       <Row style={styles.toggle}>
@@ -71,7 +84,9 @@ export default function ProfileScreen() {
         <DataRow label="Versión" value="0.2.0" tone="muted" note="React Native y Expo" />
       </View>
       <Copy variant="caption" muted>
-        El token del servidor se guarda solo en este teléfono y nunca aparece en esta pantalla. Incluye registros de ejemplo de septiembre de 2026; las órdenes y los resúmenes usan la fecha actual en Bogotá.
+        {mode === "server"
+          ? "El token se guarda solo en este teléfono. El perfil y la memoria personal provienen de tu servidor PostgreSQL."
+          : "El modo local conserva registros de demostración separados de tu perfil real del servidor."}
       </Copy>
     </Section>
   </Screen>;

@@ -4,6 +4,12 @@ Servidor FastAPI autoalojado que implementa la arquitectura pedida por el taller
 
 ## Preparación en Windows
 
+Abre PowerShell **como administrador** e instala PostgreSQL 17. El script usa el instalador oficial, rota la contraseña administrativa a un valor aleatorio y la cifra con DPAPI para el usuario actual:
+
+```powershell
+npm run backend:install-db
+```
+
 Desde la raíz del repositorio:
 
 ```powershell
@@ -12,11 +18,27 @@ backend\.venv\Scripts\Activate.ps1
 python -m pip install -r backend/requirements-dev.txt
 ```
 
+Prepara la base `jarvis`, un usuario sin privilegios administrativos y una contraseña aleatoria protegida con DPAPI:
+
+```powershell
+npm run backend:database
+```
+
 Genera dos secretos diferentes y guardalos cifrados con DPAPI, fuera del repositorio:
 
 ```powershell
 npm run backend:secrets
 ```
+
+Cuando Tailscale Serve ya esté configurado, prepara el teléfono sin imprimir la credencial:
+
+```powershell
+npm run backend:pair
+```
+
+El comando muestra la dirección HTTPS privada y copia únicamente el token de acceso al portapapeles.
+Pégalo inmediatamente en **Ajustes > Servidor JARVIS**; ejecutar el comando de nuevo reemplaza el
+contenido actual del portapapeles, pero no rota ni expone el token.
 
 Configura una sola vez el proxy HTTPS privado de Tailscale. Tailscale puede mostrar un enlace oficial para habilitar Serve en la tailnet:
 
@@ -30,9 +52,9 @@ Después inicia el backend:
 npm run backend:start
 ```
 
-Los tokens se descifran solo durante ese proceso y se eliminan de su entorno al terminar. `tailscale serve` mostrará una URL HTTPS `https://<equipo>.<tailnet>.ts.net`; usa esa URL en el móvil. El backend queda escuchando solo en `127.0.0.1` y Tailscale termina TLS dentro de la tailnet. No uses `tailscale funnel`, porque Funnel haría público el servicio.
+El arranque es idempotente: si JARVIS ya responde correctamente en el puerto configurado, el comando lo informa y termina sin crear otra instancia. Si otro programa ocupa el puerto, falla con un mensaje explícito. Los tokens se descifran solo durante ese proceso y se eliminan de su entorno al terminar. `tailscale serve` mostrará una URL HTTPS `https://<equipo>.<tailnet>.ts.net`; usa esa URL en el móvil. El backend queda escuchando solo en `127.0.0.1` y Tailscale termina TLS dentro de la tailnet. No uses `tailscale funnel`, porque Funnel haría público el servicio.
 
-Si prefieres administrar las variables manualmente, `npm run backend:start:env` conserva el flujo anterior y exige `JARVIS_API_TOKEN` y `JARVIS_WEBHOOK_TOKEN` en el entorno.
+Si prefieres administrar las variables manualmente, `npm run backend:start:env` exige `JARVIS_API_TOKEN`, `JARVIS_WEBHOOK_TOKEN` y una `JARVIS_DATABASE_URL` con formato `postgresql+psycopg://usuario:contraseña@127.0.0.1:5432/jarvis`.
 
 `JARVIS_API_TOKEN` y `JARVIS_WEBHOOK_TOKEN` son obligatorios, distintos y deben tener 24 caracteres o más. `backend:secrets` los guarda en `%LOCALAPPDATA%\JARVIS` protegidos para el usuario actual de Windows. No los guardes en el repositorio ni los pongas en variables `EXPO_PUBLIC_*`.
 
@@ -42,6 +64,9 @@ Si prefieres administrar las variables manualmente, `npm run backend:start:env` 
 |---|---|---|
 | `GET /health` | Ninguna | Comprobación mínima, sin datos internos |
 | `GET /v1/agents/status` | Bearer | Estado real de Ollama, correo y base |
+| `GET/PATCH /v1/profile` | Bearer | Consulta o actualización explícita del perfil real |
+| `GET/POST /v1/memories` | Bearer | Consulta o creación manual de recuerdos confirmados |
+| `DELETE /v1/memories/{id}` | Bearer | Olvido lógico y auditable de un recuerdo |
 | `POST /v1/assistant/messages` | Bearer | Enrutamiento y function calling multi-agente |
 | `POST /v1/actions/{id}/confirm` | Bearer | Confirmación idempotente de una propuesta |
 | `POST /v1/emails/sync` | Bearer | Lectura de no leídos mediante IMAP en modo solo lectura |

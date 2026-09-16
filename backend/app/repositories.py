@@ -1,25 +1,227 @@
 from __future__ import annotations
 
 import json
-import sqlite3
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from .database import Database
+from .database import ConnectionAdapter, Database
 
 
 def utc_now() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def row_dict(row: sqlite3.Row) -> dict[str, Any]:
+def row_dict(row: Any) -> dict[str, Any]:
     return dict(row)
 
 
 class JarvisRepository:
     def __init__(self, database: Database):
         self.database = database
+
+    def get_profile(
+        self, *, user_id: str = "owner", connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        owns_connection = connection is None
+        connection = connection or self.database.connect()
+        try:
+            row = connection.execute(
+                """
+                SELECT user_id,display_name,preferred_name,timezone,locale,country,city,
+                       occupation,study_program,onboarding_completed,created_at,updated_at
+                FROM user_profiles WHERE user_id=?
+                """,
+                (user_id,),
+            ).fetchone()
+        finally:
+            if owns_connection:
+                connection.close()
+        if row is None:
+            raise LookupError("No encontré el perfil solicitado.")
+        profile = row_dict(row)
+        profile["onboarding_completed"] = bool(profile["onboarding_completed"])
+        return profile
+
+    def update_profile(
+        self, values: dict[str, Any], *, user_id: str = "owner",
+        connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        allowed = {
+            "display_name", "preferred_name", "timezone", "locale", "country", "city",
+            "occupation", "study_program", "onboarding_completed",
+        }
+        updates = {key: value for key, value in values.items() if key in allowed}
+        if not updates:
+            return self.get_profile(user_id=user_id, connection=connection)
+        if "onboarding_completed" in updates:
+            updates["onboarding_completed"] = int(bool(updates["onboarding_completed"]))
+        updates["updated_at"] = utc_now()
+        assignments = ",".join(f"{column}=?" for column in updates)
+        owns_connection = connection is None
+        context = self.database.transaction() if owns_connection else None
+        if context:
+            connection = context.__enter__()
+        assert connection is not None
+        try:
+            cursor = connection.execute(
+                f"UPDATE user_profiles SET {assignments} WHERE user_id=?",
+                (*updates.values(), user_id),
+            )
+            if cursor.rowcount != 1:
+                raise LookupError("No encontré el perfil solicitado.")
+            result = self.get_profile(user_id=user_id, connection=connection)
+            if context:
+                context.__exit__(None, None, None)
+            return result
+        except Exception as error:
+            if context:
+                context.__exit__(type(error), error, error.__traceback__)
+            raise
+
+    def create_memory(
+        self, *, kind: str, content: str, importance: int = 3,
+        expires_at: str | None = None, source: str = "manual", user_id: str = "owner",
+        connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        identifier = str(uuid.uuid4())
+        now = utc_now()
+        values = (
+            identifier, user_id, kind, content, source, importance, "active",
+            expires_at, now, now, now,
+        )
+        sql = """
+            INSERT INTO memories(
+              id,user_id,kind,content,source,importance,status,expires_at,
+              confirmed_at,created_at,updated_at
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        """
+        if connection is not None:
+            connection.execute(sql, values)
+        else:
+            with self.database.transaction() as transaction:
+                transaction.execute(sql, values)
+        return self.get_memory(identifier, user_id=user_id, connection=connection)
+
+    def get_memory(
+        self, identifier: str, *, user_id: str = "owner",
+        connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        owns_connection = connection is None
+        connection = connection or self.database.connect()
+        try:
+            row = connection.execute(
+                "SELECT * FROM memories WHERE id=? AND user_id=?",
+                (identifier, user_id),
+            ).fetchone()
+            if row is None:
+                raise LookupError("No encontré el recuerdo solicitado.")
+            return row_dict(row)
+        finally:
+            if owns_connection:
+                connection.close()
+
+    def list_memories(
+        self, *, query: str | None = None, kind: str | None = None,
+        limit: int = 20, user_id: str = "owner",
+    ) -> list[dict[str, Any]]:
+        sql = """
+            SELECT * FROM memories
+            WHERE user_id=? AND status='active'
+              AND (expires_at IS NULL OR expires_at>?)
+        """
+        params: list[Any] = [user_id, utc_now()]
+        if kind:
+            sql += " AND kind=?"
+            params.append(kind)
+        if query and query.strip():
+            terms = list(dict.fromkeys(
+                term for term in re.findall(r"[\wáéíóúüñ]+", query.lower()) if len(term) >= 4
+            ))[:8]
+            if terms:
+                sql += " AND (" + " OR ".join("lower(content) LIKE ?" for _ in terms) + ")"
+                params.extend(f"%{term}%" for term in terms)
+        sql += " ORDER BY importance DESC,updated_at DESC LIMIT ?"
+        params.append(min(max(limit, 1), 50))
+        with self.database.session() as connection:
+            return [row_dict(row) for row in connection.execute(sql, params)]
+
+    def forget_memory(
+        self, identifier: str, *, user_id: str = "owner",
+        connection: ConnectionAdapter | None = None,
+    ) -> bool:
+        now = utc_now()
+        owns_connection = connection is None
+        context = self.database.transaction() if owns_connection else None
+        if context:
+            connection = context.__enter__()
+        assert connection is not None
+        try:
+            cursor = connection.execute(
+                """
+                UPDATE memories SET status='forgotten',forgotten_at=?,updated_at=?
+                WHERE id=? AND user_id=? AND status='active'
+                """,
+                (now, now, identifier, user_id),
+            )
+            result = cursor.rowcount == 1
+            if context:
+                context.__exit__(None, None, None)
+            return result
+        except Exception as error:
+            if context:
+                context.__exit__(type(error), error, error.__traceback__)
+            raise
+
+    def record_conversation_turn(
+        self, *, conversation_id: str, request_id: str,
+        user_text: str, assistant_text: str, user_id: str = "owner",
+    ) -> None:
+        now = utc_now()
+        with self.database.transaction() as connection:
+            connection.execute(
+                """
+                INSERT INTO conversations(id,user_id,created_at,updated_at) VALUES (?,?,?,?)
+                ON CONFLICT(id) DO UPDATE SET updated_at=excluded.updated_at
+                """,
+                (conversation_id, user_id, now, now),
+            )
+            for role, content in (("user", user_text), ("assistant", assistant_text)):
+                connection.execute(
+                    """
+                    INSERT INTO conversation_messages(
+                      id,conversation_id,request_id,role,content,created_at
+                    ) VALUES (?,?,?,?,?,?)
+                    ON CONFLICT(conversation_id,request_id,role) DO NOTHING
+                    """,
+                    (str(uuid.uuid4()), conversation_id, request_id, role, content, now),
+                )
+
+    def list_conversation_messages(
+        self, conversation_id: str, *, exclude_request_id: str | None = None, limit: int = 12,
+    ) -> list[dict[str, Any]]:
+        params: list[Any] = [conversation_id]
+        exclusion = ""
+        if exclude_request_id:
+            exclusion = " AND request_id!=?"
+            params.append(exclude_request_id)
+        params.append(min(max(limit, 1), 30))
+        with self.database.session() as connection:
+            rows = connection.execute(
+                f"""
+                SELECT role,content,request_id,created_at FROM (
+                  SELECT role,content,request_id,created_at
+                  FROM conversation_messages
+                  WHERE conversation_id=?{exclusion}
+                  ORDER BY created_at DESC, CASE role WHEN 'assistant' THEN 0 ELSE 1 END
+                  LIMIT ?
+                ) recent
+                ORDER BY created_at, CASE role WHEN 'user' THEN 0 ELSE 1 END
+                """,
+                params,
+            )
+            return [row_dict(row) for row in rows]
 
     def list_tasks(self, *, status: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
         query = "SELECT id,title,status,priority,due_at FROM tasks"
@@ -47,7 +249,7 @@ class JarvisRepository:
     def create_task(
         self, *, title: str, priority: str, due_at: str | None,
         remind_at: str | None = None,
-        connection: sqlite3.Connection | None = None,
+        connection: ConnectionAdapter | None = None,
     ) -> dict[str, Any]:
         identifier = str(uuid.uuid4())
         now = utc_now()
@@ -187,7 +389,7 @@ class JarvisRepository:
         self, *, name: str, kind: str, principal_minor: int, outstanding_minor: int,
         credit_limit_minor: int | None, statement_day: int | None,
         minimum_payment_minor: int, due_date: str, annual_interest_bps: int,
-        account_id: str | None = None, connection: sqlite3.Connection | None = None,
+        account_id: str | None = None, connection: ConnectionAdapter | None = None,
     ) -> dict[str, Any]:
         identifier = str(uuid.uuid4())
         values = (
@@ -209,7 +411,7 @@ class JarvisRepository:
 
     def create_savings_goal(
         self, *, name: str, target_minor: int, saved_minor: int, currency: str,
-        target_date: str | None, connection: sqlite3.Connection | None = None,
+        target_date: str | None, connection: ConnectionAdapter | None = None,
     ) -> dict[str, Any]:
         identifier = str(uuid.uuid4())
         values = (identifier, name, target_minor, saved_minor, currency, target_date)
@@ -237,7 +439,7 @@ class JarvisRepository:
         source: str = "manual",
         account_id: str | None = None,
         ingestion_event_id: str | None = None,
-        connection: sqlite3.Connection | None = None,
+        connection: ConnectionAdapter | None = None,
     ) -> dict[str, Any]:
         identifier = str(uuid.uuid4())
         owns_connection = connection is None
@@ -287,7 +489,7 @@ class JarvisRepository:
         assert row is not None
         return row_dict(row)
 
-    def get_proposal(self, identifier: str, *, connection: sqlite3.Connection | None = None) -> dict[str, Any] | None:
+    def get_proposal(self, identifier: str, *, connection: ConnectionAdapter | None = None) -> dict[str, Any] | None:
         owns = connection is None
         connection = connection or self.database.connect()
         try:
@@ -298,7 +500,7 @@ class JarvisRepository:
                 connection.close()
 
     def count(self, table: str) -> int:
-        allowed = {"tasks", "transactions", "email_messages", "email_drafts", "bank_ingestion_events"}
+        allowed = {"tasks", "transactions", "email_messages", "email_drafts", "bank_ingestion_events", "memories"}
         if table not in allowed:
             raise ValueError("Tabla no permitida")
         with self.database.session() as connection:

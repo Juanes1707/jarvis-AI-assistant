@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import hmac
 from dataclasses import dataclass
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .agents import ToolExecutionError, ToolRegistry
@@ -20,6 +20,11 @@ from .models import (
     BankWebhookResponse,
     ConfirmActionResponse,
     EmailSyncResponse,
+    MemoryCreate,
+    MemoryListResponse,
+    MemoryRecord,
+    UserProfile,
+    UserProfileUpdate,
 )
 from .orchestrator import Orchestrator
 from .repositories import JarvisRepository
@@ -38,7 +43,10 @@ class Services:
 
 
 def build_services(settings: Settings) -> Services:
-    database = Database(settings.database_path)
+    database_target = settings.database_url or settings.database_path
+    if database_target is None:
+        raise ValueError("No se configuró la base de datos del backend.")
+    database = Database(database_target)
     database.initialize()
     repository = JarvisRepository(database)
     model = OllamaClient(settings.ollama_url, settings.ollama_model)
@@ -93,6 +101,51 @@ def create_app(settings: Settings) -> FastAPI:
             model=settings.ollama_model,
             detail=detail,
         )
+
+    @app.get("/v1/profile", response_model=UserProfile, dependencies=[Depends(require_api_token)])
+    async def get_profile() -> UserProfile:
+        return UserProfile.model_validate(await asyncio.to_thread(services.repository.get_profile))
+
+    @app.patch("/v1/profile", response_model=UserProfile, dependencies=[Depends(require_api_token)])
+    async def update_profile(update: UserProfileUpdate) -> UserProfile:
+        values = update.model_dump(exclude_unset=True)
+        profile = await asyncio.to_thread(services.repository.update_profile, values)
+        return UserProfile.model_validate(profile)
+
+    @app.get("/v1/memories", response_model=MemoryListResponse, dependencies=[Depends(require_api_token)])
+    async def list_memories(
+        query: str | None = Query(default=None, max_length=200),
+        kind: str | None = Query(default=None, pattern="^(preference|fact|goal|constraint)$"),
+        limit: int = Query(default=20, ge=1, le=50),
+    ) -> MemoryListResponse:
+        memories = await asyncio.to_thread(
+            services.repository.list_memories, query=query, kind=kind, limit=limit
+        )
+        return MemoryListResponse(memories=[MemoryRecord.model_validate(item) for item in memories])
+
+    @app.post(
+        "/v1/memories", response_model=MemoryRecord, status_code=status.HTTP_201_CREATED,
+        dependencies=[Depends(require_api_token)],
+    )
+    async def create_memory(memory: MemoryCreate) -> MemoryRecord:
+        item = await asyncio.to_thread(
+            services.repository.create_memory,
+            kind=memory.kind,
+            content=memory.content,
+            importance=memory.importance,
+            expires_at=memory.expires_at.isoformat() if memory.expires_at else None,
+        )
+        return MemoryRecord.model_validate(item)
+
+    @app.delete(
+        "/v1/memories/{memory_id}", status_code=status.HTTP_204_NO_CONTENT,
+        dependencies=[Depends(require_api_token)],
+    )
+    async def forget_memory(memory_id: str) -> Response:
+        forgotten = await asyncio.to_thread(services.repository.forget_memory, memory_id)
+        if not forgotten:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No encontré el recuerdo solicitado.")
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     @app.post("/v1/assistant/messages", response_model=AssistantResponse, dependencies=[Depends(require_api_token)])
     async def assistant_message(request: AssistantRequest) -> AssistantResponse:

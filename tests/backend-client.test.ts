@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { askJarvisBackend, checkJarvisBackend, confirmJarvisBackendAction } from "../src/services/backend/client";
+import {
+  askJarvisBackend,
+  checkJarvisBackend,
+  confirmJarvisBackendAction,
+  createJarvisMemory,
+  forgetJarvisMemory,
+  getJarvisProfile,
+  listJarvisMemories,
+  updateJarvisProfile,
+} from "../src/services/backend/client";
 
 const settings = { url: "http://100.64.0.10:8787", token: "a-secure-token-with-24-characters" };
 
@@ -41,5 +50,31 @@ describe("cliente del backend multi-agente", () => {
   it("rechaza URLs con credenciales y tokens demasiado cortos", async () => {
     await expect(checkJarvisBackend({ url: "http://user:secret@100.64.0.10:8787", token: settings.token })).rejects.toThrow("sin credenciales");
     await expect(checkJarvisBackend({ url: settings.url, token: "short" })).rejects.toThrow("token");
+  });
+
+  it("expone perfil y memoria reales sin inventar datos locales", async () => {
+    const fetchMock = jest.spyOn(global, "fetch")
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ user_id: "owner", display_name: null, onboarding_completed: false }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ user_id: "owner", display_name: "Juan", onboarding_completed: true }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: "memory-1", kind: "preference", content: "Prefiero estudiar de noche", status: "active" }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ memories: [{ id: "memory-1", content: "Prefiero estudiar de noche" }] }) } as Response)
+      .mockResolvedValueOnce({ ok: true, status: 204, json: async () => null } as Response);
+
+    await getJarvisProfile(settings);
+    await updateJarvisProfile(settings, { display_name: "Juan", country: "Colombia", onboarding_completed: true });
+    await createJarvisMemory(settings, { kind: "preference", content: "Prefiero estudiar de noche", importance: 4 });
+    await listJarvisMemories(settings, { query: "estudiar" });
+    await forgetJarvisMemory(settings, "memory-1");
+
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, (init as RequestInit).method])).toEqual([
+      ["http://100.64.0.10:8787/v1/profile", "GET"],
+      ["http://100.64.0.10:8787/v1/profile", "PATCH"],
+      ["http://100.64.0.10:8787/v1/memories", "POST"],
+      ["http://100.64.0.10:8787/v1/memories?query=estudiar", "GET"],
+      ["http://100.64.0.10:8787/v1/memories/memory-1", "DELETE"],
+    ]);
+    expect(fetchMock.mock.calls[1]?.[1]).toEqual(expect.objectContaining({
+      body: JSON.stringify({ display_name: "Juan", country: "Colombia", onboarding_completed: true }),
+    }));
   });
 });

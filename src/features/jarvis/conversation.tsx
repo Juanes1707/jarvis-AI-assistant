@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
@@ -23,20 +23,12 @@ import { JarvisSettings } from "./settings-panel";
 import { Transcript, type TranscriptMessage } from "./transcript";
 import { useJarvisBackend } from "./use-jarvis-backend";
 
-const welcome = "A tu servicio. Puedo ayudarte con tu agenda y registrar cambios. Dime qué necesitas, Juan.";
-const STARTERS = ["Mis finanzas", "Tareas pendientes", "Agrega un gasto de 100.000 pesos hoy"];
-
 export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?: string }) {
   const { data, preferences, busy, executeCommand } = useWorkspace();
   const backend = useJarvisBackend(preferences);
   const mode = assistantMode(preferences);
   const [draft, setDraft] = useState("");
-  const initialMessages = (() => {
-    const result = initialQuestion ? interpretCommand(initialQuestion, data, new Date(), randomUUID()) : null;
-    return initialQuestion
-      ? [{ id: "initial-user", role: "user", text: initialQuestion }, { id: "welcome", role: "assistant", text: result?.kind === "reply" ? result.message : "Dime la orden para revisar qué cambiará." }]
-      : [{ id: "welcome", role: "assistant", text: welcome }];
-  })() as TranscriptMessage[];
+  const initialMessages: TranscriptMessage[] = [];
   const [messages, setMessages] = useState<TranscriptMessage[]>(initialMessages);
   const [proposal, setProposal] = useState<CommandProposal | null>(null);
   const [serverProposals, setServerProposals] = useState<BackendActionProposal[]>([]);
@@ -52,6 +44,7 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
   const recognitionActive = useRef(false);
   const focused = useRef(true);
   const requestActive = useRef(false);
+  const initialQuestionPending = useRef(initialQuestion.trim());
   const messageHistory = useRef<TranscriptMessage[]>(initialMessages);
   const conversationId = useRef(randomUUID());
   const scroll = useRef<ScrollView>(null);
@@ -150,14 +143,14 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
     } finally { requestActive.current = false; setThinking(false); }
   }
 
-  async function askLocalModel(fallback: string) {
+  async function askLocalModel() {
     requestActive.current = true; setThinking(true);
     try {
       const history: ChatMessage[] = messageHistory.current.slice(-12).map(message => ({ role: message.role, content: message.text }));
       const response = await askOllama({ url: preferences.ollamaUrl, model: preferences.ollamaModel }, buildJarvisSystemPrompt(data, new Date()), history);
       if (focused.current) answer(response);
     } catch (error) {
-      if (focused.current) answer(`${error instanceof Error ? error.message : "No pude consultar el cerebro local."}\n\nComo alternativa local: ${fallback}`);
+      if (focused.current) answer(error instanceof Error ? error.message : "No pude consultar el cerebro local.");
     } finally { requestActive.current = false; setThinking(false); }
   }
 
@@ -177,15 +170,24 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
       return;
     }
     if (serverActive) { await askBackend(text, randomUUID()); return; }
+    if (aiEnabled) { await askLocalModel(); return; }
     if (result.kind === "proposal") {
       pending.current = result.proposal; setProposal(result.proposal);
       answer(`Voy a ${result.proposal.title.toLocaleLowerCase("es")}: ${result.proposal.detail}. Revisa los datos y di «confirmar» o «cancelar».`);
       return;
     }
     if (result.kind !== "reply") return;
-    if (!aiEnabled) { answer(result.message); return; }
-    await askLocalModel(result.message);
+    answer(result.message);
   }
+
+  useEffect(() => {
+    const question = initialQuestionPending.current;
+    if (!question) return;
+    initialQuestionPending.current = "";
+    void ask(question);
+    // The route key remounts this screen for each question; the ref prevents duplicate sends.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function listen() {
     if (recognitionActive.current || locked.current || busy) return;
@@ -224,7 +226,7 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
   const coreState: CoreState = listening ? "listening" : saving || thinking ? "thinking" : voice.speaking ? "speaking" : brainDown ? "offline" : "idle";
   const composerState: ComposerState = listening ? "listening" : saving || busy ? "saving" : thinking ? "thinking" : voice.speaking ? "speaking" : "idle";
   // The instrument is the empty state: it introduces JARVIS, then yields the space to the conversation.
-  const showInstrument = messages.length <= 1 && !settings && !proposal && !serverProposals.length;
+  const showInstrument = messages.length === 0 && !settings && !proposal && !serverProposals.length;
 
   return <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
     <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -258,14 +260,6 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
             onPress={() => void askBackend(retry.text, retry.requestId)} />
         </Row> : null}
 
-        {messages.length <= 1 ? <Row style={styles.starters}>
-          {STARTERS.map(prompt => <Pressable key={prompt} accessibilityRole="button" accessibilityLabel={prompt}
-            disabled={composerState !== "idle"} onPress={() => void ask(prompt)}
-            style={({ pressed }) => [styles.chip, pressed ? styles.pressed : null]}>
-            <Copy variant="caption" muted>{prompt}</Copy>
-          </Pressable>)}
-        </Row> : null}
-
         {showInstrument ? <View style={styles.instrument}>
           <JarvisDial state={coreState} size={224} />
           <Copy variant="caption" muted style={styles.instrumentHint}>Pulsa el micrófono y habla, o escribe una orden.</Copy>
@@ -287,9 +281,6 @@ const styles = StyleSheet.create({
   instrument: { alignItems: "center", gap: theme.space.md, paddingVertical: theme.space.md },
   instrumentHint: { textAlign: "center" },
   retry: { gap: theme.space.ms, flexWrap: "wrap" },
-  starters: { flexWrap: "wrap", gap: theme.space.sm },
-  chip: { minHeight: 36, justifyContent: "center", paddingHorizontal: theme.space.ms, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.border },
-  pressed: { opacity: 0.6 },
   grow: { flex: 1 },
   accent: { color: theme.colors.accent },
   muted: { color: theme.colors.muted },

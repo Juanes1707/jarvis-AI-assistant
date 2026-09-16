@@ -8,7 +8,7 @@ from pathlib import Path
 from app.agents import ToolRegistry
 from app.bank_ingestion import BankIngestionService
 from app.database import Database
-from app.llm import ChatResult, ToolCall
+from app.llm import ChatResult, LLMError, ToolCall
 from app.models import ActionProposal, AssistantRequest, BankWebhookRequest, StructuredBankTransaction, ToolResult
 from app.orchestrator import Orchestrator
 from app.repositories import JarvisRepository
@@ -45,6 +45,15 @@ class BackendTestCase(unittest.TestCase):
         ])
         tool_messages = [message for message in model.messages[-1] if message["role"] == "tool"]
         self.assertEqual(len(tool_messages), 2)
+
+    def test_orchestrator_rejects_an_empty_model_answer_instead_of_fabricating_one(self) -> None:
+        model = FakeModel([ChatResult("")])
+        orchestrator = Orchestrator(model, ToolRegistry(self.repository), self.repository)
+
+        with self.assertRaises(LLMError):
+            orchestrator.handle(AssistantRequest(
+                request_id="request-empty", text="Pregunta abierta", conversation_id="demo"
+            ))
 
     def test_write_is_proposed_then_confirmed_exactly_once(self) -> None:
         model = FakeModel([
@@ -180,6 +189,107 @@ class BackendTestCase(unittest.TestCase):
         self.assertEqual(summary["projected_obligations_minor"], 100_000)
         self.assertEqual(liabilities[0]["credit_limit_minor"], 4_000_000)
         self.assertEqual(liabilities[0]["statement_day"], 12)
+
+    def test_confirmed_memory_is_recalled_by_later_conversations(self) -> None:
+        model = FakeModel([
+            ChatResult("", (ToolCall("memory_remember", {
+                "kind": "preference",
+                "content": "Prefiero estudiar por las noches.",
+                "importance": 4,
+            }),)),
+            ChatResult("Puedo recordarlo cuando confirmes la propuesta."),
+        ])
+        tools = ToolRegistry(self.repository)
+        orchestrator = Orchestrator(model, tools, self.repository)
+
+        response = orchestrator.handle(AssistantRequest(
+            request_id="remember-study-time",
+            text="Recuerda que prefiero estudiar por las noches",
+            conversation_id="memory-chat",
+        ))
+
+        self.assertEqual(self.repository.count("memories"), 0)
+        self.assertEqual(response.proposals[0].tool_name, "memory_remember")
+        tools.confirm(response.proposals[0].id)
+        self.assertEqual(self.repository.count("memories"), 1)
+
+        recall_model = FakeModel([ChatResult("Prefieres estudiar por las noches.")])
+        Orchestrator(recall_model, ToolRegistry(self.repository), self.repository).handle(AssistantRequest(
+            request_id="recall-study-time",
+            text="¿A qué hora prefiero estudiar?",
+            conversation_id="memory-chat",
+        ))
+
+        system_context = recall_model.messages[0][0]["content"]
+        self.assertIn("Prefiero estudiar por las noches.", system_context)
+
+    def test_conversation_history_is_persisted_and_reused(self) -> None:
+        first_model = FakeModel([ChatResult("Hola, ¿cómo puedo ayudarte?")])
+        Orchestrator(first_model, ToolRegistry(self.repository), self.repository).handle(AssistantRequest(
+            request_id="conversation-turn-1",
+            text="Hola JARVIS",
+            conversation_id="persistent-chat",
+        ))
+
+        second_model = FakeModel([ChatResult("Sí, recuerdo que me saludaste.")])
+        Orchestrator(second_model, ToolRegistry(self.repository), self.repository).handle(AssistantRequest(
+            request_id="conversation-turn-2",
+            text="¿Recuerdas lo anterior?",
+            conversation_id="persistent-chat",
+        ))
+
+        visible_history = [
+            (message["role"], message["content"])
+            for message in second_model.messages[0][1:]
+        ]
+        self.assertEqual(visible_history, [
+            ("user", "Hola JARVIS"),
+            ("assistant", "Hola, ¿cómo puedo ayudarte?"),
+            ("user", "¿Recuerdas lo anterior?"),
+        ])
+
+    def test_profile_changes_from_conversation_require_confirmation(self) -> None:
+        model = FakeModel([
+            ChatResult("", (ToolCall("profile_update", {
+                "occupation": "Estudiante",
+                "study_program": "Ingeniería de Sistemas",
+            }),)),
+            ChatResult("Preparé la actualización de tu perfil."),
+        ])
+        tools = ToolRegistry(self.repository)
+
+        response = Orchestrator(model, tools, self.repository).handle(AssistantRequest(
+            request_id="profile-update-1",
+            text="Actualiza mi perfil",
+            conversation_id="profile-chat",
+        ))
+
+        self.assertIsNone(self.repository.get_profile()["occupation"])
+        self.assertEqual(response.proposals[0].tool_name, "profile_update")
+        tools.confirm(response.proposals[0].id)
+        self.assertEqual(self.repository.get_profile()["occupation"], "Estudiante")
+        self.assertEqual(self.repository.get_profile()["study_program"], "Ingeniería de Sistemas")
+
+    def test_forgetting_memory_from_conversation_requires_confirmation(self) -> None:
+        memory = self.repository.create_memory(
+            kind="fact", content="Tengo una reunión de prueba.", importance=2
+        )
+        model = FakeModel([
+            ChatResult("", (ToolCall("memory_forget", {"memory_id": memory["id"]}),)),
+            ChatResult("Preparé el olvido para tu confirmación."),
+        ])
+        tools = ToolRegistry(self.repository)
+
+        response = Orchestrator(model, tools, self.repository).handle(AssistantRequest(
+            request_id="forget-memory-1",
+            text="Olvida ese dato",
+            conversation_id="memory-chat",
+        ))
+
+        self.assertIn("Tengo una reunión de prueba.", model.messages[0][0]["content"])
+        self.assertEqual(len(self.repository.list_memories()), 1)
+        tools.confirm(response.proposals[0].id)
+        self.assertEqual(self.repository.list_memories(), [])
 
 
 if __name__ == "__main__":

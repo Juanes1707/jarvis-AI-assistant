@@ -12,7 +12,7 @@ Fuente de requisitos: `Taller_ Asistente Personal Móvil Multi-Agente con Contro
 | Agente Financiero | Flujo de caja, transacciones, pasivos, interés, vencimiento y metas de ahorro | Implementado en dominio/persistencia; presentación móvil en bloques de evidencia y flujo de caja local en `/finances` |
 | Combinar ambos agentes | Varias tool calls y ruta `composite` | Implementado y probado |
 | Ingesta bancaria cero-fricción | Webhook con token, JSON estructurado, confianza mínima e idempotencia | Implementado; Shortcuts o Tasker real pendiente |
-| Persistencia relacional | SQLite servidor con FK, checks, índices y migración transaccional | Implementado; alternativa justificada |
+| Persistencia relacional | PostgreSQL servidor con FK, checks, índices y migraciones transaccionales; SQLite solo en móvil/tests | Implementado en código; instalación local pendiente |
 | Seguridad sin puerto público | Tailscale, tokens separados, sin CORS abierto, secretos por entorno | Implementado en código/guía; firewall real pendiente |
 | Documento técnico | Topología, dos secuencias y esquema relacional en `MULTI_AGENT_BACKEND.md` | Implementado |
 | Video demostrativo de 3 a 5 min | Debe grabarse con teléfono, datos móviles, Tailscale y automatización real | Pendiente del usuario y dispositivos |

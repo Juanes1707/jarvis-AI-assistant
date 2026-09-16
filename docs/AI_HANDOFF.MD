@@ -653,6 +653,74 @@ which no test can substitute.
 
 ---
 
+### [X2C-002] Add real-data onboarding and memory controls
+
+**Status:** Pending
+**Owner:** Claude Code
+**Requested by:** Codex
+**Created:** 2026-09-16
+
+#### Context
+
+The user explicitly requested that JARVIS stop presenting demonstration information as if it were personal data and begin using only real, user-supplied information. Codex migrated server persistence to PostgreSQL and added persistent profile, confirmed memories and conversation history. The existing device SQLite seed and hard-coded demo `Workspace.user`/exams still belong to the previous demonstration experience; removing them without corresponding empty/onboarding states would create an incomplete frontend flow.
+
+#### Requirement
+
+Create a design-system-consistent onboarding/profile and memory-management experience for server mode. It must let the user enter real profile fields, inspect exactly what JARVIS remembers, add a memory explicitly and forget a memory. Clearly label or remove the legacy local demonstration dataset so it is never presented as real user information. Preserve local/offline mode, but do not silently copy demo rows into PostgreSQL.
+
+#### System Contract
+
+`src/services/backend/client.ts` exports:
+
+```ts
+getJarvisProfile(settings): Promise<BackendUserProfile>;
+updateJarvisProfile(settings, update): Promise<BackendUserProfile>;
+listJarvisMemories(settings, filters?): Promise<{ memories: BackendMemory[] }>;
+createJarvisMemory(settings, memory): Promise<BackendMemory>;
+forgetJarvisMemory(settings, memoryId): Promise<void>;
+```
+
+The authenticated backend routes are `GET/PATCH /v1/profile`, `GET/POST /v1/memories` and `DELETE /v1/memories/{id}`. Conversation-originated profile/memory writes continue through the existing proposal-confirmation flow; these direct endpoints represent explicit form actions. PostgreSQL starts with an empty personal profile and no memories.
+The profile contract includes `country` in addition to name, preferred name, locale, timezone, city,
+occupation and study program. `npm run backend:pair` prints the private Tailscale URL and copies the
+DPAPI-protected API token to the Windows clipboard without exposing it in terminal output.
+
+#### Required States
+
+- Loading: use genuine request state; do not display cached demo values as placeholders.
+- Empty: explain that JARVIS has not learned personal information yet and offer the explicit capture action.
+- Error: preserve entered values and show the backend error without claiming persistence.
+- Success: render only the server response returned after the write.
+- Privacy: show memory content, kind and optional expiration; never show database credentials or internal connection details.
+
+#### Acceptance Criteria
+
+- [ ] A user can complete and later edit their real profile in server mode.
+- [ ] A user can list, add and forget memories through the typed client.
+- [ ] The UI distinguishes profile facts from preferences, goals and constraints.
+- [x] Existing `demo-*` records are either removed through an intentional local-data migration or visibly isolated behind an explicit demo mode; they are never labeled as the user's real data.
+- [ ] Empty, loading, error and success states follow `docs/DESIGN_SYNC.md`.
+- [ ] Frontend tests cover empty profile, successful persistence, failed persistence and memory deletion.
+
+#### Relevant Files
+
+- `src/services/backend/client.ts`
+- `src/services/storage/database.ts`
+- `src/services/storage/demo-data.ts`
+- `src/services/storage/workspace-provider.tsx`
+- `src/features/jarvis/settings-panel.tsx`
+- `docs/DESIGN_SYNC.md`
+
+#### Integration update (2026-09-16, Codex)
+
+`WorkspaceProvider` now retrieves the confirmed PostgreSQL profile whenever server mode is enabled,
+uses the preferred name throughout the shared workspace and filters every `demo-*` entity (including
+the demo budget and exam) from the server-mode view. The profile tab renders the returned identity,
+location and study program with existing primitives. Local mode retains the seed explicitly as a
+demonstration dataset. Profile editing and direct memory-management controls remain pending here.
+
+---
+
 ## 10. Shared Decisions
 
 Use this section for decisions that affect both frontend and system implementation.
@@ -683,6 +751,10 @@ If a Shared Decision must change, document:
 The workshop PDF supplied by the user requires mobile → Tailscale → local backend → central orchestrator → Secretary/Financial agents → LLM/persistence. This distributed path is now part of the product architecture. The existing on-device rule engine and SQLite remain a supported local fallback; they are not presented as satisfying the workshop's backend and multi-agent criteria.
 
 The backend owns routing, email access, financial aggregation, bank-event ingestion and server persistence. The mobile owns capture, TTS, presentation and explicit user confirmation. All cross-boundary calls use the typed client in `src/services/backend/client.ts`; UI code must not call Ollama or backend tables directly.
+
+#### [SD-005] Intelligent modes are free-form and agent-first (2026-09-16)
+
+The user explicitly removed system-authored prompt chips and canned domain answers. Home and conversation no longer present predetermined questions. Free-form input received from Home is sent through the same conversation path as typed or dictated input. In `server` mode, every non-control utterance goes to the multi-agent backend; in `local` mode, every non-control utterance goes to Ollama. The deterministic engine remains available only behind the explicitly named `basic` fallback and must never masquerade as an AI response. Technical status/errors and explicit confirmation/cancellation messages remain deterministic because they report application state rather than answer the user's domain question.
 
 #### [SD-001] Machined Obsidian replaces the Calm Palette (2026-09-13)
 

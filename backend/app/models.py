@@ -95,3 +95,65 @@ class AgentStatus(BaseModel):
     database: Literal["available"] = "available"
     model: str
     detail: str | None = None
+
+
+class UserProfile(BaseModel):
+    user_id: str
+    display_name: str | None = None
+    preferred_name: str | None = None
+    timezone: str | None = None
+    locale: str | None = None
+    country: str | None = None
+    city: str | None = None
+    occupation: str | None = None
+    study_program: str | None = None
+    onboarding_completed: bool = False
+    created_at: datetime
+    updated_at: datetime
+
+    @field_validator("created_at", "updated_at", mode="before")
+    @classmethod
+    def parse_database_datetime(cls, value: object) -> object:
+        if isinstance(value, str):
+            return datetime.fromisoformat(value)
+        return value
+
+
+class UserProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    display_name: str | None = Field(default=None, min_length=1, max_length=120)
+    preferred_name: str | None = Field(default=None, min_length=1, max_length=80)
+    timezone: str | None = Field(default=None, min_length=1, max_length=100)
+    locale: str | None = Field(default=None, min_length=2, max_length=20)
+    country: str | None = Field(default=None, min_length=1, max_length=120)
+    city: str | None = Field(default=None, min_length=1, max_length=120)
+    occupation: str | None = Field(default=None, min_length=1, max_length=160)
+    study_program: str | None = Field(default=None, min_length=1, max_length=160)
+    onboarding_completed: bool | None = None
+
+
+class MemoryCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    kind: Literal["preference", "fact", "goal", "constraint"]
+    content: str = Field(min_length=1, max_length=2_000)
+    importance: int = Field(default=3, ge=1, le=5)
+    expires_at: datetime | None = None
+
+
+class MemoryRecord(BaseModel):
+    id: str
+    user_id: str
+    kind: Literal["preference", "fact", "goal", "constraint"]
+    content: str
+    source: Literal["manual", "conversation", "import"]
+    importance: int
+    status: Literal["active", "forgotten"]
+    expires_at: datetime | None = None
+    confirmed_at: datetime
+    forgotten_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class MemoryListResponse(BaseModel):
+    memories: list[MemoryRecord]

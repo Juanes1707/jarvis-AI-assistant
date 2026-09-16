@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { router } from "expo-router";
-import { Copy, Icon, Row } from "../ui/primitives";
+import { Icon, Row } from "../ui/primitives";
 import { theme } from "../../theme/tokens";
-
-const STARTERS = ["¿Qué estudio hoy?", "Organiza mi día"];
 
 export function CommandBar() {
   const [input, setInput] = useState("");
@@ -21,11 +19,6 @@ export function CommandBar() {
         <Icon name="arrow-up" size={18} color={theme.colors.text} />
       </Pressable> : null}
     </Row>
-    <Row style={styles.starters}>
-      {STARTERS.map(prompt => <Pressable key={prompt} accessibilityRole="button" accessibilityLabel={prompt} onPress={() => ask(prompt)} style={({ pressed }) => [styles.chip, pressed ? styles.pressed : null]}>
-        <Copy variant="caption" muted>{prompt}</Copy>
-      </Pressable>)}
-    </Row>
   </View>;
 }
 
@@ -37,7 +30,4 @@ const styles = StyleSheet.create({
   },
   input: { flex: 1, minHeight: theme.touchTarget, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 15 },
   send: { width: 32, height: 32, alignItems: "center", justifyContent: "center", borderRadius: theme.radius.hairline, backgroundColor: theme.colors.elevated },
-  starters: { flexWrap: "wrap", gap: theme.space.sm },
-  chip: { minHeight: 34, justifyContent: "center", paddingHorizontal: theme.space.ms, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.border },
-  pressed: { opacity: 0.6 },
 });

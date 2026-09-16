@@ -69,6 +69,22 @@ async function send(text: string) {
 }
 
 describe("modo servidor multi-agente", () => {
+  it("envía al agente una pregunta libre recibida desde Inicio sin fabricar una respuesta local", async () => {
+    jest.mocked(askJarvisBackend).mockResolvedValue({
+      message: "Respuesta generada por el orquestador.", route: "orchestrator", tool_results: [], proposals: [],
+    });
+
+    await render(<JarvisConversation initialQuestion="Analiza mis prioridades reales" />);
+
+    await screen.findByText("Respuesta generada por el orquestador.");
+    expect(askJarvisBackend).toHaveBeenCalledWith(
+      { url: "https://equipo.tailnet.ts.net", token: TOKEN },
+      expect.objectContaining({ text: "Analiza mis prioridades reales" }),
+    );
+    expect(screen.queryByText("¿Qué estudio hoy?")).toBeNull();
+    expect(screen.queryByText("Organiza mi día")).toBeNull();
+  });
+
   it("enruta la orden al backend, nombra al agente y presenta los datos que devolvió", async () => {
     jest.mocked(askJarvisBackend).mockResolvedValue({
       message: "Te quedan 420.000 pesos y tienes un correo del decano sin leer.",

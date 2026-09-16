@@ -53,7 +53,7 @@ export default function HomeScreen() {
       </View>
     </Section>
 
-    <Section label="SEMESTRE" trailing={<Button label="Materias" variant="ghost" onPress={() => router.push("/university")} />}>
+    {data.subjects.length ? <Section label="SEMESTRE" trailing={<Button label="Materias" variant="ghost" onPress={() => router.push("/university")} />}>
       <View style={styles.semester}>
         <Row style={styles.grade}>
           <Copy variant="metric">{vm.academic.averageGrade === null ? "—" : formatGrade(vm.academic.averageGrade)}</Copy>
@@ -65,9 +65,9 @@ export default function HomeScreen() {
         <Progress value={vm.academic.progress} label="Avance del semestre" />
         <Copy variant="caption" muted>Promedio ponderado del semestre {data.user.semester}.</Copy>
       </View>
-    </Section>
+    </Section> : null}
 
-    <Section label="HÁBITOS"><HabitsCard /></Section>
+    {data.habits.length ? <Section label="HÁBITOS"><HabitsCard /></Section> : null}
 
     {data.exams.length ? <Section label="EN EL HORIZONTE">
       <View>{data.exams.map(exam => <DataRow key={exam.id} dot={categoryColor(exam.title)} label={exam.title} note={`${exam.weight}% de la nota`} value={formatDate(exam.startsAt)} tone="muted" />)}</View>

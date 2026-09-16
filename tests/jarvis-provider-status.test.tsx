@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 import { JarvisConversation } from "../src/features/jarvis/conversation";
 import { useWorkspace } from "../src/services/storage/workspace-provider";
 import { useJarvisVoice } from "../src/services/voice/use-jarvis-voice";
-import { checkOllama } from "../src/services/ai/ollama";
+import { askOllama, checkOllama } from "../src/services/ai/ollama";
 import { getAIProviderStatus } from "../src/services/ai/provider";
 import { demoSubjects, demoTasks, demoEvents, demoTransactions, demoHabits } from "../src/services/storage/demo-data";
 
@@ -87,6 +87,18 @@ describe("estado del proveedor de IA en ajustes", () => {
 });
 
 describe("estado del proveedor de IA en el encabezado", () => {
+  it("envía al modelo incluso las órdenes que antes interceptaba el motor de reglas", async () => {
+    jest.mocked(askOllama).mockResolvedValueOnce("Respuesta razonada por el modelo.");
+    await render(<JarvisConversation />);
+
+    await fireEvent.changeText(screen.getByLabelText("Mensaje para JARVIS"), "Agrega un gasto de 100.000 pesos hoy");
+    await fireEvent.press(screen.getByRole("button", { name: "Enviar" }));
+
+    await screen.findByText("Respuesta razonada por el modelo.");
+    expect(askOllama).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Confirmar cambio" })).toBeNull();
+  });
+
   it("consulta el proveedor real al enfocar la pantalla y refleja disponibilidad real", async () => {
     jest.mocked(getAIProviderStatus).mockResolvedValueOnce({ status: "available" });
     await render(<JarvisConversation />);

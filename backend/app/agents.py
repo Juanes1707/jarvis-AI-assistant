@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
 from datetime import UTC, date, datetime, timedelta, timezone
 from typing import Any, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from sqlalchemy.exc import IntegrityError
 
 from .models import ActionProposal, AgentName, ToolResult
 from .repositories import JarvisRepository
@@ -125,6 +125,38 @@ class CreateLiabilityArgs(BaseModel):
         return self
 
 
+class RememberMemoryArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    kind: str = Field(pattern="^(preference|fact|goal|constraint)$")
+    content: str = Field(min_length=1, max_length=2_000)
+    importance: int = Field(default=3, ge=1, le=5)
+    expires_at: datetime | None = None
+
+
+class ForgetMemoryArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    memory_id: str = Field(min_length=1, max_length=100)
+
+
+class UpdateProfileArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    display_name: str | None = Field(default=None, min_length=1, max_length=120)
+    preferred_name: str | None = Field(default=None, min_length=1, max_length=80)
+    timezone: str | None = Field(default=None, min_length=1, max_length=100)
+    locale: str | None = Field(default=None, min_length=2, max_length=20)
+    country: str | None = Field(default=None, min_length=1, max_length=120)
+    city: str | None = Field(default=None, min_length=1, max_length=120)
+    occupation: str | None = Field(default=None, min_length=1, max_length=160)
+    study_program: str | None = Field(default=None, min_length=1, max_length=160)
+    onboarding_completed: bool | None = None
+
+    @model_validator(mode="after")
+    def require_a_change(self) -> "UpdateProfileArgs":
+        if not self.model_fields_set:
+            raise ValueError("Debes indicar al menos un dato del perfil.")
+        return self
+
+
 class ToolExecutionError(RuntimeError):
     pass
 
@@ -149,6 +181,10 @@ class ToolRegistry:
             _tool("financial_record_transaction", "Propone registrar manualmente un ingreso o gasto; requiere confirmación.", RecordTransactionArgs),
             _tool("financial_create_savings_goal", "Propone crear una meta de ahorro; requiere confirmación.", CreateSavingsGoalArgs),
             _tool("financial_create_liability", "Propone registrar una tarjeta o préstamo con saldo, pago mínimo, fecha e interés; requiere confirmación.", CreateLiabilityArgs),
+            _tool("memory_remember", "Propone recordar un dato explícito del usuario; requiere confirmación antes de persistirlo.", RememberMemoryArgs),
+            _tool("memory_forget", "Propone olvidar un recuerdo confirmado usando su identificador; requiere confirmación.", ForgetMemoryArgs),
+            _tool("profile_get", "Consulta únicamente los datos del perfil confirmados por el usuario.", EmptyArgs),
+            _tool("profile_update", "Propone actualizar datos explícitos del perfil; requiere confirmación.", UpdateProfileArgs),
         ]
 
     @property
@@ -192,6 +228,9 @@ class ToolRegistry:
             if name == "financial_list_liabilities":
                 EmptyArgs.model_validate(arguments)
                 return ToolResult(name=name, agent=AgentName.FINANCIAL, data={"liabilities": self.repository.list_liabilities()})
+            if name == "profile_get":
+                EmptyArgs.model_validate(arguments)
+                return ToolResult(name=name, agent=AgentName.ORCHESTRATOR, data={"profile": self.repository.get_profile()})
             if name == "secretary_create_task":
                 args = CreateTaskArgs.model_validate(arguments)
                 values = args.model_dump(mode="json")
@@ -223,6 +262,25 @@ class ToolRegistry:
                 return self._proposal(
                     request_id, name, values, "Registrar obligación",
                     f"{args.name} · saldo {args.outstanding_minor} · vence {args.due_date.isoformat()}",
+                )
+            if name == "memory_remember":
+                args = RememberMemoryArgs.model_validate(arguments)
+                values = args.model_dump(mode="json")
+                return self._proposal(
+                    request_id, name, values, "Guardar recuerdo", args.content,
+                )
+            if name == "memory_forget":
+                args = ForgetMemoryArgs.model_validate(arguments)
+                memory = self.repository.get_memory(args.memory_id)
+                return self._proposal(
+                    request_id, name, args.model_dump(), "Olvidar recuerdo", memory["content"],
+                )
+            if name == "profile_update":
+                args = UpdateProfileArgs.model_validate(arguments)
+                values = args.model_dump(mode="json", exclude_unset=True)
+                return self._proposal(
+                    request_id, name, values, "Actualizar perfil",
+                    "Actualizar: " + ", ".join(sorted(values)),
                 )
         except ValidationError as error:
             raise ToolExecutionError(f"Argumentos inválidos para {name}: {error.errors(include_url=False)}") from error
@@ -258,7 +316,7 @@ class ToolRegistry:
                     (json.dumps(result, ensure_ascii=False, sort_keys=True), now, identifier),
                 )
                 return proposal.model_copy(update={"status": "confirmed"}), result, False
-        except sqlite3.IntegrityError as error:
+        except IntegrityError as error:
             raise ToolExecutionError("No pude confirmar el cambio porque una referencia ya no es válida.") from error
 
     def _apply_confirmed(self, tool_name: str, arguments: dict[str, Any], connection: Any) -> dict[str, Any]:
@@ -304,6 +362,26 @@ class ToolRegistry:
                 minimum_payment_minor=args.minimum_payment_minor,
                 due_date=args.due_date.isoformat(), annual_interest_bps=args.annual_interest_bps,
                 account_id=args.account_id, connection=connection,
+            )
+        if tool_name == "memory_remember":
+            args = RememberMemoryArgs.model_validate(arguments)
+            return self.repository.create_memory(
+                kind=args.kind,
+                content=args.content,
+                importance=args.importance,
+                expires_at=args.expires_at.astimezone(UTC).isoformat() if args.expires_at else None,
+                source="conversation",
+                connection=connection,
+            )
+        if tool_name == "memory_forget":
+            args = ForgetMemoryArgs.model_validate(arguments)
+            if not self.repository.forget_memory(args.memory_id, connection=connection):
+                raise ToolExecutionError("El recuerdo ya no está activo o no existe.")
+            return {"id": args.memory_id, "status": "forgotten"}
+        if tool_name == "profile_update":
+            args = UpdateProfileArgs.model_validate(arguments)
+            return self.repository.update_profile(
+                args.model_dump(mode="json", exclude_unset=True), connection=connection
             )
         raise ToolExecutionError("La propuesta usa una herramienta que ya no está disponible.")
 

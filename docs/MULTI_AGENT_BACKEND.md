@@ -15,13 +15,13 @@ flowchart TD
     O --> S[Agente de Secretaría]
     O --> F[Agente Financiero]
     S --> E[IMAP solo lectura]
-    S --> DB[(SQLite relacional)]
+    S --> DB[(PostgreSQL relacional)]
     F --> DB
     O --> L[Ollama\nFunction calling + JSON schema]
     API --> DB
 ```
 
-SQLite es la alternativa estructurada seleccionada para el servidor local. Se eligió porque es transaccional, no requiere un servicio cloud ni credenciales, funciona desconectado y mantiene integridad referencial. Los repositorios aíslan la persistencia para que una migración posterior a PostgreSQL/Supabase no cambie los contratos HTTP ni las herramientas de los agentes.
+PostgreSQL es la persistencia del servidor local. SQLAlchemy mantiene el contrato de repositorios y psycopg realiza la conexión; el móvil nunca recibe credenciales de base de datos ni accede a tablas directamente. SQLite permanece en el teléfono para el modo offline y en pruebas temporales del backend. El servidor PostgreSQL comienza sin información personal de demostración.
 
 ## Secuencia de comando por voz
 
@@ -33,7 +33,7 @@ sequenceDiagram
     participant O as Orquestador
     participant L as Ollama
     participant A as Agentes
-    participant DB as SQLite
+    participant DB as PostgreSQL
     U->>M: Pulsa micrófono y habla
     M->>M: STT del sistema
     M->>API: POST /v1/assistant/messages
@@ -63,7 +63,7 @@ sequenceDiagram
     participant OS as Shortcuts o Tasker
     participant API as Webhook FastAPI
     participant L as Ollama
-    participant DB as SQLite
+    participant DB as PostgreSQL
     OS->>API: event_id + texto + token separado
     API->>DB: reserva idempotente del evento
     API->>L: extracción con JSON Schema
@@ -80,6 +80,8 @@ sequenceDiagram
 ```
 
 ## Esquema relacional
+
+Además de tareas, correo y finanzas, el esquema contiene `users`, `user_profiles`, `memories`, `conversations` y `conversation_messages`. La versión actual usa un propietario local estable (`owner`); no afirma soporte multiusuario. Los recuerdos distinguen tipo, fuente, importancia, expiración, confirmación y borrado lógico. El historial deduplica cada rol por `conversation_id` y `request_id`.
 
 ```mermaid
 erDiagram
@@ -112,6 +114,8 @@ Tablas adicionales: `savings_goals`, `agent_runs` y `schema_migrations`. Los imp
 3. Ejecuta una vez `npm run backend:tailscale`. El comando configura `tailscale serve --bg --yes 8787`, verifica que Tailscale este conectado e imprime la URL MagicDNS estable. Si la tailnet aun no tiene Serve habilitado, abre el enlace oficial que presenta Tailscale y autoriza la función.
 4. Arranca FastAPI con `npm run backend:start`; escucha en `127.0.0.1:8787`. Ollama también puede permanecer en localhost porque solo el backend lo consulta.
 5. Verifica con `tailscale serve status`. No uses Tailscale Funnel y no abras el puerto 8787 en el router.
+6. Ejecuta `npm run backend:pair`: imprime únicamente la URL HTTPS privada y copia el token API
+   protegido al portapapeles para pegarlo en los ajustes del teléfono. El token nunca aparece en la terminal.
 6. Comprueba desde datos móviles `https://<equipo>.<tailnet>.ts.net/health` y después el endpoint autenticado.
 
 Tailscale es infraestructura externa y su conexión real debe verificarse en los dos dispositivos; las pruebas automatizadas no pueden sustituir esa evidencia.

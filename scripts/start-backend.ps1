@@ -3,6 +3,7 @@ Add-Type -AssemblyName System.Security
 $privateDirectory = Join-Path $env:LOCALAPPDATA 'JARVIS'
 $apiTokenPath = Join-Path $privateDirectory 'backend-api-token.dpapi'
 $webhookTokenPath = Join-Path $privateDirectory 'backend-webhook-token.dpapi'
+$databaseUrlPath = Join-Path $privateDirectory 'database-url.dpapi'
 $entropy = [System.Text.Encoding]::UTF8.GetBytes('JARVIS backend token v1')
 $resultCode = 1
 
@@ -11,6 +12,10 @@ foreach ($secretPath in @($apiTokenPath, $webhookTokenPath)) {
         Write-Error 'Faltan los secretos protegidos. Ejecuta npm run backend:secrets.'
         exit 1
     }
+}
+if (-not (Test-Path -LiteralPath $databaseUrlPath)) {
+    Write-Error 'Falta la conexión PostgreSQL protegida. Ejecuta npm run backend:database.'
+    exit 1
 }
 
 function Read-ProtectedToken([string]$path) {
@@ -34,6 +39,7 @@ function Read-ProtectedToken([string]$path) {
 try {
     $env:JARVIS_API_TOKEN = (Read-ProtectedToken $apiTokenPath).Trim()
     $env:JARVIS_WEBHOOK_TOKEN = (Read-ProtectedToken $webhookTokenPath).Trim()
+    $env:JARVIS_DATABASE_URL = (Read-ProtectedToken $databaseUrlPath).Trim()
     if (-not $env:JARVIS_HOST) { $env:JARVIS_HOST = '127.0.0.1' }
     if (-not $env:JARVIS_PORT) { $env:JARVIS_PORT = '8787' }
     if (-not $env:JARVIS_OLLAMA_URL) { $env:JARVIS_OLLAMA_URL = 'http://127.0.0.1:11434' }
@@ -46,6 +52,7 @@ try {
 } finally {
     Remove-Item Env:JARVIS_API_TOKEN -ErrorAction SilentlyContinue
     Remove-Item Env:JARVIS_WEBHOOK_TOKEN -ErrorAction SilentlyContinue
+    Remove-Item Env:JARVIS_DATABASE_URL -ErrorAction SilentlyContinue
     [Array]::Clear($entropy, 0, $entropy.Length)
 }
 

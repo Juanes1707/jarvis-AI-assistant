@@ -56,6 +56,87 @@ class ApiTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json()["status"], "created")
 
+    async def test_profile_starts_empty_and_persists_explicit_user_data(self) -> None:
+        headers = {"Authorization": f"Bearer {self.settings.api_token}"}
+
+        initial = await self.client.get("/v1/profile", headers=headers)
+
+        self.assertEqual(initial.status_code, 200, initial.text)
+        self.assertEqual(initial.json()["user_id"], "owner")
+        self.assertIsNone(initial.json()["display_name"])
+        self.assertFalse(initial.json()["onboarding_completed"])
+
+        updated = await self.client.patch(
+            "/v1/profile",
+            headers=headers,
+            json={
+                "display_name": "Juan Esteban",
+                "preferred_name": "Juan",
+                "timezone": "America/Bogota",
+                "country": "Colombia",
+                "city": "Bogotá",
+                "onboarding_completed": True,
+            },
+        )
+
+        self.assertEqual(updated.status_code, 200, updated.text)
+        self.assertEqual(updated.json()["display_name"], "Juan Esteban")
+        self.assertEqual(updated.json()["preferred_name"], "Juan")
+        self.assertEqual(updated.json()["timezone"], "America/Bogota")
+        self.assertEqual(updated.json()["country"], "Colombia")
+        self.assertEqual(updated.json()["city"], "Bogotá")
+        self.assertTrue(updated.json()["onboarding_completed"])
+
+        persisted = await self.client.get("/v1/profile", headers=headers)
+        self.assertEqual(persisted.json(), updated.json())
+
+    async def test_profile_accepts_postgresql_short_timezone_offset(self) -> None:
+        headers = {"Authorization": f"Bearer {self.settings.api_token}"}
+        postgres_timestamp = "2026-09-16 12:21:44.028844-05"
+        with self.app.state.services.database.transaction() as connection:
+            connection.execute(
+                "UPDATE user_profiles SET created_at=?,updated_at=? WHERE user_id='owner'",
+                (postgres_timestamp, postgres_timestamp),
+            )
+
+        response = await self.client.get("/v1/profile", headers=headers)
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["created_at"], "2026-09-16T12:21:44.028844-05:00")
+        self.assertEqual(response.json()["updated_at"], "2026-09-16T12:21:44.028844-05:00")
+
+    async def test_user_can_create_find_and_forget_confirmed_memory(self) -> None:
+        headers = {"Authorization": f"Bearer {self.settings.api_token}"}
+
+        empty = await self.client.get("/v1/memories", headers=headers)
+        self.assertEqual(empty.status_code, 200, empty.text)
+        self.assertEqual(empty.json(), {"memories": []})
+
+        created = await self.client.post(
+            "/v1/memories",
+            headers=headers,
+            json={
+                "kind": "preference",
+                "content": "Prefiero estudiar por las noches.",
+                "importance": 4,
+            },
+        )
+        self.assertEqual(created.status_code, 201, created.text)
+        self.assertEqual(created.json()["source"], "manual")
+        self.assertEqual(created.json()["status"], "active")
+        self.assertIsNotNone(created.json()["confirmed_at"])
+
+        found = await self.client.get("/v1/memories?query=noches", headers=headers)
+        self.assertEqual([item["content"] for item in found.json()["memories"]], [
+            "Prefiero estudiar por las noches."
+        ])
+
+        forgotten = await self.client.delete(
+            f"/v1/memories/{created.json()['id']}", headers=headers
+        )
+        self.assertEqual(forgotten.status_code, 204, forgotten.text)
+        self.assertEqual((await self.client.get("/v1/memories", headers=headers)).json(), {"memories": []})
+
 
 if __name__ == "__main__":
     unittest.main()

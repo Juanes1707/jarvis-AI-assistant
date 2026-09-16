@@ -97,6 +97,7 @@ describe("briefing y consultas", () => {
   it("el briefing cambia al cambiar datos", () => {
     expect(generateDailyBriefing({ classes: 2, pendingTasks: 3, freeMinutes: 90, priorityTitle: "SQL" })).toContain("2 clases y 3 tareas");
     expect(generateDailyBriefing({ classes: 0, pendingTasks: 0, freeMinutes: 0, priorityTitle: null })).toContain("No hay tareas pendientes");
+    expect(generateDailyBriefing({ classes: 0, pendingTasks: 0, freeMinutes: 438.7568, priorityTitle: null })).toContain("439 minutos");
   });
   it("resuelve preguntas sin afirmar que haya modificado la agenda", () => {
     const context = { briefing: "Tienes 2 clases.", priority: "Estudia Redes.", finances: "Saldo 100 COP.", academic: "Promedio 4,20.", tasks: ["SQL"] };
