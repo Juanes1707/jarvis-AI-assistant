@@ -19,6 +19,11 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --max-warnings=0",
     "test": "jest --runInBand",
+    "test:backend": "node scripts/python-backend.cjs test",
+    "backend:secrets": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/configure-backend-secrets.ps1",
+    "backend:tailscale": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/configure-tailscale.ps1",
+    "backend:start": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-backend.ps1",
+    "backend:start:env": "node scripts/python-backend.cjs start",
     "export:native": "expo export --platform android --platform ios --output-dir artifacts/native-export"
   },
   "dependencies": {

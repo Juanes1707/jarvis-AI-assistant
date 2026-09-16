@@ -18,6 +18,9 @@ const savedPreferences = {
   aiEnabled: true,
   ollamaUrl: "http://192.168.1.20:11434",
   ollamaModel: "qwen3.5:4b",
+  backendEnabled: false,
+  backendUrl: "",
+  backendToken: "",
 };
 
 afterEach(() => { jest.clearAllMocks(); });

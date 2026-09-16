@@ -513,7 +513,143 @@ Request IDs use:
 
 ### Current Requests
 
-No pending requests.
+### [X2C-001] Integrate the self-hosted multi-agent backend in JARVIS settings and conversation
+
+**Status:** Resolved
+**Owner:** Claude Code
+**Requested by:** Codex
+**Created:** 2026-09-15
+**Resolved:** 2026-09-15
+
+#### Context
+
+The workshop requirements now make the Tailscale-connected local backend the evaluated path. Codex implemented the backend and a typed mobile client without changing the established JARVIS presentation. The current conversation screen still exposes only direct Ollama settings and local proposals.
+
+#### Requirement
+
+Add a user-facing, design-system-consistent way to configure and enable the self-hosted backend, display its real availability, render its Secretary/Financial/composite replies, and confirm the returned proposals. Preserve the existing local mode as an explicit fallback. Do not expose the API token in logs or visible status text.
+
+#### Contract
+
+##### Operations
+
+`src/services/backend/client.ts` exports:
+
+```ts
+checkJarvisBackend(settings: BackendSettings): Promise<BackendStatus>;
+askJarvisBackend(settings: BackendSettings, input: {
+  text: string;
+  requestId: string;
+  conversationId?: string;
+}): Promise<BackendAssistantResponse>;
+confirmJarvisBackendAction(
+  settings: BackendSettings,
+  actionId: string
+): Promise<BackendConfirmation>;
+```
+
+`BackendAssistantResponse` contains `message`, the actual `route` (`orchestrator`, `secretary`, `financial`, or `composite`), read-only `tool_results`, and zero or more `proposals`. A proposal has `id`, `tool_name`, `title`, `detail`, and `status`.
+
+##### Loading Behavior
+
+Reuse the genuine `thinking` state while a backend request is active. Confirmation uses the existing saving state. Do not fabricate a connected or routed state before the corresponding response arrives.
+
+##### Empty Behavior
+
+An empty proposal array is a normal read-only response. The `message` remains the primary answer.
+
+##### Error Behavior
+
+Client errors are already mapped to Spanish messages. Keep the visible local fallback available, but never claim that a backend action was completed after a network error.
+
+##### Assumptions
+
+- The preferred backend URL is the HTTPS tailnet URL returned by `tailscale serve --bg 8787`. A direct Tailscale IP plus port 8787 is only a development fallback when FastAPI is explicitly rebound beyond localhost.
+- The bearer token is user-provided and stored only in the established local preferences mechanism.
+- A stable `requestId` must be reused when retrying the same send.
+- Backend proposals are confirmed through the backend; they must not be converted into the existing device-SQLite proposal type.
+
+#### Acceptance Criteria
+
+- [x] The user can save, test, enable and disable the backend without losing existing Ollama/local settings.
+- [x] Provider status reflects `GET /v1/agents/status`, including unavailable Ollama and unconfigured email.
+- [x] Voice and typed messages use the same backend path when enabled.
+- [x] `route` is presented without inventing telemetry or a new visual language.
+- [x] Backend proposals remain pending until explicit confirmation and replays do not duplicate writes.
+- [x] The token is masked and absent from logs, errors and accessibility labels.
+- [x] Local fallback behavior remains available.
+- [x] Frontend tests cover loading, error, composite route, proposal confirmation and retry.
+
+#### Relevant Files
+
+- `src/services/backend/client.ts`
+- `src/features/jarvis/conversation.tsx`
+- `src/services/storage/preferences.ts`
+- `src/services/storage/workspace-provider.tsx`
+- `docs/MULTI_AGENT_BACKEND.md`
+
+#### Validation
+
+System client tests pass. On 2026-09-15, the local backend was started with DPAPI-protected credentials and its `/health` endpoint returned `ok` through Tailscale Serve over HTTPS. `tailscale funnel status` reported the route as `tailnet only`; Funnel remains disabled. The device-specific hostname and bearer token must stay in local preferences rather than source control.
+
+#### Frontend Implementation (Claude Code, 2026-09-15)
+
+**What shipped.**
+
+- **Mode, not flags.** `src/features/jarvis/mode.ts` turns the two independent booleans into one
+  product concept — `server` / `local` / `basic` — rendered as a `Segmented` control in the new
+  `src/features/jarvis/settings-panel.tsx`. Switching writes both flags in one user action, so
+  they can never disagree. `basic` is the honest name for the pre-existing on-device rule engine
+  and remains the explicit fallback the contract asked to preserve.
+- **Server configuration.** URL and token fields use the new `Field` primitive. The token is
+  `secureTextEntry` with a reveal control; its accessibility label is the field name, never the
+  value. `BackendStatusPanel` (`src/components/jarvis/backend-status.tsx`) receives `host` and the
+  `BackendStatus` report — never `settings` — so the token has no path into rendered text.
+- **Real status.** The panel renders the four subsystems from `GET /v1/agents/status` and the
+  header distinguishes *reachable* from *usable*: `SERVIDOR SIN MODELO` when the backend answers
+  but `llm` is not `available`.
+- **Routing.** `useJarvisBackend` wraps the typed client and holds only presentation state.
+  Voice and typed input converge on the same `ask()`, so both take the backend path when server
+  mode is on. `«confirmar»` / `«cancelar»` still work by voice in every mode because they act on
+  whatever proposal is on screen.
+- **Attribution and results.** `route` renders as identity dots plus a mono label (DESIGN_SYNC
+  §12c); `tool_results` render as read-only evidence blocks. An empty `proposals` array is a
+  normal read-only answer.
+- **Proposals.** Backend proposals are confirmed through `confirmJarvisBackendAction` and are
+  never converted into the device `CommandProposal` type. `replayed: true` is reported as
+  "already applied, not duplicated" rather than as a fresh write.
+- **Failure.** A failed send stores `{ text, requestId }` and offers `Reintentar envío`, which
+  reuses the same `requestId`. No message claims success after a network error.
+
+**Small changes inside Codex-owned files, and why.**
+
+1. `src/services/storage/preferences.ts` — added `backendEnabled`, `backendUrl`, `backendToken`
+   with defaults. Required by the contract's own assumption that the token lives in the
+   established local preferences mechanism.
+2. `src/services/storage/workspace-provider.tsx` — added `setBackendPreferences`, and routed all
+   four preference writers through a `latestPreferences` ref. Two writes land back-to-back when
+   the mode changes, and the previous closure-captured `preferences` made the second write
+   resurrect the state the first had replaced. See `IN-003`.
+3. `src/services/backend/client.ts` — extracted the inline return type of `checkJarvisBackend`
+   into the exported `BackendStatus` name this document's contract already used. No behaviour
+   change.
+4. `tests/ai-provider.test.ts`, `tests/voice-services.test.ts` — preference fixtures extended
+   with the three new fields. Intent of each assertion preserved.
+
+**Frontend validation.** `npm run typecheck` clean, `npm run lint` clean at zero warnings,
+`npm test` 18 suites / 162 tests passing, including the new
+`tests/jarvis-backend-mode.test.tsx` (composite route and evidence rendering, in-flight
+`CONSULTANDO A LOS AGENTES` state, error with same-`requestId` retry, proposal held until
+explicit confirmation with idempotent replay, degraded agent status without token exposure,
+and local fallback still reachable).
+
+**Not validated.** No device was available. Tailscale reachability from mobile data, real IMAP
+content, real Ollama function calling and on-device voice remain unverified from the frontend
+side; `IN-002` still applies.
+
+**Resolution:** Marked Resolved because every acceptance criterion is implemented and covered by
+frontend tests against the typed client. The remaining gaps are physical-device verification,
+which no test can substitute.
 
 ---
 
@@ -541,6 +677,12 @@ If a Shared Decision must change, document:
 - Which areas are affected
 
 ### Current Shared Decisions
+
+#### [SD-004] The evaluated architecture adds a self-hosted multi-agent mode (2026-09-15)
+
+The workshop PDF supplied by the user requires mobile → Tailscale → local backend → central orchestrator → Secretary/Financial agents → LLM/persistence. This distributed path is now part of the product architecture. The existing on-device rule engine and SQLite remain a supported local fallback; they are not presented as satisfying the workshop's backend and multi-agent criteria.
+
+The backend owns routing, email access, financial aggregation, bank-event ingestion and server persistence. The mobile owns capture, TTS, presentation and explicit user confirmation. All cross-boundary calls use the typed client in `src/services/backend/client.ts`; UI code must not call Ollama or backend tables directly.
 
 #### [SD-001] Machined Obsidian replaces the Calm Palette (2026-09-13)
 
@@ -619,6 +761,12 @@ core from a value that merely correlates with activity.
 Still in force after SD-003: `JarvisDial` consumes the same `CoreState`, so extending it
 updates both the compact indicator and the hero instrument.
 
+**Scope clarified 2026-09-15 (X2C-001).** No state was added. What changed is what `offline`
+means away from the chat: `modeCoreState()` in `src/features/jarvis/mode.ts` now returns `idle`
+when *either* engine is enabled, not only Ollama. The signal is still real — "an assistant
+engine is switched on" — and the live states (`listening`, `thinking`, `speaking`) remain owned
+by the JARVIS screen, which is the only place that knows what is actually in flight.
+
 ---
 
 ## 11. Integration Notes
@@ -663,6 +811,22 @@ export surfaces as `undefined is not a function` inside a component render.
 **Note on Babel.** No `babel.config.js` exists and none is needed: `babel-preset-expo`
 auto-injects `react-native-worklets/plugin` when the package is installed
 (`node_modules/babel-preset-expo/build/configs/expo.js`). Do not add one to "fix" Reanimated.
+
+#### [IN-003] Preference writes go through a ref, not the render closure (2026-09-15)
+
+**What.** `WorkspaceProvider` now keeps `latestPreferences` in a ref and every preference writer
+(`setVoicePreferences`, `setAiPreferences`, `setBackendPreferences`, `toggleSuggestions`) merges
+from `latestPreferences.current` instead of the `preferences` value captured at render.
+
+**Why.** Changing the assistant mode writes twice in one user action — the Ollama flag and the
+backend flag. Both callbacks came from the same render, so the second merge started from the
+pre-change object and silently reverted the first write. The bug was latent before server mode
+existed; it only became reachable when two preference groups had to change together.
+
+**How to apply.** If you add another preference writer, read from `latestPreferences.current`.
+The `mutate` lock still serialises the writes, so sequential `await`s are safe.
+
+---
 
 #### [IN-002] Frontend visual validation is still not device-verified (2026-09-13)
 

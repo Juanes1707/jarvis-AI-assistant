@@ -34,10 +34,10 @@ describe("puente de dictado Android", () => {
 describe("preferencias de voz compatibles con datos previos", () => {
   it("completa las preferencias anteriores sin perder el ajuste existente", async () => {
     jest.mocked(AsyncStorage.getItem).mockResolvedValue('{"showSuggestions":false}');
-    await expect(readPreferences()).resolves.toEqual({ showSuggestions: false, voiceEnabled: true, voiceId: null, aiEnabled: false, ollamaUrl: "", ollamaModel: "qwen3.5:4b" });
+    await expect(readPreferences()).resolves.toEqual({ showSuggestions: false, voiceEnabled: true, voiceId: null, aiEnabled: false, ollamaUrl: "", ollamaModel: "qwen3.5:4b", backendEnabled: false, backendUrl: "", backendToken: "" });
   });
   it("guarda la voz y el silencio seleccionados", async () => {
-    await savePreferences({ showSuggestions: true, voiceEnabled: false, voiceId: "spanish-voice", aiEnabled: true, ollamaUrl: "http://192.168.1.20:11434", ollamaModel: "qwen3.5:4b" });
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith("jarvis:preferences:v1", JSON.stringify({ showSuggestions: true, voiceEnabled: false, voiceId: "spanish-voice", aiEnabled: true, ollamaUrl: "http://192.168.1.20:11434", ollamaModel: "qwen3.5:4b" }));
+    await savePreferences({ showSuggestions: true, voiceEnabled: false, voiceId: "spanish-voice", aiEnabled: true, ollamaUrl: "http://192.168.1.20:11434", ollamaModel: "qwen3.5:4b", backendEnabled: true, backendUrl: "https://equipo.tailnet.ts.net", backendToken: "a-secure-token-with-24-characters" });
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith("jarvis:preferences:v1", JSON.stringify({ showSuggestions: true, voiceEnabled: false, voiceId: "spanish-voice", aiEnabled: true, ollamaUrl: "http://192.168.1.20:11434", ollamaModel: "qwen3.5:4b", backendEnabled: true, backendUrl: "https://equipo.tailnet.ts.net", backendToken: "a-secure-token-with-24-characters" }));
   });
 });

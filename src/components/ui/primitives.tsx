@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type TextProps, type ViewStyle, type StyleProp, type ColorValue } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps, type TextProps, type ViewStyle, type StyleProp, type ColorValue } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { theme } from "../../theme/tokens";
 
@@ -101,6 +101,55 @@ export function OrbButton({ label, icon, onPress, disabled, tone = "muted", size
   </Pressable>;
 }
 
+/**
+ * Mode selector. Reuses the lit-edge motif of the tab dock rather than importing a foreign
+ * pill-shaped control, so switching modes reads like switching instruments on the same panel.
+ */
+export function Segmented<Value extends string>({ label, value, options, onChange, disabled }: {
+  label: string;
+  value: Value;
+  options: readonly { value: Value; label: string; icon?: IconName }[];
+  onChange: (value: Value) => void;
+  disabled?: boolean;
+}) {
+  return <View accessibilityRole="tablist" accessibilityLabel={label} style={control.segmented}>
+    {options.map(option => {
+      const selected = option.value === value;
+      return <Pressable key={option.value} accessibilityRole="tab" accessibilityLabel={option.label} accessibilityState={{ selected, disabled }}
+        disabled={disabled} onPress={() => onChange(option.value)}
+        style={({ pressed }) => [control.segment, pressed ? control.pressed : null, disabled ? control.inert : null]}>
+        {option.icon ? <Icon name={option.icon} size={16} color={selected ? theme.colors.text : theme.colors.dim} /> : null}
+        <Copy variant="caption" style={selected ? control.segmentOn : control.segmentOff}>{option.label}</Copy>
+        <View style={[control.segmentEdge, selected ? control.segmentEdgeOn : null]} />
+      </Pressable>;
+    })}
+  </View>;
+}
+
+/** Selectable row. Replaces stacks of buttons used as a radio group. */
+export function OptionRow({ label, note, selected, onPress, disabled }: { label: string; note?: string; selected: boolean; onPress: () => void; disabled?: boolean }) {
+  return <Pressable accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ selected, disabled }} disabled={disabled}
+    onPress={onPress} style={({ pressed }) => [control.option, pressed ? control.pressed : null, disabled ? control.inert : null]}>
+    <View style={surface.grow}>
+      <Copy variant="body" style={selected ? undefined : text.muted}>{label}</Copy>
+      {note ? <Copy variant="caption" muted>{note}</Copy> : null}
+    </View>
+    <Icon name={selected ? "check-circle" : "circle-outline"} size={20} color={selected ? theme.colors.accent : theme.colors.dim} />
+  </Pressable>;
+}
+
+/** Labelled input. Keeps every form field in the product on one border and one radius. */
+export function Field({ label, hint, trailing, style, ...props }: TextInputProps & { label: string; hint?: string; trailing?: ReactNode }) {
+  return <View style={control.field}>
+    <Copy variant="marker">{label}</Copy>
+    <Row style={control.fieldSlot}>
+      <TextInput accessibilityLabel={label} placeholderTextColor={theme.colors.dim} {...props} style={[control.fieldInput, style]} />
+      {trailing}
+    </Row>
+    {hint ? <Copy variant="caption" muted>{hint}</Copy> : null}
+  </View>;
+}
+
 /** Crimson is reserved for urgency; cyan for the metric JARVIS is actively pushing. */
 export function Progress({ value, label, tone = "default" }: { value: number; label: string; tone?: "default" | "accent" | "danger" }) {
   const percent = Math.min(100, Math.max(0, value));
@@ -157,6 +206,22 @@ const control = StyleSheet.create({
   pressed: { opacity: 0.7 },
   orb: { alignItems: "center", justifyContent: "center", borderWidth: 1, backgroundColor: theme.colors.surface },
   orbGlow: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  segmented: { flexDirection: "row", gap: theme.space.lg },
+  segment: { flexDirection: "row", alignItems: "center", gap: theme.space.sm, minHeight: theme.touchTarget, paddingBottom: theme.space.sm },
+  segmentOn: { color: theme.colors.text },
+  segmentOff: { color: theme.colors.dim },
+  segmentEdge: { position: "absolute", left: 0, right: 0, bottom: 0, height: theme.space.hair, borderRadius: theme.radius.hairline, backgroundColor: "transparent" },
+  segmentEdgeOn: { backgroundColor: theme.colors.accent },
+  option: { flexDirection: "row", alignItems: "center", gap: theme.space.ms, minHeight: theme.touchTarget, paddingVertical: theme.space.sm },
+  field: { gap: theme.space.sm },
+  fieldSlot: {
+    minHeight: theme.touchTarget, paddingRight: theme.space.sm, gap: theme.space.sm, borderRadius: theme.radius.control, backgroundColor: theme.colors.background,
+    borderWidth: 1, borderTopColor: theme.colors.border, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border,
+  },
+  fieldInput: {
+    flex: 1, minHeight: theme.touchTarget, maxHeight: 120, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: 15, lineHeight: 22,
+    paddingHorizontal: theme.space.ms, paddingVertical: theme.space.ms,
+  },
   track: { height: 3, overflow: "hidden", backgroundColor: theme.colors.border, borderRadius: theme.radius.hairline },
   fill: { height: "100%", backgroundColor: theme.colors.muted, borderRadius: theme.radius.hairline },
   fillAccent: { backgroundColor: theme.colors.accent },

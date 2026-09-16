@@ -14,7 +14,13 @@ Aplicación nativa Android/iOS con React Native, Expo y Expo Router en la raíz.
 - src/features/jarvis: intérprete puro de órdenes, importes hablados y conversación con propuestas.
 - src/services/voice: dictado Android y respuestas con expo-speech; adaptadores separados de los cambios de datos.
 
-UI → contexto local → repositorios → SQLite. Funciones puras producen los resúmenes. Escrituras validadas y actualización de UI después de persistir. Sin Prisma, servidores ni HTTP en el dispositivo.
+JARVIS conserva dos modos explícitos. El modo local funciona como antes: UI → contexto local → repositorios → SQLite del dispositivo. El modo distribuido exigido por el taller usa UI móvil → cliente tipado → FastAPI por Tailscale → orquestador → agentes → SQLite del servidor. Funciones puras producen los resúmenes y todas las escrituras conversacionales requieren confirmación. No se ejecuta SQL ni código procedente del texto del usuario.
+
+## Modo distribuido multi-agente
+
+`backend/app` contiene un servidor FastAPI autoalojado. El orquestador entrega a Ollama un catálogo cerrado de funciones; las llamadas se validan con Pydantic y se delegan a Secretaría, Finanzas o a ambos. Secretaría gestiona tareas, recordatorios, correo IMAP de solo lectura y borradores. Finanzas gestiona movimientos, liquidez, pasivos y metas. El webhook bancario usa salida JSON estructurada y una credencial independiente.
+
+La persistencia del servidor usa SQLite relacional como alternativa justificada a Supabase/PocketBase: claves foráneas, checks, índices y migraciones transaccionales. La interfaz de repositorios permite reemplazarla por PostgreSQL sin cambiar el contrato HTTP. El detalle técnico, secuencias y esquema están en `docs/MULTI_AGENT_BACKEND.md`.
 
 ## Datos y tiempo
 
@@ -34,6 +40,6 @@ Dictado del sistema → texto → interpretCommand (puro, sin escrituras) → pr
 
 SQLite v3 añade jarvis_actions. Cada propuesta tiene un UUID y el recibo se confirma en la misma transacción que la escritura. Reintentos de la misma propuesta no duplican gastos ni tareas, incluso si la recarga de UI falló después del commit. Reutilizar un ID para otro contenido se rechaza. Las versiones v1/v2 se migran sin reponer seed ni perder datos.
 
-Reconocimiento mediante RecognizerIntent en Android; iOS conserva el dictado del teclado. expo-speech selecciona una voz instalada en español, permite silenciar y detiene la cola al escuchar o abandonar la pantalla. El servicio de reconocimiento del sistema puede enviar audio a su proveedor; la app no almacena grabaciones. No requiere backend ni credenciales de IA.
+Reconocimiento mediante RecognizerIntent en Android; iOS conserva el dictado del teclado. expo-speech selecciona una voz instalada en español, permite silenciar y detiene la cola al escuchar o abandonar la pantalla. El servicio de reconocimiento del sistema puede enviar audio a su proveedor; la app no almacena grabaciones. El modo local no requiere backend; el modo evaluado del taller sí usa el backend autoalojado y dos tokens configurados por el usuario.
 
 TypeScript, ESLint, Jest, React Native Testing Library y exportación Metro Android/iOS. Exportar comprueba el grafo y bytecode; safe areas, teclado, fuentes y persistencia nativa requieren ejecución en Expo Go. Windows no ofrece simulador iOS.

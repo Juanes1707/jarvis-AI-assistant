@@ -7,6 +7,10 @@ const schema = z.object({
   aiEnabled: z.boolean().default(false),
   ollamaUrl: z.string().trim().max(256).default(""),
   ollamaModel: z.string().trim().min(1).max(128).default("qwen3.5:4b"),
+  // Self-hosted multi-agent backend reached over Tailscale (AI_HANDOFF X2C-001 / SD-004).
+  backendEnabled: z.boolean().default(false),
+  backendUrl: z.string().trim().max(256).default(""),
+  backendToken: z.string().trim().max(256).default(""),
 });
 export type Preferences = z.infer<typeof schema>;
 export const defaultPreferences: Preferences = {
@@ -16,6 +20,9 @@ export const defaultPreferences: Preferences = {
   aiEnabled: false,
   ollamaUrl: "",
   ollamaModel: "qwen3.5:4b",
+  backendEnabled: false,
+  backendUrl: "",
+  backendToken: "",
 };
 const key = "jarvis:preferences:v1";
 export async function readPreferences(): Promise<Preferences> {

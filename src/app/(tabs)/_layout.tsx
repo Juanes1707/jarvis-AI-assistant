@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, type IconName } from "../../components/ui/primitives";
 import { JarvisCore } from "../../components/jarvis/core";
 import { useWorkspace } from "../../services/storage/workspace-provider";
+import { modeCoreState } from "../../features/jarvis/mode";
 import { theme } from "../../theme/tokens";
 
 /** The lit edge above the active tab is the same leaked-light motif used across the product. */
@@ -32,8 +33,8 @@ export default function TabLayout() {
     <Tabs.Screen name="tasks" options={{ title: "Tareas", tabBarIcon: ({ color, focused }) => <TabIcon name="checkbox-blank-outline" color={color} focused={focused} /> }} />
     <Tabs.Screen name="jarvis" options={{
       title: "JARVIS",
-      // Reflects only whether the local brain is switched on. Live conversation states belong to the chat screen.
-      tabBarIcon: () => <View style={styles.core}><JarvisCore state={preferences.aiEnabled ? "idle" : "offline"} size={44} /></View>,
+      // Reflects only whether an assistant engine is switched on. Live conversation states belong to the chat screen.
+      tabBarIcon: () => <View style={styles.core}><JarvisCore state={modeCoreState(preferences)} size={44} /></View>,
     }} />
     <Tabs.Screen name="calendar" options={{ title: "Agenda", tabBarIcon: ({ color, focused }) => <TabIcon name="calendar-blank-outline" color={color} focused={focused} /> }} />
     <Tabs.Screen name="profile" options={{ title: "Perfil", tabBarIcon: ({ color, focused }) => <TabIcon name="account-outline" color={color} focused={focused} /> }} />

@@ -4,6 +4,7 @@ import { Screen } from "../../components/layout/screen";
 import { SystemBar } from "../../components/layout/system-bar";
 import { Copy, DataRow, Icon, Row, Section, type IconName } from "../../components/ui/primitives";
 import { useWorkspace } from "../../services/storage/workspace-provider";
+import { assistantMode, MODE_LABEL, modeCoreState } from "../../features/jarvis/mode";
 import { theme } from "../../theme/tokens";
 
 function NavRow({ label, icon, onPress }: { label: string; icon: IconName; onPress: () => void }) {
@@ -14,11 +15,22 @@ function NavRow({ label, icon, onPress }: { label: string; icon: IconName; onPre
   </Pressable>;
 }
 
+/** The tailnet host, never the token. */
+function backendHost(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return "Sin configurar";
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.port ? `${parsed.hostname}:${parsed.port}` : parsed.hostname;
+  } catch { return trimmed; }
+}
+
 export default function ProfileScreen() {
   const { data, preferences, toggleSuggestions, busy } = useWorkspace();
+  const mode = assistantMode(preferences);
   const initials = data.user.name.split(" ").slice(0, 2).map(part => part[0]).join("");
   return <Screen>
-    <SystemBar state={preferences.aiEnabled ? "idle" : "offline"} />
+    <SystemBar state={modeCoreState(preferences)} />
 
     <Row style={styles.identity}>
       <View style={styles.avatar}><Copy variant="marker" style={styles.initials}>{initials.toLocaleUpperCase("es")}</Copy></View>
@@ -37,7 +49,7 @@ export default function ProfileScreen() {
         <Switch accessibilityLabel="Mostrar sugerencias en Inicio" value={preferences.showSuggestions} disabled={busy} onValueChange={() => void toggleSuggestions()}
           trackColor={{ false: theme.colors.elevated, true: theme.colors.accentSoft }} thumbColor={preferences.showSuggestions ? theme.colors.accent : theme.colors.muted} />
       </Row>
-      <Copy variant="caption" muted>La voz y el cerebro local se configuran dentro de JARVIS, junto a la conversación.</Copy>
+      <Copy variant="caption" muted>El modo del asistente, el servidor y la voz se configuran dentro de JARVIS, junto a la conversación.</Copy>
     </Section>
 
     <Section label="TU VIDA">
@@ -49,12 +61,18 @@ export default function ProfileScreen() {
 
     <Section label="SISTEMA">
       <View>
+        <DataRow label="Modo del asistente" value={MODE_LABEL[mode]} tone="accent"
+          note={mode === "server" ? "Orquestador multi-agente por Tailscale" : mode === "local" ? preferences.ollamaModel : "Sin modelo; solo órdenes del teléfono"} />
+        <DataRow label="Servidor JARVIS" value={preferences.backendEnabled ? "Habilitado" : "Apagado"} tone="muted"
+          note={backendHost(preferences.backendUrl ?? "")} />
         <DataRow label="Cerebro local" value={preferences.aiEnabled ? "Activo" : "Apagado"} tone="muted" note={preferences.aiEnabled ? preferences.ollamaModel : "Ollama sin usar"} />
         <DataRow label="Respuestas habladas" value={preferences.voiceEnabled ? "Activas" : "Silenciadas"} tone="muted" />
-        <DataRow label="Datos" value="En este dispositivo" tone="muted" note="SQLite local, sin servidor" />
+        <DataRow label="Datos de este teléfono" value="SQLite local" tone="muted" note="Agenda, tareas y movimientos del modo básico" />
         <DataRow label="Versión" value="0.2.0" tone="muted" note="React Native y Expo" />
       </View>
-      <Copy variant="caption" muted>Incluye registros de ejemplo de septiembre de 2026. Las órdenes y los resúmenes usan la fecha actual en Bogotá.</Copy>
+      <Copy variant="caption" muted>
+        El token del servidor se guarda solo en este teléfono y nunca aparece en esta pantalla. Incluye registros de ejemplo de septiembre de 2026; las órdenes y los resúmenes usan la fecha actual en Bogotá.
+      </Copy>
     </Section>
   </Screen>;
 }

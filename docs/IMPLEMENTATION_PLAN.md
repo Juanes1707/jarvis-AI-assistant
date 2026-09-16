@@ -12,7 +12,7 @@ React Native + Expo reemplaza el plan web anterior. No construir todas las fases
 | 5 · Personal | Hábitos completos, proyectos, documentos e insights | Pendiente |
 | 6 · Inteligencia | Contexto, historial, acciones propuestas, inbox y proveedor IA | Voz y órdenes locales confirmadas; Ollama LAN opcional integrado; historial persistente pendiente |
 | 7 · Polish | Android/iOS, accesibilidad, teclado y comparación visual | Rediseño visual completo aplicado; comparación en teléfono pendiente |
-| 8 · Producción | Seguridad, arquitectura, builds e interfaces backend | Pendiente |
+| 8 · Producción | Seguridad, arquitectura, builds e interfaces backend | Backend multi-agente implementado; integración visual y prueba Tailscale pendientes |
 
 Foundation: npx expo start desde la raíz, rutas nativas, persistencia sin Node, pruebas de lógica y componentes, bundles Android/iOS. Verificación en dispositivo registrada por separado, nunca inferida de un preview web.
 
@@ -84,3 +84,9 @@ El dial aparece como estado vacío de la pestaña JARVIS y cede el espacio a la 
 Validación ejecutada: `npx tsc --noEmit` sin errores, `npm run lint` con cero advertencias y `npm test` con 152 pruebas en 16 suites, incluida una suite nueva del dial. Se conservaron todas las etiquetas de accesibilidad y los textos verificados por las pruebas.
 
 Sigue pendiente la comprobación en teléfono: brillo real sobre OLED, rendimiento de los 72 Views del dial en gama media, safe areas y teclado. La revisión visual se hizo de nuevo sobre una aproximación HTML a 390 px con los mismos tokens, que no sustituye al render nativo.
+
+## Backend multi-agente del taller — 15 de septiembre de 2026
+
+El PDF del segundo corte cambia el alcance de producción: exige un backend local autoalojado accesible por Tailscale, orquestación con function calling, agentes de Secretaría y Finanzas, correo e ingesta bancaria automática. Se añadió `backend/app` con FastAPI, Ollama, herramientas tipadas, propuestas confirmables e idempotentes, webhook bancario con structured output y SQLite relacional. El modo local del móvil se conserva como fallback.
+
+La trazabilidad completa está en `docs/WORKSHOP_REQUIREMENTS.md`; la topología, secuencias y esquema relacional están en `docs/MULTI_AGENT_BACKEND.md`. Pruebas automáticas del servidor y cliente móvil cubren enrutamiento combinado, confirmación sin duplicados, seguridad del webhook, integridad y contrato HTTP. Pendientes no simulables: cuenta IMAP real, Tailscale desde datos móviles, automatización Shortcuts/Tasker, integración visual del modo servidor y video demostrativo.

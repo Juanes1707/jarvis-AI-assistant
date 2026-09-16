@@ -31,7 +31,7 @@ El authtoken se cifra con DPAPI en %LOCALAPPDATA%/JARVIS/ngrok-token.dpapi. Solo
 
 El túnel incorporado de Expo devolvió ERR_NGROK_108 por el límite de sesiones de su cuenta compartida. Por eso se usa la cuenta propia; la conexión personal se comprobó el 10 de septiembre de 2026. Puedes comprobar las utilidades con npm run test:tunnel.
 
-Demo local sin cuenta, claves, base externa ni navegador. Incluye datos de ejemplo de septiembre de 2026; las órdenes, agenda y resúmenes usan la fecha actual en Bogotá.
+El modo local sigue funcionando sin cuenta, claves, base externa ni navegador. El modo evaluado por el taller añade un backend FastAPI autoalojado, accesible únicamente por Tailscale. Incluye datos de ejemplo de septiembre de 2026; las órdenes, agenda y resúmenes usan la fecha actual en Bogotá.
 
 ## Implementado
 
@@ -42,9 +42,16 @@ Demo local sin cuenta, claves, base externa ni navegador. Incluye datos de ejemp
 - Agenda diaria, materias y finanzas de consulta.
 - Asistente local por reglas con dictado en Android, respuestas habladas, conversación de sesión y cambios confirmados.
 - Cerebro conversacional opcional con Ollama y `qwen3.5:4b`, conectado directamente por la red local; las acciones siguen siendo deterministas y confirmadas.
-- Inter, Space Grotesk, JetBrains Mono; tema Calm y dock central de Stitch.
+- Backend local multi-agente con orquestador, Secretaría, Finanzas, function calling, correo IMAP, webhook bancario y persistencia relacional.
+- Inter, Space Grotesk, JetBrains Mono; sistema visual Illuminated HUD y dock central nativo.
 
 El sistema académico completo, edición avanzada de finanzas, proyectos, documentos e IA remota avanzan por fases. El asistente conserva los últimos 40 mensajes mientras está montado; el historial persistente sigue pendiente.
+
+## Backend multi-agente y Tailscale
+
+El backend del taller vive en `backend/`. No reemplaza silenciosamente el modo local: es un modo distribuido separado y el cliente móvil tipado está en `src/services/backend/client.ts`. En Windows, `npm run backend:secrets` genera y cifra con DPAPI los dos tokens, `npm run backend:tailscale` configura el HTTPS privado y `npm run backend:start` arranca FastAPI sin exponer el puerto a la LAN. Consulta [backend/README.md](backend/README.md) para la preparación completa y [docs/MULTI_AGENT_BACKEND.md](docs/MULTI_AGENT_BACKEND.md) para la topología, secuencias, esquema relacional y configuración de Tailscale.
+
+La integración visual para guardar URL/token y mostrar propuestas del backend está registrada en `docs/AI_HANDOFF.md` como `X2C-001`, porque pertenece al frontend. Mientras se completa, la aplicación visible mantiene el modo local y Ollama directo.
 
 ## Hablar con JARVIS
 
@@ -68,6 +75,7 @@ En un teléfono no uses `localhost`: apunta a una dirección como `http://192.16
 npm run typecheck
 npm run lint
 npm test
+npm run test:backend
 npm run export:native
 npx expo-doctor
 ```

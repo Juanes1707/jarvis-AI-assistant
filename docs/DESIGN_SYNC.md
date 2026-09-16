@@ -425,6 +425,14 @@ integration needs UI.
 | `Progress` | Instrument meter. `tone`: `default` / `accent` / `danger` |
 | `Badge` | Bordered mono tag. Used only for real system status |
 | `Icon` | Defaults to `muted`; any colour must be explicit |
+| `Segmented` | Mode selector. Lit 2px underline on the active segment, same motif as the tab dock |
+| `OptionRow` | Selectable row with a check. Replaces stacks of buttons used as a radio group |
+| `Field` | Labelled input: mono marker, bordered slot, optional hint and trailing control |
+
+`Segmented`, `OptionRow` and `Field` were added on 2026-09-15 while building the assistant-mode
+settings. They exist because the same three patterns were being hand-rolled: a two-way switch
+that is really a choice between engines, a list of `Button variant="secondary"` standing in for
+radio buttons, and a `TextInput` restyled locally on every screen that has a form.
 
 Layout and identity live alongside them: `Screen` and `SystemBar`
 (`src/components/layout/`), `Boot` for the pre-workspace states, `JarvisCore`
@@ -482,6 +490,51 @@ Rules:
 Animations are implemented with `react-native-reanimated`, which is already a dependency and
 is auto-configured by `babel-preset-expo` (no `babel.config.js` is required). See the
 Integration Note in `docs/AI_HANDOFF.md` about its Jest manual mock.
+
+---
+
+## 12c. The Distributed Assistant in the Interface
+
+Added 2026-09-15, when the self-hosted multi-agent backend became a visible mode (`SD-004`).
+The architecture is graded on being legible, so three devices carry it. None of them invents
+state: each renders something the server actually returned.
+
+### Mode is one choice, not two switches
+
+`src/features/jarvis/mode.ts` defines `server` / `local` / `basic`. They are alternatives, so
+they render as one `Segmented` control with a sentence describing the selected one, never as
+independent toggles that can disagree. Away from the chat — the tab dock, the home `SystemBar`,
+the profile readout — `modeCoreState()` decides whether the core is `idle` or `offline`: the
+question those surfaces answer is only "is an engine switched on".
+
+### Agent attribution
+
+`src/features/jarvis/agents.ts` gives each route a label and an identity hue taken from
+`theme.category`: **sky** `#38bdf8` for Secretaría, **violet** `#a78bfa` for Finanzas, **grey**
+for the orchestrator. `composite` shows both dots. These are identity, not status (§8) — cyan,
+green and crimson keep their jobs. A turn that never left the phone carries no tag at all,
+which is how the two paths stay distinguishable.
+
+### Evidence blocks
+
+`src/features/jarvis/tool-results.tsx` renders read-only tool results under the answer, each in
+a block indented behind a **1px left hairline**. The hairline is a nesting device, not a rail:
+the 2px lit `Rail` marks the turn, the hairline marks its supporting data. Inside a block,
+money uses `metricSmall`; `metric` stays reserved for a screen's own hero figure, because a
+34px number inside a chat turn out-shouts the sentence that actually answers the question.
+
+An unrecognised tool degrades to its name. Nothing is inferred from a payload shape.
+
+### The composer state strip
+
+The composer reserves a strip above the input for exactly one thing: a warning, the listening
+state, or the speaking state. It reserves its height so starting to listen never pushes the
+conversation, and it reuses `JarvisCore` rather than introducing a third animated component
+(§12b still holds: motion lives in the core and the dial only). `ComposerState` is a single
+value — `idle` / `listening` / `thinking` / `saving` / `speaking` — rather than five booleans.
+
+Dictated turns carry a small `DICTADO` marker so the user can see what was transcribed before
+JARVIS acts on it.
 
 ---
 
@@ -571,10 +624,10 @@ information-architecture reference only; their colour and geometry no longer app
 | Dashboard Principal | `72d186dee5c244adac6567b0cc7938d6` | `/(tabs)/index` | SystemBar, briefing lead, CommandBar, PriorityFocus, AgendaList, DataRow money column, HabitsCard | Redesigned: briefing is the typographic hero, one railed focal task, sections replace stacked cards. Phone comparison pending |
 | Task Manager | `fcc12e43abef47458c5d6764a765f913` | `/(tabs)/tasks`, `/tasks/new`, `/tasks/[id]`, `/tasks/edit/[id]` | Memoised FlatList rows, underlined filters, TaskEditor, ProgressEditor | Redesigned: pressable railed rows replace per-item cards and buttons; rail tone encodes focal/normal/done. Phone comparison pending |
 | Calendario Semanal | `fb4b8af9daef4453b42e02c3f74c7eda` | `/(tabs)/calendar` | Week strip, AgendaList, projected deadlines | Redesigned: 7-day strip with per-day busy/deadline marks replaces prev/next buttons. Week optimisation work still remains |
-| Chat y Asistente IA | `b580f7623c404ce6918929f12c756cf3` | `/(tabs)/jarvis` | JarvisCore header, railed assistant turns, raised user turns, live proposal plate, composer | Redesigned: assistant messages are railed text on the substrate rather than bubbles; voice is the primary composer action. Device voice validation still pending |
+| Chat y Asistente IA | `b580f7623c404ce6918929f12c756cf3` | `/(tabs)/jarvis` | JarvisCore header, `Transcript` with agent tags and evidence blocks, `PendingAction` plates, `Composer` state strip, `JarvisSettings` panel | Redesigned 2026-09-13, extended 2026-09-15 for server mode (§12c). The screen is now composed from `transcript`, `composer`, `settings-panel`, `tool-results` and `pending-action` rather than one file. Device voice validation still pending |
 | University Hub | `2a615b1a20a948ab8ae70688f9f801c1` | `/university` | Grade metric, railed subject list | Redesigned: rail tone reflects grade against target |
 | Detalle de Materia | `c3322a3bd24e48bd8a378b81e1ac5623` | `/university/subjects/[id]` planned | Topics, assessments, materials | Planned |
-| Finanzas Personales | `164d8eaf8b3841fe9959b95894f4c321` | `/finances` | Balance metric, budget meter, movement rows | Redesigned: amounts are never coloured by sign (§8); editing/goals remain |
+| Finanzas Personales | `164d8eaf8b3841fe9959b95894f4c321` | `/finances` | Balance metric, cash-flow meters, category breakdown, movement rows | Redesigned: amounts are never coloured by sign (§8). Cash flow and spending-by-category added 2026-09-15 from local data; cards, loans and savings goals live on the server and the screen says so instead of faking them |
 | Perfil — no dedicated Stitch reference | N/A | `/(tabs)/profile` | Identity block, behaviour toggle, nav rows, live system readout | Redesigned as a JARVIS console rather than a settings page |
 
 Detailed implementation progress belongs in:

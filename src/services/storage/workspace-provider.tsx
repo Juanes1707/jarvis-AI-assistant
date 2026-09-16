@@ -20,6 +20,7 @@ type WorkspaceContext = {
   executeCommand: (proposal: CommandProposal) => Promise<boolean>;
   setVoicePreferences: (options: Pick<Preferences, "voiceEnabled" | "voiceId">) => Promise<boolean>;
   setAiPreferences: (options: Pick<Preferences, "aiEnabled" | "ollamaUrl" | "ollamaModel">) => Promise<boolean>;
+  setBackendPreferences: (options: Pick<Preferences, "backendEnabled" | "backendUrl" | "backendToken">) => Promise<boolean>;
 };
 const Context = createContext<WorkspaceContext | null>(null);
 let databasePromise: Promise<LocalDatabase> | undefined;
@@ -30,6 +31,10 @@ function getDatabase() {
 export function WorkspaceProvider({ children }: PropsWithChildren) {
   const [data, setData] = useState<Workspace | null>(null);
   const [preferences, setPreferences] = useState<Preferences>({ ...defaultPreferences });
+  // Preference writes can land back-to-back (switching assistant mode saves twice). Reading the
+  // latest value from a ref keeps the second write from resurrecting the state the first replaced.
+  const latestPreferences = useRef(preferences);
+  const applyPreferences = useCallback((next: Preferences) => { latestPreferences.current = next; setPreferences(next); }, []);
   const [now, setNow] = useState(() => new Date());
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -46,13 +51,13 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     getDatabase()
       .then(db => Promise.all([readWorkspace(db), readPreferences()]))
       .then(([workspace, prefs]) => {
-        if (active) { setPreferences(prefs); setData(workspace); setError(null); }
+        if (active) { applyPreferences(prefs); setData(workspace); setError(null); }
       })
       .catch(() => {
         if (active) setError("No se pudo abrir el almacenamiento local. Tus datos se conservaron; vuelve a intentarlo.");
       });
     return () => { active = false; };
-  }, [attempt]);
+  }, [attempt, applyPreferences]);
   const mutate = useCallback(async (action: (db: LocalDatabase) => Promise<void>) => {
     if (locked.current) return false;
     locked.current = true; setBusy(true);
@@ -78,17 +83,21 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     deleteTask: id => mutate(db => deleteAcademicTask(db, id)),
     executeCommand: proposal => mutate(db => executeJarvisAction(db, proposal)),
     setVoicePreferences: options => mutate(async () => {
-      const next = { ...preferences, ...options };
-      await savePreferences(next); setPreferences(next);
+      const next = { ...latestPreferences.current, ...options };
+      await savePreferences(next); applyPreferences(next);
     }),
     setAiPreferences: options => mutate(async () => {
-      const next = { ...preferences, ...options };
-      await savePreferences(next); setPreferences(next);
+      const next = { ...latestPreferences.current, ...options };
+      await savePreferences(next); applyPreferences(next);
+    }),
+    setBackendPreferences: options => mutate(async () => {
+      const next = { ...latestPreferences.current, ...options };
+      await savePreferences(next); applyPreferences(next);
     }),
     toggleHabit: id => mutate(db => saveHabitEntry(db, id, dashboard.date, !data.habitEntries.some(e => e.habitId === id && e.date === dashboard.date))),
     toggleSuggestions: () => mutate(async () => {
-      const next = { ...preferences, showSuggestions: !preferences.showSuggestions };
-      await savePreferences(next); setPreferences(next);
+      const next = { ...latestPreferences.current, showSuggestions: !latestPreferences.current.showSuggestions };
+      await savePreferences(next); applyPreferences(next);
     }),
   }}>{children}</Context.Provider>;
 }

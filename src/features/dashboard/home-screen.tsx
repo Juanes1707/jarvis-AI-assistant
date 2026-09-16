@@ -9,6 +9,7 @@ import { formatDate, formatGrade, formatMoney, formatTime } from "../../lib/util
 import { AgendaList } from "./agenda-list";
 import { HabitsCard } from "./habits-card";
 import { PriorityFocus } from "./priority-focus";
+import { modeCoreState } from "../jarvis/mode";
 import { categoryColor, theme } from "../../theme/tokens";
 
 function greet(now: Date) {
@@ -22,7 +23,7 @@ export default function HomeScreen() {
   const subject = vm.priority ? data.subjects.find(item => item.id === vm.priority?.subjectId)?.name : undefined;
   const overspent = vm.finance.remaining !== null && vm.finance.remaining < 0n;
   return <Screen>
-    <SystemBar state={preferences.aiEnabled ? "idle" : "offline"} right={<Copy variant="marker">{formatTime(now)}</Copy>} />
+    <SystemBar state={modeCoreState(preferences)} right={<Copy variant="marker">{formatTime(now)}</Copy>} />
 
     <View style={styles.briefing}>
       <Copy variant="title" accessibilityRole="header">{greet(now)}, {data.user.name}.</Copy>
