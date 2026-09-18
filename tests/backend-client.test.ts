@@ -6,6 +6,7 @@ import {
   createJarvisMemory,
   forgetJarvisMemory,
   getJarvisProfile,
+  getJarvisWorkspace,
   listJarvisMemories,
   updateJarvisProfile,
 } from "../src/services/backend/client";
@@ -76,5 +77,21 @@ describe("cliente del backend multi-agente", () => {
     expect(fetchMock.mock.calls[1]?.[1]).toEqual(expect.objectContaining({
       body: JSON.stringify({ display_name: "Juan", country: "Colombia", onboarding_completed: true }),
     }));
+  });
+
+  it("consulta el espacio de trabajo PostgreSQL para el mes solicitado", async () => {
+    const response = {
+      subjects: [], tasks: [], events: [], transactions: [],
+      budget: { id: "budget-1", month: "2026-09", amount_minor: 200000000, currency: "COP" },
+    };
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true, json: async () => response,
+    } as Response);
+
+    await expect(getJarvisWorkspace(settings, "2026-09")).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://100.64.0.10:8787/v1/workspace?month=2026-09",
+      expect.objectContaining({ method: "GET" }),
+    );
   });
 });

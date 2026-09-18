@@ -35,6 +35,7 @@ const TOKEN = "un-token-de-servidor-con-mas-de-24";
 const speak = jest.fn<(text: string) => Promise<void>>();
 const stop = jest.fn<() => Promise<void>>();
 const setBackendPreferences = jest.fn<(options: unknown) => Promise<boolean>>();
+const refreshBackendWorkspace = jest.fn<() => Promise<boolean>>();
 
 function mockWorkspace(overrides: Record<string, unknown> = {}) {
   jest.mocked(useWorkspace).mockReturnValue({
@@ -46,7 +47,8 @@ function mockWorkspace(overrides: Record<string, unknown> = {}) {
       ...overrides,
     },
     busy: false,
-    executeCommand: jest.fn(), setVoicePreferences: jest.fn(), setAiPreferences: jest.fn(), setBackendPreferences,
+    executeCommand: jest.fn(), refreshBackendWorkspace,
+    setVoicePreferences: jest.fn(), setAiPreferences: jest.fn(), setBackendPreferences,
   } as unknown as ReturnType<typeof useWorkspace>);
 }
 
@@ -54,6 +56,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.replaceProperty(Platform, "OS", "android");
   speak.mockResolvedValue(); stop.mockResolvedValue(); setBackendPreferences.mockResolvedValue(true);
+  refreshBackendWorkspace.mockResolvedValue(true);
   jest.mocked(useJarvisVoice).mockReturnValue({ speak, stop, speaking: false, voices: [], error: "" });
   jest.mocked(getAIProviderStatus).mockResolvedValue({ status: "available" });
   jest.mocked(checkJarvisBackend).mockResolvedValue({
@@ -168,8 +171,37 @@ describe("modo servidor multi-agente", () => {
 
     await fireEvent.press(screen.getByRole("button", { name: "Confirmar cambio" }));
     await waitFor(() => expect(confirmJarvisBackendAction).toHaveBeenCalledWith({ url: "https://equipo.tailnet.ts.net", token: TOKEN }, "action-1"));
+    expect(refreshBackendWorkspace).toHaveBeenCalledTimes(1);
     await screen.findByText(/ya estaba aplicada en el servidor/);
     expect(screen.queryByRole("button", { name: "Confirmar cambio" })).toBeNull();
+  });
+
+  it("muestra una nueva propuesta después de confirmar la anterior", async () => {
+    jest.mocked(askJarvisBackend)
+      .mockResolvedValueOnce({
+        message: "Preparé el primer gasto.", route: "financial", tool_results: [],
+        proposals: [{ id: "action-100", tool_name: "financial_record_transaction", title: "Registrar movimiento", detail: "EXPENSE 10000 COP · Primer gasto", status: "pending" }],
+      })
+      .mockResolvedValueOnce({
+        message: "Preparé el segundo gasto.", route: "financial", tool_results: [],
+        proposals: [{ id: "action-20000", tool_name: "financial_record_transaction", title: "Registrar movimiento", detail: "EXPENSE 2000000 COP · Segundo gasto", status: "pending" }],
+      });
+    jest.mocked(confirmJarvisBackendAction).mockResolvedValue({
+      proposal: { id: "action-100", tool_name: "financial_record_transaction", title: "Registrar movimiento", detail: "EXPENSE 10000 COP · Primer gasto", status: "confirmed" },
+      result: { id: "transaction-100" }, replayed: false,
+    });
+
+    await render(<JarvisConversation />);
+    await send("Agrega un gasto de 100 pesos");
+    await screen.findByText("EXPENSE 10000 COP · Primer gasto");
+    await fireEvent.press(screen.getByRole("button", { name: "Confirmar cambio" }));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Confirmar cambio" })).toBeNull());
+
+    await send("Agrega otro gasto de 20.000 pesos");
+
+    await screen.findByText("EXPENSE 2000000 COP · Segundo gasto");
+    expect(screen.getByRole("button", { name: "Confirmar cambio" })).toBeTruthy();
+    expect(askJarvisBackend).toHaveBeenCalledTimes(2);
   });
 
   it("refleja el estado real de los agentes sin exponer el token", async () => {

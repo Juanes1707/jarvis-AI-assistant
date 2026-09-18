@@ -137,6 +137,46 @@ class ApiTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(forgotten.status_code, 204, forgotten.text)
         self.assertEqual((await self.client.get("/v1/memories", headers=headers)).json(), {"memories": []})
 
+    async def test_workspace_returns_confirmed_academic_and_financial_data(self) -> None:
+        headers = {"Authorization": f"Bearer {self.settings.api_token}"}
+        repository = self.app.state.services.repository
+        subject = repository.create_subject(name="Bases de Datos", credits=3, professor="Ana")
+        task = repository.create_task(
+            title="Diseñar el modelo relacional",
+            priority="HIGH",
+            due_at="2026-09-20T18:00:00+00:00",
+            subject_name="Bases de Datos",
+        )
+        event = repository.create_calendar_event(
+            title="Clase de Bases de Datos",
+            starts_at="2026-09-18T13:00:00+00:00",
+            ends_at="2026-09-18T15:00:00+00:00",
+            event_type="CLASS",
+            subject_name="Bases de Datos",
+            location="Salón B-201",
+        )
+        transaction = repository.create_transaction(
+            amount_minor=3_250_000,
+            currency="COP",
+            merchant="Almuerzo",
+            category="food",
+            occurred_at="2026-09-16T17:00:00+00:00",
+        )
+        budget = repository.set_monthly_budget(
+            month="2026-09", amount_minor=200_000_000, currency="COP"
+        )
+
+        response = await self.client.get("/v1/workspace?month=2026-09", headers=headers)
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["subjects"][0]["id"], subject["id"])
+        self.assertEqual(body["tasks"][0]["id"], task["id"])
+        self.assertEqual(body["tasks"][0]["subject_id"], subject["id"])
+        self.assertEqual(body["events"][0]["id"], event["id"])
+        self.assertEqual(body["transactions"][0]["id"], transaction["id"])
+        self.assertEqual(body["budget"]["id"], budget["id"])
+
 
 if __name__ == "__main__":
     unittest.main()

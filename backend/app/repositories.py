@@ -224,15 +224,99 @@ class JarvisRepository:
             return [row_dict(row) for row in rows]
 
     def list_tasks(self, *, status: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
-        query = "SELECT id,title,status,priority,due_at FROM tasks"
+        query = """
+            SELECT t.id,t.title,t.status,t.priority,t.due_at,t.subject_id,s.name AS subject_name
+            FROM tasks t LEFT JOIN academic_subjects s ON s.id=t.subject_id
+        """
         params: list[Any] = []
         if status:
-            query += " WHERE status = ?"
+            query += " WHERE t.status = ?"
             params.append(status)
-        query += " ORDER BY CASE priority WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END, due_at IS NULL, due_at LIMIT ?"
+        query += " ORDER BY CASE t.priority WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END, t.due_at IS NULL, t.due_at LIMIT ?"
         params.append(min(max(limit, 1), 50))
         with self.database.session() as connection:
             return [row_dict(row) for row in connection.execute(query, params)]
+
+    def list_subjects(
+        self, *, query: str | None = None, active_only: bool = True, user_id: str = "owner",
+    ) -> list[dict[str, Any]]:
+        sql = "SELECT id,name,professor,credits,active,created_at,updated_at FROM academic_subjects WHERE user_id=?"
+        params: list[Any] = [user_id]
+        if active_only:
+            sql += " AND active=1"
+        if query and query.strip():
+            sql += " AND normalized_name LIKE ?"
+            params.append(f"%{query.strip().casefold()}%")
+        sql += " ORDER BY name"
+        with self.database.session() as connection:
+            rows = [row_dict(row) for row in connection.execute(sql, params)]
+        for row in rows:
+            row["active"] = bool(row["active"])
+        return rows
+
+    def create_subject(
+        self, *, name: str, credits: int, professor: str | None = None,
+        user_id: str = "owner", connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        identifier = str(uuid.uuid4())
+        now = utc_now()
+        values = (identifier, user_id, name, name.casefold(), professor, credits, now, now)
+        sql = """
+            INSERT INTO academic_subjects(
+              id,user_id,name,normalized_name,professor,credits,active,created_at,updated_at
+            ) VALUES (?,?,?,?,?,?,1,?,?)
+        """
+        if connection is not None:
+            connection.execute(sql, values)
+        else:
+            with self.database.transaction() as transaction:
+                transaction.execute(sql, values)
+        return {
+            "id": identifier, "name": name, "professor": professor,
+            "credits": credits, "active": True, "created_at": now, "updated_at": now,
+        }
+
+    def find_subject_by_name(
+        self, name: str, *, user_id: str = "owner", connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        owns = connection is None
+        connection = connection or self.database.connect()
+        try:
+            row = connection.execute(
+                "SELECT id,name,professor,credits FROM academic_subjects WHERE user_id=? AND normalized_name=? AND active=1",
+                (user_id, name.strip().casefold()),
+            ).fetchone()
+            if row is None:
+                raise LookupError(f"No encontré la materia {name!r}.")
+            return row_dict(row)
+        finally:
+            if owns:
+                connection.close()
+
+    def find_task(
+        self, *, task_id: str | None = None, task_title: str | None = None,
+        connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        owns = connection is None
+        connection = connection or self.database.connect()
+        try:
+            if task_id:
+                rows = list(connection.execute(
+                    "SELECT id,title,status,priority,due_at,subject_id FROM tasks WHERE id=?", (task_id,)
+                ))
+            else:
+                rows = list(connection.execute(
+                    "SELECT id,title,status,priority,due_at,subject_id FROM tasks WHERE lower(title)=lower(?)",
+                    (task_title or "",),
+                ))
+            if not rows:
+                raise LookupError("No encontré la tarea solicitada.")
+            if len(rows) > 1:
+                raise LookupError("Encontré varias tareas con ese título; necesito una referencia más específica.")
+            return row_dict(rows[0])
+        finally:
+            if owns:
+                connection.close()
 
     def list_due_reminders(self, *, at: str) -> list[dict[str, Any]]:
         with self.database.session() as connection:
@@ -248,15 +332,16 @@ class JarvisRepository:
 
     def create_task(
         self, *, title: str, priority: str, due_at: str | None,
-        remind_at: str | None = None,
+        remind_at: str | None = None, subject_name: str | None = None,
         connection: ConnectionAdapter | None = None,
     ) -> dict[str, Any]:
         identifier = str(uuid.uuid4())
         now = utc_now()
+        subject = self.find_subject_by_name(subject_name, connection=connection) if subject_name else None
         if connection is not None:
             connection.execute(
-                "INSERT INTO tasks(id,title,status,priority,due_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
-                (identifier, title, "PENDING", priority, due_at, now, now),
+                "INSERT INTO tasks(id,title,status,priority,due_at,created_at,updated_at,subject_id) VALUES (?,?,?,?,?,?,?,?)",
+                (identifier, title, "PENDING", priority, due_at, now, now, subject["id"] if subject else None),
             )
             if remind_at:
                 connection.execute(
@@ -266,8 +351,8 @@ class JarvisRepository:
         else:
             with self.database.transaction() as transaction:
                 transaction.execute(
-                    "INSERT INTO tasks(id,title,status,priority,due_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
-                    (identifier, title, "PENDING", priority, due_at, now, now),
+                    "INSERT INTO tasks(id,title,status,priority,due_at,created_at,updated_at,subject_id) VALUES (?,?,?,?,?,?,?,?)",
+                    (identifier, title, "PENDING", priority, due_at, now, now, subject["id"] if subject else None),
                 )
                 if remind_at:
                     transaction.execute(
@@ -277,6 +362,87 @@ class JarvisRepository:
         return {
             "id": identifier, "title": title, "status": "PENDING", "priority": priority,
             "due_at": due_at, "remind_at": remind_at,
+            "subject_id": subject["id"] if subject else None,
+            "subject_name": subject["name"] if subject else None,
+        }
+
+    def update_task_status(
+        self, *, status: str, task_id: str | None = None, task_title: str | None = None,
+        connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        owns = connection is None
+        context = self.database.transaction() if owns else None
+        if context:
+            connection = context.__enter__()
+        assert connection is not None
+        try:
+            task = self.find_task(task_id=task_id, task_title=task_title, connection=connection)
+            connection.execute(
+                "UPDATE tasks SET status=?,updated_at=? WHERE id=?",
+                (status, utc_now(), task["id"]),
+            )
+            result = {**task, "status": status}
+            if context:
+                context.__exit__(None, None, None)
+            return result
+        except Exception as error:
+            if context:
+                context.__exit__(type(error), error, error.__traceback__)
+            raise
+
+    def list_calendar_events(
+        self, *, starts_after: str | None = None, starts_before: str | None = None,
+        limit: int = 50, user_id: str = "owner",
+    ) -> list[dict[str, Any]]:
+        sql = """
+            SELECT e.id,e.title,e.starts_at,e.ends_at,e.event_type,e.location,e.confirmed,
+                   e.subject_id,s.name AS subject_name
+            FROM calendar_events e
+            LEFT JOIN academic_subjects s ON s.id=e.subject_id
+            WHERE e.user_id=?
+        """
+        params: list[Any] = [user_id]
+        if starts_after:
+            sql += " AND e.ends_at>?"
+            params.append(starts_after)
+        if starts_before:
+            sql += " AND e.starts_at<?"
+            params.append(starts_before)
+        sql += " ORDER BY e.starts_at LIMIT ?"
+        params.append(min(max(limit, 1), 100))
+        with self.database.session() as connection:
+            rows = [row_dict(row) for row in connection.execute(sql, params)]
+        for row in rows:
+            row["confirmed"] = bool(row["confirmed"])
+        return rows
+
+    def create_calendar_event(
+        self, *, title: str, starts_at: str, ends_at: str, event_type: str,
+        subject_name: str | None = None, location: str | None = None,
+        user_id: str = "owner", connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        identifier = str(uuid.uuid4())
+        now = utc_now()
+        subject = self.find_subject_by_name(subject_name, user_id=user_id, connection=connection) if subject_name else None
+        values = (
+            identifier, user_id, subject["id"] if subject else None, title,
+            starts_at, ends_at, event_type, location, now, now,
+        )
+        sql = """
+            INSERT INTO calendar_events(
+              id,user_id,subject_id,title,starts_at,ends_at,event_type,location,confirmed,created_at,updated_at
+            ) VALUES (?,?,?,?,?,?,?,?,1,?,?)
+        """
+        if connection is not None:
+            connection.execute(sql, values)
+        else:
+            with self.database.transaction() as transaction:
+                transaction.execute(sql, values)
+        return {
+            "id": identifier, "title": title, "starts_at": starts_at, "ends_at": ends_at,
+            "event_type": event_type, "location": location, "confirmed": True,
+            "subject_id": subject["id"] if subject else None,
+            "subject_name": subject["name"] if subject else None,
         }
 
     def list_unread_emails(self, *, sender_query: str | None = None, limit: int = 10) -> list[dict[str, Any]]:
@@ -366,17 +532,93 @@ class JarvisRepository:
             goals = [row_dict(row) for row in connection.execute(
                 "SELECT id,name,target_minor,saved_minor,currency,target_date FROM savings_goals ORDER BY target_date IS NULL,target_date"
             )]
+            budget = connection.execute(
+                "SELECT id,amount_minor,currency FROM monthly_budgets WHERE user_id='owner' AND month=?",
+                (month,),
+            ).fetchone()
         available = int(balances["available_minor"]) + int(unassigned["delta"])
         committed = int(obligations["obligations_minor"])
+        expense = int(flow["expense_minor"])
+        budget_minor = int(budget["amount_minor"]) if budget else None
         return {
             "month": month,
             "available_minor": available,
             "income_minor": int(flow["income_minor"]),
-            "expense_minor": int(flow["expense_minor"]),
+            "expense_minor": expense,
+            "budget_minor": budget_minor,
+            "remaining_budget_minor": budget_minor - expense if budget_minor is not None else None,
             "projected_obligations_minor": committed,
             "discretionary_minor": available - committed,
             "currency": "COP",
             "savings_goals": goals,
+        }
+
+    def set_monthly_budget(
+        self, *, month: str, amount_minor: int, currency: str, user_id: str = "owner",
+        connection: ConnectionAdapter | None = None,
+    ) -> dict[str, Any]:
+        identifier = str(uuid.uuid4())
+        now = utc_now()
+        sql = """
+            INSERT INTO monthly_budgets(id,user_id,month,amount_minor,currency,created_at,updated_at)
+            VALUES (?,?,?,?,?,?,?)
+            ON CONFLICT(user_id,month) DO UPDATE SET
+              amount_minor=excluded.amount_minor,currency=excluded.currency,updated_at=excluded.updated_at
+        """
+        values = (identifier, user_id, month, amount_minor, currency, now, now)
+        if connection is not None:
+            connection.execute(sql, values)
+            row = connection.execute(
+                "SELECT id,month,amount_minor,currency,created_at,updated_at FROM monthly_budgets WHERE user_id=? AND month=?",
+                (user_id, month),
+            ).fetchone()
+        else:
+            with self.database.transaction() as transaction:
+                transaction.execute(sql, values)
+                row = transaction.execute(
+                    "SELECT id,month,amount_minor,currency,created_at,updated_at FROM monthly_budgets WHERE user_id=? AND month=?",
+                    (user_id, month),
+                ).fetchone()
+        assert row is not None
+        return row_dict(row)
+
+    def get_monthly_budget(
+        self, *, month: str, user_id: str = "owner",
+    ) -> dict[str, Any] | None:
+        with self.database.session() as connection:
+            row = connection.execute(
+                """
+                SELECT id,month,amount_minor,currency,created_at,updated_at
+                FROM monthly_budgets WHERE user_id=? AND month=?
+                """,
+                (user_id, month),
+            ).fetchone()
+        return row_dict(row) if row else None
+
+    def list_transactions(
+        self, *, month: str | None = None, limit: int = 500,
+    ) -> list[dict[str, Any]]:
+        sql = """
+            SELECT id,type,amount_minor,currency,merchant,category,payment_method,
+                   occurred_at,source,created_at
+            FROM transactions
+        """
+        params: list[Any] = []
+        if month:
+            sql += " WHERE substr(occurred_at,1,7)=?"
+            params.append(month)
+        sql += " ORDER BY occurred_at DESC LIMIT ?"
+        params.append(min(max(limit, 1), 1000))
+        with self.database.session() as connection:
+            return [row_dict(row) for row in connection.execute(sql, params)]
+
+    def workspace_snapshot(self, *, month: str) -> dict[str, Any]:
+        return {
+            "subjects": self.list_subjects(),
+            "tasks": self.list_tasks(limit=50),
+            "events": self.list_calendar_events(limit=100),
+            "transactions": self.list_transactions(month=month),
+            "budget": self.get_monthly_budget(month=month),
         }
 
     def list_liabilities(self) -> list[dict[str, Any]]:

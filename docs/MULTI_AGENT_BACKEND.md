@@ -53,6 +53,10 @@ sequenceDiagram
       M->>API: POST /v1/actions/{id}/confirm
       API->>DB: cambio + recibo atómicos
       DB-->>M: resultado idempotente
+      M->>API: GET /v1/workspace?month=AAAA-MM
+      API->>DB: materias, tareas, eventos, movimientos y presupuesto
+      DB-->>M: snapshot confirmado
+      M->>M: actualiza las pantallas existentes
     end
 ```
 
@@ -81,21 +85,24 @@ sequenceDiagram
 
 ## Esquema relacional
 
-Además de tareas, correo y finanzas, el esquema contiene `users`, `user_profiles`, `memories`, `conversations` y `conversation_messages`. La versión actual usa un propietario local estable (`owner`); no afirma soporte multiusuario. Los recuerdos distinguen tipo, fuente, importancia, expiración, confirmación y borrado lógico. El historial deduplica cada rol por `conversation_id` y `request_id`.
+Además de correo y finanzas, el esquema contiene `academic_subjects`, tareas asociadas, `calendar_events`, `monthly_budgets`, `users`, `user_profiles`, `memories`, `conversations` y `conversation_messages`. La versión actual usa un propietario local estable (`owner`); no afirma soporte multiusuario. Los recuerdos distinguen tipo, fuente, importancia, expiración, confirmación y borrado lógico. El historial deduplica cada rol por `conversation_id` y `request_id`.
 
 ```mermaid
 erDiagram
+    ACADEMIC_SUBJECTS ||--o{ TASKS : agrupa
+    ACADEMIC_SUBJECTS ||--o{ CALENDAR_EVENTS : contextualiza
     TASKS ||--o{ REMINDERS : activa
     EMAIL_MESSAGES ||--o{ EMAIL_DRAFTS : responde
     FINANCIAL_ACCOUNTS ||--o{ TRANSACTIONS : registra
     FINANCIAL_ACCOUNTS ||--o{ LIABILITIES : representa
+    USERS ||--o{ MONTHLY_BUDGETS : define
     BANK_INGESTION_EVENTS ||--o| TRANSACTIONS : origina
     PROPOSED_ACTIONS ||--o| TASKS : confirma
     PROPOSED_ACTIONS ||--o| EMAIL_DRAFTS : confirma
     PROPOSED_ACTIONS ||--o| TRANSACTIONS : confirma
 ```
 
-Tablas adicionales: `savings_goals`, `agent_runs` y `schema_migrations`. Los importes se guardan en unidades menores como enteros de 64 bits; las monedas usan códigos ISO de tres letras. Las claves foráneas están activas en cada conexión y las migraciones son transaccionales.
+Tablas adicionales: `savings_goals`, `agent_runs` y `schema_migrations`. Los importes se guardan en unidades menores como enteros de 64 bits (el valor expresado en COP multiplicado por 100); las monedas usan códigos ISO de tres letras. Las claves foráneas están activas en cada conexión y las migraciones son transaccionales.
 
 ## Límites de seguridad
 

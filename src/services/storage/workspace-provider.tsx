@@ -8,11 +8,16 @@ import type { CommandProposal } from "../../features/jarvis/commands";
 import { buildDashboard } from "../../engines/dashboard";
 import { Boot } from "../../components/layout/boot";
 import { Button, Copy } from "../../components/ui/primitives";
-import { getJarvisProfile, type BackendUserProfile } from "../backend/client";
+import {
+  getJarvisProfile, getJarvisWorkspace,
+  type BackendUserProfile, type BackendWorkspace,
+} from "../backend/client";
+import { mapBackendWorkspace } from "../backend/workspace";
 
 type WorkspaceContext = {
   data: Workspace; dashboard: ReturnType<typeof buildDashboard>; busy: boolean; preferences: Preferences;
   backendProfile: BackendUserProfile | null;
+  refreshBackendWorkspace: () => Promise<boolean>;
   updateProgress: (id: string, progress: number) => Promise<boolean>;
   toggleHabit: (id: string) => Promise<boolean>;
   toggleSuggestions: () => Promise<boolean>;
@@ -33,6 +38,21 @@ function getDatabase() {
 
 function isDemoId(value: string | null | undefined) {
   return value?.startsWith("demo-") ?? false;
+}
+
+function currentBackendMonth() {
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: "America/Bogota", year: "numeric", month: "2-digit",
+  }).slice(0, 7);
+}
+
+async function loadBackendSnapshot(url: string, token: string) {
+  const settings = { url: url.trim(), token: token.trim() };
+  const [profile, workspace] = await Promise.all([
+    getJarvisProfile(settings),
+    getJarvisWorkspace(settings, currentBackendMonth()),
+  ]);
+  return { profile, workspace };
 }
 
 function serverWorkspace(local: Workspace, profile: BackendUserProfile | null): Workspace {
@@ -61,7 +81,9 @@ function serverWorkspace(local: Workspace, profile: BackendUserProfile | null): 
 
 export function WorkspaceProvider({ children }: PropsWithChildren) {
   const [localData, setLocalData] = useState<Workspace | null>(null);
-  const [profileSnapshot, setProfileSnapshot] = useState<{ key: string; profile: BackendUserProfile | null } | null>(null);
+  const [serverSnapshot, setServerSnapshot] = useState<{
+    key: string; profile: BackendUserProfile; workspace: BackendWorkspace;
+  } | null>(null);
   const [preferences, setPreferences] = useState<Preferences>({ ...defaultPreferences });
   // Preference writes can land back-to-back (switching assistant mode saves twice). Reading the
   // latest value from a ref keeps the second write from resurrecting the state the first replaced.
@@ -95,14 +117,27 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     && preferences.backendToken.trim().length >= 24
     ? `${preferences.backendUrl.trim()}\u0000${preferences.backendToken.trim()}`
     : null;
+  const refreshBackendWorkspace = useCallback(async () => {
+    if (!backendProfileKey) return false;
+    try {
+      const { profile, workspace } = await loadBackendSnapshot(
+        preferences.backendUrl, preferences.backendToken,
+      );
+      setServerSnapshot({ key: backendProfileKey, profile, workspace });
+      setNow(new Date());
+      return true;
+    } catch {
+      return false;
+    }
+  }, [backendProfileKey, preferences.backendToken, preferences.backendUrl]);
   useEffect(() => {
     let active = true;
-    const url = preferences.backendUrl.trim();
-    const token = preferences.backendToken.trim();
     if (!backendProfileKey) return () => { active = false; };
-    getJarvisProfile({ url, token })
-      .then(profile => { if (active) setProfileSnapshot({ key: backendProfileKey, profile }); })
-      .catch(() => { if (active) setProfileSnapshot({ key: backendProfileKey, profile: null }); });
+    void loadBackendSnapshot(preferences.backendUrl, preferences.backendToken)
+      .then(({ profile, workspace }) => {
+        if (active) setServerSnapshot({ key: backendProfileKey, profile, workspace });
+      })
+      .catch(() => undefined);
     return () => { active = false; };
   }, [backendProfileKey, preferences.backendToken, preferences.backendUrl]);
   const mutate = useCallback(async (action: (db: LocalDatabase) => Promise<void>) => {
@@ -116,12 +151,17 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
     } catch { Alert.alert("No se pudo guardar", "La operación no pudo confirmarse. Vuelve a intentarlo."); return false; }
     finally { locked.current = false; setBusy(false); }
   }, []);
-  const backendProfile = profileSnapshot?.key === backendProfileKey ? profileSnapshot.profile : null;
+  const currentServerSnapshot = serverSnapshot?.key === backendProfileKey ? serverSnapshot : null;
+  const backendProfile = currentServerSnapshot?.profile ?? null;
   const data = useMemo(
     () => localData
-      ? preferences.backendEnabled ? serverWorkspace(localData, backendProfile) : localData
+      ? preferences.backendEnabled
+        ? currentServerSnapshot
+          ? mapBackendWorkspace(localData, currentServerSnapshot.profile, currentServerSnapshot.workspace)
+          : serverWorkspace(localData, backendProfile)
+        : localData
       : null,
-    [backendProfile, localData, preferences.backendEnabled],
+    [backendProfile, currentServerSnapshot, localData, preferences.backendEnabled],
   );
   const dashboard = useMemo(() => data ? buildDashboard(data, now) : null, [data, now]);
   if (error) return <Boot state="offline">
@@ -130,7 +170,7 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
   </Boot>;
   if (!data || !dashboard) return <Boot state="thinking"><Copy variant="caption" muted>Cargando tus datos locales…</Copy></Boot>;
   return <Context.Provider value={{
-    data, dashboard, busy, preferences, backendProfile,
+    data, dashboard, busy, preferences, backendProfile, refreshBackendWorkspace,
     updateProgress: (id, progress) => mutate(db => saveTaskProgress(db, id, progress)),
     saveTask: (task, mode) => mutate(db => saveAcademicTask(db, task, mode)),
     startTask: id => mutate(db => startAcademicTask(db, id)),

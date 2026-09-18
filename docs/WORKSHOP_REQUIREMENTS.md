@@ -8,11 +8,11 @@ Fuente de requisitos: `Taller_ Asistente Personal Móvil Multi-Agente con Contro
 | Backend local REST o WebSocket | FastAPI en `backend/app`, endpoints REST autenticados | Implementado |
 | Tailscale obligatorio | FastAPI en localhost, Tailscale Serve HTTPS, guía de tailnet sin Funnel y configuración del servidor con token enmascarado en la app | Implementado en arquitectura; prueba real pendiente |
 | Orquestador con function calling | `Orchestrator` y herramientas JSON Schema de Ollama | Implementado y probado con dobles |
-| Agente de Secretaría | Tareas con prioridad, fecha y recordatorio; consulta IMAP; borradores confirmados | Implementado; cuenta IMAP real pendiente |
-| Agente Financiero | Flujo de caja, transacciones, pasivos, interés, vencimiento y metas de ahorro | Implementado en dominio/persistencia; presentación móvil en bloques de evidencia y flujo de caja local en `/finances` |
+| Agente de Secretaría | Materias, tareas asociadas, eventos de calendario, prioridad, fecha y recordatorio; consulta IMAP; borradores confirmados | Implementado; cuenta IMAP real pendiente |
+| Agente Financiero | Flujo de caja, ingresos/gastos, presupuesto mensual, pasivos, interés, vencimiento y metas de ahorro | Implementado en dominio/persistencia y sincronizado con el workspace móvil |
 | Combinar ambos agentes | Varias tool calls y ruta `composite` | Implementado y probado |
 | Ingesta bancaria cero-fricción | Webhook con token, JSON estructurado, confianza mínima e idempotencia | Implementado; Shortcuts o Tasker real pendiente |
-| Persistencia relacional | PostgreSQL servidor con FK, checks, índices y migraciones transaccionales; SQLite solo en móvil/tests | Implementado en código; instalación local pendiente |
+| Persistencia relacional | PostgreSQL servidor con FK, checks, índices y migraciones transaccionales; SQLite solo en móvil/tests; snapshot autenticado hacia la app | Implementado y probado |
 | Seguridad sin puerto público | Tailscale, tokens separados, sin CORS abierto, secretos por entorno | Implementado en código/guía; firewall real pendiente |
 | Documento técnico | Topología, dos secuencias y esquema relacional en `MULTI_AGENT_BACKEND.md` | Implementado |
 | Video demostrativo de 3 a 5 min | Debe grabarse con teléfono, datos móviles, Tailscale y automatización real | Pendiente del usuario y dispositivos |

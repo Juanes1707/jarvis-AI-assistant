@@ -68,6 +68,31 @@ export type BackendMemoryCreate = {
   importance?: number;
   expires_at?: string | null;
 };
+export type BackendWorkspace = {
+  subjects: {
+    id: string; name: string; professor?: string | null; credits: number; active: boolean;
+    created_at: string; updated_at: string;
+  }[];
+  tasks: {
+    id: string; title: string; status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+    priority: "LOW" | "MEDIUM" | "HIGH"; due_at?: string | null;
+    subject_id?: string | null; subject_name?: string | null;
+  }[];
+  events: {
+    id: string; title: string; starts_at: string; ends_at: string;
+    event_type: "CLASS" | "STUDY" | "EXAM" | "PERSONAL" | "DEADLINE" | "OTHER";
+    location?: string | null; confirmed: boolean; subject_id?: string | null; subject_name?: string | null;
+  }[];
+  transactions: {
+    id: string; type: "INCOME" | "EXPENSE"; amount_minor: number; currency: string;
+    merchant: string; category: string; payment_method?: string | null;
+    occurred_at: string; source: "manual" | "voice" | "bank_webhook"; created_at: string;
+  }[];
+  budget: {
+    id: string; month: string; amount_minor: number; currency: string;
+    created_at: string; updated_at: string;
+  } | null;
+};
 
 function endpoint(settings: BackendSettings, path: string) {
   const normalized = settings.url.trim().replace(/\/+$/, "");
@@ -131,6 +156,13 @@ export async function confirmJarvisBackendAction(settings: BackendSettings, acti
 
 export async function getJarvisProfile(settings: BackendSettings) {
   return request<BackendUserProfile>(settings, "/v1/profile", { method: "GET" });
+}
+
+export async function getJarvisWorkspace(settings: BackendSettings, month: string) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error("El mes solicitado no es válido.");
+  return request<BackendWorkspace>(
+    settings, `/v1/workspace?month=${encodeURIComponent(month)}`, { method: "GET" },
+  );
 }
 
 export async function updateJarvisProfile(settings: BackendSettings, update: BackendProfileUpdate) {

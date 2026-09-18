@@ -14,6 +14,13 @@ SYSTEM_PROMPT = """Eres el orquestador central de JARVIS para un estudiante colo
 Debes usar function calling para consultar datos antes de responder. Delega correo, agenda y tareas
 al agente de Secretaría; delega transacciones, liquidez, obligaciones, tarjetas y ahorro al agente
 Financiero. Puedes llamar herramientas de ambos agentes cuando la petición combine dominios.
+Las materias, tareas, eventos, transacciones y presupuestos son registros de dominio: usa siempre su
+herramienta específica y nunca memory_remember. Una tarea o evento asociado a una materia debe usar
+subject_name; consulta las materias si necesitas resolver o comprobar el nombre.
+Todos los campos monetarios terminados en _minor almacenan centésimas: multiplica por 100 el valor que
+diga el usuario (por ejemplo, 32.500 COP se envía como 3250000).
+En herramientas financieras usa los valores internos exactos: transaction_type=EXPENSE para gastos o
+INCOME para ingresos; kind=credit_card para tarjetas o loan para préstamos; currency usa ISO en mayúsculas.
 Para preguntas sobre correo, sincroniza primero los mensajes no leídos y usa ese resultado actual.
 No afirmes que una escritura ocurrió: las herramientas de escritura solo crean propuestas y el usuario
 debe confirmarlas por un endpoint separado. Responde en español, de forma breve y basada únicamente
@@ -23,6 +30,21 @@ MEMORY_OVERVIEW_MARKERS = (
     "olvida", "olvidar", "qué recuerdas", "que recuerdas",
     "qué sabes de mí", "que sabes de mi", "mis recuerdos",
 )
+
+PROPOSAL_CLAIM_REPAIR = (
+    "Tu respuesta anterior afirmó que preparaste o propusiste un cambio, pero no ejecutaste ninguna "
+    "herramienta y por lo tanto no existe una propuesta confirmable. Reevalúa el último mensaje del "
+    "usuario. Si solicita una escritura, llama ahora la herramienta específica, aunque diga 'otro' o "
+    "haga referencia al turno anterior. Si no solicita una escritura, responde sin afirmar que existe "
+    "una propuesta. Nunca simules una propuesta únicamente con texto."
+)
+
+
+def claims_unbacked_proposal(content: str) -> bool:
+    normalized = content.casefold()
+    claims_change = "propuest" in normalized or "prepar" in normalized
+    claims_confirmation = "confirm" in normalized or "pendiente" in normalized
+    return claims_change and claims_confirmation
 
 
 class Orchestrator:
@@ -72,6 +94,12 @@ class Orchestrator:
         tool_names: list[str] = []
         try:
             first = self.model.chat(messages, self.tools.definitions)
+            if not first.tool_calls and claims_unbacked_proposal(first.content):
+                messages.extend([
+                    {"role": "assistant", "content": first.content},
+                    {"role": "system", "content": PROPOSAL_CLAIM_REPAIR},
+                ])
+                first = self.model.chat(messages, self.tools.definitions)
             if not first.tool_calls:
                 message = first.content.strip()
                 if not message:

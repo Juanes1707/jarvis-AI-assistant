@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Switch, View } from "react-native";
 import { router } from "expo-router";
 import { Screen } from "../../components/layout/screen";
 import { SystemBar } from "../../components/layout/system-bar";
-import { Copy, DataRow, Icon, Row, Section, type IconName } from "../../components/ui/primitives";
+import { Button, Copy, DataRow, Icon, Rail, Row, Section, type IconName } from "../../components/ui/primitives";
 import { useWorkspace } from "../../services/storage/workspace-provider";
 import { assistantMode, MODE_LABEL, modeCoreState } from "../../features/jarvis/mode";
 import { theme } from "../../theme/tokens";
@@ -45,13 +45,33 @@ export default function ProfileScreen() {
       </View>
     </Row>
 
-    {backendProfile ? <Section label="PERFIL REAL">
-      <View>
+    {backendProfile && !backendProfile.onboarding_completed ? <Row style={styles.onboarding}>
+      <Rail />
+      <View style={styles.grow}>
+        <Copy variant="body">JARVIS todavía no sabe quién eres.</Copy>
+        <Copy variant="caption" muted>Cuéntale tu nombre, dónde estás y qué estudias para que sus respuestas usen tus datos reales.</Copy>
+        <View style={styles.onboardingAction}>
+          <Button label="Completar mi perfil" icon="account-edit-outline" onPress={() => router.push("/identity")} />
+        </View>
+      </View>
+    </Row> : null}
+
+    <Section label="LO QUE SABE DE TI">
+      {backendProfile ? <View>
         {location ? <DataRow label="Ubicación" value={location} /> : null}
         {backendProfile.study_program ? <DataRow label="Estudios" value={backendProfile.study_program} /> : null}
         {backendProfile.timezone ? <DataRow label="Zona horaria" value={backendProfile.timezone} tone="muted" /> : null}
+      </View> : null}
+      <View>
+        <NavRow label="Tu perfil" icon="account-outline" onPress={() => router.push("/identity")} />
+        <NavRow label="Su memoria" icon="brain" onPress={() => router.push("/memory")} />
       </View>
-    </Section> : null}
+      <Copy variant="caption" muted>
+        {mode === "server"
+          ? "Se guarda en tu servidor PostgreSQL y puedes borrar cualquier cosa que haya aprendido."
+          : "Tu perfil y tu memoria viven en tu servidor. Enciende el modo Servidor para verlos."}
+      </Copy>
+    </Section>
 
     <Section label="COMPORTAMIENTO">
       <Row style={styles.toggle}>
@@ -94,6 +114,8 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   identity: { gap: theme.space.md },
+  onboarding: { alignItems: "stretch", gap: theme.space.ms },
+  onboardingAction: { paddingTop: theme.space.sm },
   avatar: {
     width: 52, height: 52, alignItems: "center", justifyContent: "center", borderRadius: theme.radius.plate, backgroundColor: theme.colors.surface,
     borderWidth: 1, borderTopColor: theme.colors.edge, borderLeftColor: theme.colors.border, borderRightColor: theme.colors.border, borderBottomColor: theme.colors.border,

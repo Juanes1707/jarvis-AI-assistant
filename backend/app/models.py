@@ -157,3 +157,65 @@ class MemoryRecord(BaseModel):
 
 class MemoryListResponse(BaseModel):
     memories: list[MemoryRecord]
+
+
+class WorkspaceSubject(BaseModel):
+    id: str
+    name: str
+    professor: str | None = None
+    credits: int
+    active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class WorkspaceTask(BaseModel):
+    id: str
+    title: str
+    status: Literal["PENDING", "IN_PROGRESS", "COMPLETED"]
+    priority: Literal["LOW", "MEDIUM", "HIGH"]
+    due_at: datetime | None = None
+    subject_id: str | None = None
+    subject_name: str | None = None
+
+
+class WorkspaceEvent(BaseModel):
+    id: str
+    title: str
+    starts_at: datetime
+    ends_at: datetime
+    event_type: Literal["CLASS", "STUDY", "EXAM", "PERSONAL", "DEADLINE", "OTHER"]
+    location: str | None = None
+    confirmed: bool
+    subject_id: str | None = None
+    subject_name: str | None = None
+
+
+class WorkspaceTransaction(BaseModel):
+    id: str
+    type: Literal["INCOME", "EXPENSE"]
+    amount_minor: int
+    currency: str
+    merchant: str
+    category: str
+    payment_method: str | None = None
+    occurred_at: datetime
+    source: Literal["manual", "voice", "bank_webhook"]
+    created_at: datetime
+
+
+class WorkspaceBudget(BaseModel):
+    id: str
+    month: str
+    amount_minor: int
+    currency: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class WorkspaceSnapshot(BaseModel):
+    subjects: list[WorkspaceSubject]
+    tasks: list[WorkspaceTask]
+    events: list[WorkspaceEvent]
+    transactions: list[WorkspaceTransaction]
+    budget: WorkspaceBudget | None = None

@@ -78,6 +78,234 @@ class BackendTestCase(unittest.TestCase):
         self.assertEqual(second_result, first_result)
         self.assertEqual(self.repository.count("tasks"), 1)
 
+    def test_subject_creation_is_proposed_confirmed_and_queryable(self) -> None:
+        model = FakeModel([
+            ChatResult("", (ToolCall("secretary_create_subject", {
+                "name": "Estructuras de Datos",
+                "credits": 3,
+                "professor": "Laura Gómez",
+            }),)),
+            ChatResult("Preparé la materia para tu confirmación."),
+        ])
+        tools = ToolRegistry(self.repository)
+
+        response = Orchestrator(model, tools, self.repository).handle(AssistantRequest(
+            request_id="subject-create-1",
+            text="Agrega Estructuras de Datos con 3 créditos y la profesora Laura Gómez",
+            conversation_id="academic-chat",
+        ))
+
+        self.assertEqual(self.repository.list_subjects(), [])
+        self.assertEqual(response.proposals[0].tool_name, "secretary_create_subject")
+        proposal, result, replayed = tools.confirm(response.proposals[0].id)
+        self.assertFalse(replayed)
+        self.assertEqual(proposal.status, "confirmed")
+        self.assertEqual(result["name"], "Estructuras de Datos")
+        self.assertEqual(result["credits"], 3)
+        self.assertEqual(self.repository.list_subjects()[0]["professor"], "Laura Gómez")
+        _, second_result, replayed = tools.confirm(response.proposals[0].id)
+        self.assertTrue(replayed)
+        self.assertEqual(second_result, result)
+        self.assertEqual(len(self.repository.list_subjects()), 1)
+
+    def test_task_can_reference_a_subject_by_name_and_change_status(self) -> None:
+        self.repository.create_subject(name="Estructuras de Datos", credits=3)
+        tools = ToolRegistry(self.repository)
+
+        task = tools.execute(
+            name="secretary_create_task",
+            arguments={
+                "title": "Resolver árboles AVL",
+                "subject_name": "Estructuras de Datos",
+                "priority": "HIGH",
+                "due_at": "2026-09-25T18:00:00-05:00",
+            },
+            request_id="subject-task-1",
+        )
+
+        self.assertIsInstance(task, ActionProposal)
+        assert isinstance(task, ActionProposal)
+        _, created, _ = tools.confirm(task.id)
+        self.assertEqual(created["subject_name"], "Estructuras de Datos")
+        self.assertEqual(self.repository.list_tasks()[0]["subject_name"], "Estructuras de Datos")
+
+        status = tools.execute(
+            name="secretary_update_task_status",
+            arguments={"task_title": "Resolver árboles AVL", "status": "COMPLETED"},
+            request_id="subject-task-status-1",
+        )
+        self.assertIsInstance(status, ActionProposal)
+        assert isinstance(status, ActionProposal)
+        tools.confirm(status.id)
+        self.assertEqual(self.repository.list_tasks(status="COMPLETED")[0]["title"], "Resolver árboles AVL")
+
+    def test_calendar_event_can_reference_a_subject_and_is_queryable(self) -> None:
+        self.repository.create_subject(name="Estructuras de Datos", credits=3)
+        tools = ToolRegistry(self.repository)
+
+        event = tools.execute(
+            name="secretary_create_calendar_event",
+            arguments={
+                "title": "Clase de árboles",
+                "subject_name": "Estructuras de Datos",
+                "starts_at": "2026-09-24T08:00:00-05:00",
+                "ends_at": "2026-09-24T10:00:00-05:00",
+                "event_type": "CLASS",
+                "location": "Edificio A",
+            },
+            request_id="subject-event-1",
+        )
+
+        self.assertIsInstance(event, ActionProposal)
+        assert isinstance(event, ActionProposal)
+        self.assertEqual(self.repository.list_calendar_events(), [])
+        tools.confirm(event.id)
+        listed = self.repository.list_calendar_events(
+            starts_after="2026-09-24T00:00:00+00:00",
+            starts_before="2026-09-25T00:00:00+00:00",
+        )
+        self.assertEqual(listed[0]["title"], "Clase de árboles")
+        self.assertEqual(listed[0]["subject_name"], "Estructuras de Datos")
+        self.assertEqual(listed[0]["location"], "Edificio A")
+
+    def test_monthly_budget_is_confirmed_and_included_in_financial_summary(self) -> None:
+        tools = ToolRegistry(self.repository)
+        budget = tools.execute(
+            name="financial_set_monthly_budget",
+            arguments={"month": "2026-09", "amount_minor": 200_000_000, "currency": "COP"},
+            request_id="budget-2026-09",
+        )
+
+        self.assertIsInstance(budget, ActionProposal)
+        assert isinstance(budget, ActionProposal)
+        tools.confirm(budget.id)
+        self.repository.create_transaction(
+            amount_minor=32_500_00,
+            currency="COP",
+            merchant="Almuerzo",
+            category="food",
+            occurred_at="2026-09-20T17:00:00+00:00",
+            transaction_type="EXPENSE",
+        )
+
+        summary = self.repository.financial_summary(month="2026-09")
+        self.assertEqual(summary["budget_minor"], 200_000_000)
+        self.assertEqual(summary["remaining_budget_minor"], 196_750_000)
+
+    def test_financial_transaction_accepts_spanish_type_returned_by_ollama(self) -> None:
+        model = FakeModel([
+            ChatResult("", (ToolCall("financial_record_transaction", {
+                "amount_minor": 10_000_000,
+                "currency": "COP",
+                "merchant": "Almuerzo",
+                "category": "food",
+                "occurred_at": "2026-09-17T12:00:00-05:00",
+                "transaction_type": "gasto",
+            }),)),
+            ChatResult("Preparé el gasto para tu confirmación."),
+        ])
+        tools = ToolRegistry(self.repository)
+
+        response = Orchestrator(model, tools, self.repository).handle(AssistantRequest(
+            request_id="expense-spanish-type-1",
+            text="Agrega un gasto de 100.000 pesos hoy en almuerzo",
+            conversation_id="finance-chat",
+        ))
+
+        self.assertEqual(response.route, "financial")
+        self.assertEqual(len(response.proposals), 1)
+        self.assertEqual(self.repository.count("transactions"), 0)
+        tools.confirm(response.proposals[0].id)
+        transaction = self.repository.list_transactions()[0]
+        self.assertEqual(transaction["type"], "EXPENSE")
+        self.assertEqual(transaction["amount_minor"], 10_000_000)
+
+    def test_financial_spanish_aliases_keep_internal_values_canonical(self) -> None:
+        tools = ToolRegistry(self.repository)
+        income = tools.execute(
+            name="financial_record_transaction",
+            arguments={
+                "amount_minor": 250_000_000,
+                "currency": "cop",
+                "merchant": "Nómina",
+                "category": "salary",
+                "occurred_at": "2026-09-17T08:00:00-05:00",
+                "transaction_type": "ingreso",
+            },
+            request_id="income-spanish-type-1",
+        )
+        card = tools.execute(
+            name="financial_create_liability",
+            arguments={
+                "name": "Tarjeta principal",
+                "kind": "tarjeta de crédito",
+                "principal_minor": 400_000_000,
+                "outstanding_minor": 100_000_000,
+                "credit_limit_minor": 400_000_000,
+                "statement_day": 12,
+                "minimum_payment_minor": 10_000_000,
+                "due_date": "2026-09-28",
+                "annual_interest_bps": 2_500,
+            },
+            request_id="card-spanish-kind-1",
+        )
+
+        assert isinstance(income, ActionProposal) and isinstance(card, ActionProposal)
+        tools.confirm(income.id)
+        tools.confirm(card.id)
+
+        transaction = self.repository.list_transactions()[0]
+        liability = self.repository.list_liabilities()[0]
+        self.assertEqual(transaction["type"], "INCOME")
+        self.assertEqual(transaction["currency"], "COP")
+        self.assertEqual(liability["kind"], "credit_card")
+
+    def test_second_expense_repairs_a_false_proposal_claim_and_returns_a_new_proposal(self) -> None:
+        model = FakeModel([
+            ChatResult("", (ToolCall("financial_record_transaction", {
+                "amount_minor": 10_000,
+                "currency": "COP",
+                "merchant": "Gasto general",
+                "category": "other",
+                "occurred_at": "2026-09-17T12:00:00-05:00",
+                "transaction_type": "EXPENSE",
+            }),)),
+            ChatResult("Preparé el primer gasto para tu confirmación."),
+            ChatResult("He propuesto registrar otro gasto; confirma para guardarlo."),
+            ChatResult("", (ToolCall("financial_record_transaction", {
+                "amount_minor": 2_000_000,
+                "currency": "COP",
+                "merchant": "Gasto general",
+                "category": "other",
+                "occurred_at": "2026-09-17T12:05:00-05:00",
+                "transaction_type": "EXPENSE",
+            }),)),
+            ChatResult("Preparé el segundo gasto para tu confirmación."),
+        ])
+        tools = ToolRegistry(self.repository)
+        orchestrator = Orchestrator(model, tools, self.repository)
+
+        first = orchestrator.handle(AssistantRequest(
+            request_id="expense-sequence-100",
+            conversation_id="expense-sequence",
+            text="Agrega un gasto de 100 pesos",
+        ))
+        tools.confirm(first.proposals[0].id)
+        second = orchestrator.handle(AssistantRequest(
+            request_id="expense-sequence-20000",
+            conversation_id="expense-sequence",
+            text="Agrega otro gasto de 20 mil pesos",
+        ))
+
+        self.assertEqual(len(second.proposals), 1)
+        self.assertEqual(second.proposals[0].tool_name, "financial_record_transaction")
+        self.assertEqual(self.repository.count("transactions"), 1)
+        tools.confirm(second.proposals[0].id)
+        self.assertEqual(
+            [item["amount_minor"] for item in self.repository.list_transactions()],
+            [2_000_000, 10_000],
+        )
+
     def test_bank_webhook_uses_structured_output_and_is_idempotent(self) -> None:
         model = FakeModel(bank=StructuredBankTransaction(
             is_transaction=True,

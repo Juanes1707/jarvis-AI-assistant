@@ -211,6 +211,55 @@ MIGRATIONS: tuple[str, ...] = (
     ALTER TABLE user_profiles ADD COLUMN country TEXT
       CHECK(country IS NULL OR length(country) BETWEEN 1 AND 120);
     """,
+    """
+    CREATE TABLE academic_subjects (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL CHECK(length(name) BETWEEN 1 AND 180),
+      normalized_name TEXT NOT NULL CHECK(length(normalized_name) BETWEEN 1 AND 180),
+      professor TEXT CHECK(professor IS NULL OR length(professor) BETWEEN 1 AND 180),
+      credits INTEGER NOT NULL CHECK(credits BETWEEN 1 AND 30),
+      active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_id, normalized_name)
+    );
+    CREATE INDEX academic_subjects_active_idx ON academic_subjects(user_id, active, name);
+    """,
+    """
+    ALTER TABLE tasks ADD COLUMN subject_id TEXT
+      REFERENCES academic_subjects(id) ON DELETE SET NULL;
+    CREATE INDEX tasks_subject_idx ON tasks(subject_id, status, due_at);
+    """,
+    """
+    CREATE TABLE calendar_events (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      subject_id TEXT REFERENCES academic_subjects(id) ON DELETE SET NULL,
+      title TEXT NOT NULL CHECK(length(title) BETWEEN 1 AND 240),
+      starts_at TEXT NOT NULL,
+      ends_at TEXT NOT NULL,
+      event_type TEXT NOT NULL CHECK(event_type IN ('CLASS','STUDY','EXAM','PERSONAL','DEADLINE','OTHER')),
+      location TEXT CHECK(location IS NULL OR length(location) BETWEEN 1 AND 240),
+      confirmed INTEGER NOT NULL DEFAULT 1 CHECK(confirmed IN (0,1)),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      CHECK(ends_at > starts_at)
+    );
+    CREATE INDEX calendar_events_time_idx ON calendar_events(user_id, starts_at, ends_at);
+    """,
+    """
+    CREATE TABLE monthly_budgets (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      month TEXT NOT NULL CHECK(length(month) = 7),
+      amount_minor BIGINT NOT NULL CHECK(amount_minor > 0),
+      currency TEXT NOT NULL CHECK(length(currency) = 3),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_id, month)
+    );
+    """,
 )
 
 

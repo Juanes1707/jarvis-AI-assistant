@@ -25,6 +25,7 @@ from .models import (
     MemoryRecord,
     UserProfile,
     UserProfileUpdate,
+    WorkspaceSnapshot,
 )
 from .orchestrator import Orchestrator
 from .repositories import JarvisRepository
@@ -105,6 +106,13 @@ def create_app(settings: Settings) -> FastAPI:
     @app.get("/v1/profile", response_model=UserProfile, dependencies=[Depends(require_api_token)])
     async def get_profile() -> UserProfile:
         return UserProfile.model_validate(await asyncio.to_thread(services.repository.get_profile))
+
+    @app.get("/v1/workspace", response_model=WorkspaceSnapshot, dependencies=[Depends(require_api_token)])
+    async def get_workspace(
+        month: str = Query(pattern=r"^\d{4}-(0[1-9]|1[0-2])$"),
+    ) -> WorkspaceSnapshot:
+        snapshot = await asyncio.to_thread(services.repository.workspace_snapshot, month=month)
+        return WorkspaceSnapshot.model_validate(snapshot)
 
     @app.patch("/v1/profile", response_model=UserProfile, dependencies=[Depends(require_api_token)])
     async def update_profile(update: UserProfileUpdate) -> UserProfile:

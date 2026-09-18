@@ -2,7 +2,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { render, screen } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { WorkspaceProvider, useWorkspace } from "../src/services/storage/workspace-provider";
-import { getJarvisProfile } from "../src/services/backend/client";
+import { getJarvisProfile, getJarvisWorkspace } from "../src/services/backend/client";
 import { readPreferences } from "../src/services/storage/preferences";
 import { initializeDatabase, readWorkspace } from "../src/services/storage/database";
 import { demoEvents, demoHabits, demoSubjects, demoTasks, demoTransactions } from "../src/services/storage/demo-data";
@@ -27,7 +27,7 @@ jest.mock("../src/services/storage/preferences", () => ({
   readPreferences: jest.fn(),
   savePreferences: jest.fn(),
 }));
-jest.mock("../src/services/backend/client", () => ({ getJarvisProfile: jest.fn() }));
+jest.mock("../src/services/backend/client", () => ({ getJarvisProfile: jest.fn(), getJarvisWorkspace: jest.fn() }));
 
 function Probe() {
   const { data } = useWorkspace();
@@ -64,13 +64,28 @@ describe("workspace en modo servidor", () => {
       timezone: "America/Bogota",
       onboarding_completed: true,
     });
+    jest.mocked(getJarvisWorkspace).mockResolvedValue({
+      subjects: [{
+        id: "subject-real", name: "Bases de Datos", professor: "Ana", credits: 3, active: true,
+        created_at: "2026-09-16T12:00:00Z", updated_at: "2026-09-16T12:00:00Z",
+      }],
+      tasks: [{
+        id: "task-real", title: "Modelo relacional", status: "PENDING", priority: "HIGH",
+        due_at: null, subject_id: "subject-real", subject_name: "Bases de Datos",
+      }],
+      events: [], transactions: [], budget: null,
+    });
 
     await render(<WorkspaceProvider><Probe /></WorkspaceProvider>);
 
-    expect(await screen.findByText("Juanes|0|empty")).toBeTruthy();
+    expect(await screen.findByText("Juanes|1|task-real")).toBeTruthy();
     expect(getJarvisProfile).toHaveBeenCalledWith({
       url: "https://equipo.tailnet.ts.net",
       token: "un-token-de-servidor-con-mas-de-24",
     });
+    expect(getJarvisWorkspace).toHaveBeenCalledWith({
+      url: "https://equipo.tailnet.ts.net",
+      token: "un-token-de-servidor-con-mas-de-24",
+    }, expect.stringMatching(/^\d{4}-\d{2}$/));
   });
 });

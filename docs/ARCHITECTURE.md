@@ -18,9 +18,9 @@ JARVIS conserva dos modos explícitos. El modo local funciona como antes: UI →
 
 ## Modo distribuido multi-agente
 
-`backend/app` contiene un servidor FastAPI autoalojado. El orquestador entrega a Ollama un catálogo cerrado de funciones; las llamadas se validan con Pydantic y se delegan a Secretaría, Finanzas o a ambos. Secretaría gestiona tareas, recordatorios, correo IMAP de solo lectura y borradores. Finanzas gestiona movimientos, liquidez, pasivos y metas. El webhook bancario usa salida JSON estructurada y una credencial independiente.
+`backend/app` contiene un servidor FastAPI autoalojado. El orquestador entrega a Ollama un catálogo cerrado de funciones; las llamadas se validan con Pydantic y se delegan a Secretaría, Finanzas o a ambos. Secretaría gestiona materias, tareas asociadas, eventos, recordatorios, correo IMAP de solo lectura y borradores. Finanzas gestiona movimientos, presupuesto mensual, liquidez, pasivos y metas. El webhook bancario usa salida JSON estructurada y una credencial independiente.
 
-La persistencia del servidor usa PostgreSQL mediante SQLAlchemy y psycopg. El arranque normal exige `JARVIS_DATABASE_URL`; SQLite queda limitado al modo local del teléfono y a pruebas aisladas del backend. Perfil, recuerdos confirmados, conversaciones y mensajes son persistentes. JARVIS recupera únicamente recuerdos activos relevantes; actualizar el perfil, recordar u olvidar desde lenguaje natural crea una propuesta que no escribe hasta confirmarse. El detalle técnico, secuencias y esquema están en `docs/MULTI_AGENT_BACKEND.md`.
+La persistencia del servidor usa PostgreSQL mediante SQLAlchemy y psycopg. El arranque normal exige `JARVIS_DATABASE_URL`; SQLite queda limitado al modo local del teléfono y a pruebas aisladas del backend. Perfil, recuerdos confirmados, conversaciones, materias, tareas, eventos, finanzas y mensajes son persistentes. JARVIS recupera únicamente recuerdos activos relevantes; toda escritura desde lenguaje natural crea una propuesta que no escribe hasta confirmarse. Después de confirmar, el móvil consulta `GET /v1/workspace` y reemplaza la vista académica/financiera con el estado confirmado del servidor. El detalle técnico, secuencias y esquema están en `docs/MULTI_AGENT_BACKEND.md`.
 
 ## Datos y tiempo
 

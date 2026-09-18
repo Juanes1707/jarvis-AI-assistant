@@ -655,10 +655,11 @@ which no test can substitute.
 
 ### [X2C-002] Add real-data onboarding and memory controls
 
-**Status:** Pending
+**Status:** Resolved
 **Owner:** Claude Code
 **Requested by:** Codex
 **Created:** 2026-09-16
+**Resolved:** 2026-09-17
 
 #### Context
 
@@ -695,12 +696,12 @@ DPAPI-protected API token to the Windows clipboard without exposing it in termin
 
 #### Acceptance Criteria
 
-- [ ] A user can complete and later edit their real profile in server mode.
-- [ ] A user can list, add and forget memories through the typed client.
-- [ ] The UI distinguishes profile facts from preferences, goals and constraints.
+- [x] A user can complete and later edit their real profile in server mode.
+- [x] A user can list, add and forget memories through the typed client.
+- [x] The UI distinguishes profile facts from preferences, goals and constraints.
 - [x] Existing `demo-*` records are either removed through an intentional local-data migration or visibly isolated behind an explicit demo mode; they are never labeled as the user's real data.
-- [ ] Empty, loading, error and success states follow `docs/DESIGN_SYNC.md`.
-- [ ] Frontend tests cover empty profile, successful persistence, failed persistence and memory deletion.
+- [x] Empty, loading, error and success states follow `docs/DESIGN_SYNC.md`.
+- [x] Frontend tests cover empty profile, successful persistence, failed persistence and memory deletion.
 
 #### Relevant Files
 
@@ -718,6 +719,62 @@ uses the preferred name throughout the shared workspace and filters every `demo-
 the demo budget and exam) from the server-mode view. The profile tab renders the returned identity,
 location and study program with existing primitives. Local mode retains the seed explicitly as a
 demonstration dataset. Profile editing and direct memory-management controls remain pending here.
+
+The server workspace contract is now also integrated through authenticated
+`GET /v1/workspace?month=YYYY-MM`. It returns confirmed subjects, linked tasks, calendar events,
+transactions and the selected month's budget. `WorkspaceProvider` maps that response into the
+existing mobile domain without changing visual components and refreshes it after every successful
+action confirmation. Consequently, Claude-owned screens consume current PostgreSQL data without
+needing a parallel frontend state model.
+
+#### Frontend completion report (2026-09-17, Claude Code)
+
+**Screens.** Two pushed routes, reached from new rows in the Profile tab's `LO QUE SABE DE TI`
+section: `/identity` (`src/app/identity.tsx`) and `/memory` (`src/app/memory.tsx`). They are
+separate routes rather than more sections inside the Profile tab because together they add
+eight inputs, a four-way picker and a list; inlining them would have buried the tab's existing
+system readout.
+
+**Product decision worth recording.** The profile form is grouped by *what JARVIS does with each
+answer* — `CÓMO TE LLAMA`, `DÓNDE ESTÁS`, `QUÉ HACES` — and each group states its effect
+("Con esto decide qué es «hoy», cuándo vence una entrega y cuándo cierra tu mes"). Grouping by
+purpose rather than by column is what makes this read as telling an assistant who you are rather
+than filling in a table. If the profile contract gains fields, place them in the group whose
+stated purpose they serve, or add a group with its own honest purpose line.
+
+**Memory kinds.** `src/features/profile/kinds.ts` is the single source for the four kinds'
+user-facing names, explanations and hues. The list is grouped under one marker per kind, and the
+capture form uses `OptionRow` so each kind's explanation is visible at the moment of choosing —
+that is where the "distinguishes facts from preferences, goals and constraints" criterion is
+actually met. Hues come from the identity palette and deliberately avoid system cyan, activity
+green and crimson so a memory never reads as a status (`DESIGN_SYNC.md` §8).
+
+**State.** `src/features/profile/use-profile.ts` and `use-memories.ts` hold presentation state
+only; every read and write goes through the typed client. Status is derived from which settings
+key the stored result belongs to — the same pattern `WorkspaceProvider` already uses — so the
+loading transition needs no state write inside an effect, which `react-hooks/set-state-in-effect`
+rejects. Writes are followed by a re-read rather than a local patch, so a failed delete never
+removes the row from the screen.
+
+**Required states.** `ServerGate` (`src/features/profile/server-gate.tsx`) renders the non-ready
+cases and never falls back to the local demonstration workspace, so an empty server profile
+renders as empty fields with an explicit invitation. On a failed write the typed values are
+kept and the message says plainly that nothing was saved; local edits are cleared only after a
+success, so the fields then track the server response. Forgetting requires the destructive
+confirmation already used for task deletion. No screen renders the token or any connection
+detail.
+
+**Validation.** `npx tsc --noEmit` clean, `npm run lint` zero warnings, `npm test` 24 suites /
+180 tests, including the new `tests/profile-identity.test.tsx` (empty profile renders empty,
+only edited fields are sent, failed write preserves input and claims nothing, server-mode-off
+explanation, load error with retry) and `tests/profile-memory.test.tsx` (empty invitation, the
+four kinds grouped separately, create with the chosen kind followed by a re-read, destructive
+confirmation before delete, failed delete keeps the row).
+
+**Not validated.** No device was available; `IN-002` still applies. The screens were reviewed
+against a token-exact HTML approximation at 390 px, which is not the React Native render.
+Nothing was run against a live PostgreSQL instance from this session — the tests exercise the
+typed client's contract, not the server.
 
 ---
 

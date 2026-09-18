@@ -24,7 +24,7 @@ import { Transcript, type TranscriptMessage } from "./transcript";
 import { useJarvisBackend } from "./use-jarvis-backend";
 
 export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?: string }) {
-  const { data, preferences, busy, executeCommand } = useWorkspace();
+  const { data, preferences, busy, executeCommand, refreshBackendWorkspace } = useWorkspace();
   const backend = useJarvisBackend(preferences);
   const mode = assistantMode(preferences);
   const [draft, setDraft] = useState("");
@@ -111,6 +111,7 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
     try {
       const result = await backend.confirm(action.id);
       setServerProposals(current => current.filter(item => item.id !== action.id));
+      await refreshBackendWorkspace();
       answer(result.replayed
         ? `${action.title} ya estaba aplicada en el servidor, así que no se duplicó.`
         : `Listo. ${action.title}: ${action.detail}. El servidor guardó el cambio.`);
