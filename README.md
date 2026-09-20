@@ -63,6 +63,30 @@ El botón **Voz** permite escuchar una muestra, elegir una voz en español del t
 
 Usa expo-speech y expo-intent-launcher, incluidos en Expo Go. Android necesita un servicio que atienda el reconocimiento de voz; este puede usar Internet. En iPhone, dicta con el micrófono del teclado y pulsa Enviar; la respuesta hablada funciona con el modo silencio desactivado. No hay escucha continua ni palabra de activación en segundo plano.
 
+## Atajo del teléfono
+
+JARVIS responde al enlace `jarvis://talk`. Al abrirlo, la app entra directo a la conversación y **abre el micrófono sola**: no hay que tocar nada, solo hablar. Al terminar de dictar, la orden se envía igual que si la hubieras escrito.
+
+Probarlo hoy en Expo Go, sin compilar nada:
+
+```bash
+npx uri-scheme open "exp://127.0.0.1:8081/--/talk" --android
+```
+
+Cambia la dirección por la que imprime `npx expo start`. Ese enlace ya funciona y sirve para comprobar que el micrófono se abre solo.
+
+Para tener un icono real en la pantalla de inicio necesitas salir de Expo Go y compilar la app una vez, porque mientras vivas en Expo Go el esquema `jarvis://` le pertenece a Expo Go y no a JARVIS:
+
+```bash
+npx expo run:android
+```
+
+Con la app instalada, `jarvis://talk` es suyo. Para ponerlo en la pantalla de inicio, cualquier app de atajos (Shortcut Maker, Tasker, MacroDroid) crea un icono que abra esa URL. Si usas Tasker, además puedes atarlo a un gesto del sistema.
+
+Sobre el doble clic del botón de apagado: ese gesto concreto no está disponible para apps de terceros en Android estándar, está reservado a la cámara. Algunas capas de fabricante (Samsung, Xiaomi) permiten remapearlo desde los ajustes del teléfono a la app que elijas; eso se configura en el sistema, no en JARVIS. En Android 12 o superior, **Pulsación rápida** (doble toque en la parte de atrás del teléfono) también puede abrir la app sin necesidad de nada más.
+
+`android.package` e `ios.bundleIdentifier` están fijados en `app.json` como `com.juanesteban.jarvis`. Cámbialos antes de la primera compilación si prefieres otro identificador: después de instalar la app, cambiarlo equivale a una app distinta.
+
 ## Conectar Ollama como cerebro local
 
 JARVIS puede consultar tu instalación local de Ollama para responder conversaciones y analizar el contexto de tu agenda, tareas y finanzas. Abre **JARVIS → Ajustes → Cerebro local: Ollama**, escribe la IPv4 privada de tu computador y el nombre exacto de tu modelo (el valor inicial es `qwen3.5:4b`), prueba la conexión y activa el interruptor.

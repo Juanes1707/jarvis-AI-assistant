@@ -13,6 +13,10 @@ import {
   type BackendUserProfile, type BackendWorkspace,
 } from "../backend/client";
 import { mapBackendWorkspace } from "../backend/workspace";
+import {
+  cachedIdentityFor, readCachedBackendIdentity, writeCachedBackendIdentity,
+  type CachedBackendIdentity,
+} from "./backend-identity-cache";
 
 type WorkspaceContext = {
   data: Workspace; dashboard: ReturnType<typeof buildDashboard>; busy: boolean; preferences: Preferences;
@@ -55,7 +59,11 @@ async function loadBackendSnapshot(url: string, token: string) {
   return { profile, workspace };
 }
 
-function serverWorkspace(local: Workspace, profile: BackendUserProfile | null): Workspace {
+function serverWorkspace(
+  local: Workspace,
+  profile: BackendUserProfile | null,
+  cachedIdentity: CachedBackendIdentity | null,
+): Workspace {
   const subjects = local.subjects.filter(item => !isDemoId(item.id));
   const subjectIds = new Set(subjects.map(item => item.id));
   const habits = local.habits.filter(item => !isDemoId(item.id));
@@ -63,10 +71,10 @@ function serverWorkspace(local: Workspace, profile: BackendUserProfile | null): 
   return {
     ...local,
     user: {
-      id: profile?.user_id ?? "server-owner",
-      name: profile?.preferred_name || profile?.display_name || "Usuario",
+      id: profile?.user_id ?? cachedIdentity?.userId ?? "server-owner",
+      name: profile?.preferred_name || profile?.display_name || cachedIdentity?.name || "Usuario",
       semester: subjects.length ? local.user.semester : 0,
-      timezone: profile?.timezone || "America/Bogota",
+      timezone: profile?.timezone || cachedIdentity?.timezone || "America/Bogota",
     },
     subjects,
     tasks: local.tasks.filter(item => !isDemoId(item.id) && (!item.subjectId || subjectIds.has(item.subjectId))),
@@ -84,6 +92,7 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
   const [serverSnapshot, setServerSnapshot] = useState<{
     key: string; profile: BackendUserProfile; workspace: BackendWorkspace;
   } | null>(null);
+  const [cachedBackendIdentity, setCachedBackendIdentity] = useState<CachedBackendIdentity | null>(null);
   const [preferences, setPreferences] = useState<Preferences>({ ...defaultPreferences });
   // Preference writes can land back-to-back (switching assistant mode saves twice). Reading the
   // latest value from a ref keeps the second write from resurrecting the state the first replaced.
@@ -94,6 +103,11 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const locked = useRef(false);
+  const rememberBackendIdentity = useCallback((url: string, profile: BackendUserProfile) => {
+    const identity = cachedIdentityFor(url, profile);
+    setCachedBackendIdentity(identity);
+    void writeCachedBackendIdentity(url, profile);
+  }, []);
   useEffect(() => {
     const updateClock = () => setNow(new Date());
     const timer = setInterval(updateClock, 60000);
@@ -103,9 +117,15 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let active = true;
     getDatabase()
-      .then(db => Promise.all([readWorkspace(db), readPreferences()]))
-      .then(([workspace, prefs]) => {
-        if (active) { applyPreferences(prefs); setLocalData(workspace); setError(null); }
+      .then(async db => {
+        const [workspace, prefs] = await Promise.all([readWorkspace(db), readPreferences()]);
+        const identity = prefs.backendEnabled && prefs.backendUrl.trim()
+          ? await readCachedBackendIdentity(prefs.backendUrl)
+          : null;
+        return { workspace, prefs, identity };
+      })
+      .then(({ workspace, prefs, identity }) => {
+        if (active) { applyPreferences(prefs); setCachedBackendIdentity(identity); setLocalData(workspace); setError(null); }
       })
       .catch(() => {
         if (active) setError("No se pudo abrir el almacenamiento local. Tus datos se conservaron; vuelve a intentarlo.");
@@ -124,22 +144,26 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
         preferences.backendUrl, preferences.backendToken,
       );
       setServerSnapshot({ key: backendProfileKey, profile, workspace });
+      rememberBackendIdentity(preferences.backendUrl, profile);
       setNow(new Date());
       return true;
     } catch {
       return false;
     }
-  }, [backendProfileKey, preferences.backendToken, preferences.backendUrl]);
+  }, [backendProfileKey, preferences.backendToken, preferences.backendUrl, rememberBackendIdentity]);
   useEffect(() => {
     let active = true;
     if (!backendProfileKey) return () => { active = false; };
     void loadBackendSnapshot(preferences.backendUrl, preferences.backendToken)
       .then(({ profile, workspace }) => {
-        if (active) setServerSnapshot({ key: backendProfileKey, profile, workspace });
+        if (active) {
+          setServerSnapshot({ key: backendProfileKey, profile, workspace });
+          rememberBackendIdentity(preferences.backendUrl, profile);
+        }
       })
       .catch(() => undefined);
     return () => { active = false; };
-  }, [backendProfileKey, preferences.backendToken, preferences.backendUrl]);
+  }, [backendProfileKey, preferences.backendToken, preferences.backendUrl, rememberBackendIdentity]);
   const mutate = useCallback(async (action: (db: LocalDatabase) => Promise<void>) => {
     if (locked.current) return false;
     locked.current = true; setBusy(true);
@@ -158,10 +182,10 @@ export function WorkspaceProvider({ children }: PropsWithChildren) {
       ? preferences.backendEnabled
         ? currentServerSnapshot
           ? mapBackendWorkspace(localData, currentServerSnapshot.profile, currentServerSnapshot.workspace)
-          : serverWorkspace(localData, backendProfile)
+          : serverWorkspace(localData, backendProfile, cachedBackendIdentity)
         : localData
       : null,
-    [backendProfile, currentServerSnapshot, localData, preferences.backendEnabled],
+    [backendProfile, cachedBackendIdentity, currentServerSnapshot, localData, preferences.backendEnabled],
   );
   const dashboard = useMemo(() => data ? buildDashboard(data, now) : null, [data, now]);
   if (error) return <Boot state="offline">

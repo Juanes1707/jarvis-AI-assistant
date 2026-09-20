@@ -22,11 +22,13 @@
       "@react-native-community/datetimepicker"
     ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.juanesteban.jarvis"
     },
     "android": {
       "predictiveBackGestureEnabled": true,
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "package": "com.juanesteban.jarvis"
     }
   }
 }

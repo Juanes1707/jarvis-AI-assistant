@@ -53,6 +53,15 @@ describe("cliente del backend multi-agente", () => {
     await expect(checkJarvisBackend({ url: settings.url, token: "short" })).rejects.toThrow("token");
   });
 
+  it("traduce un host privado que Android no logra resolver sin filtrar la excepción nativa", async () => {
+    jest.spyOn(global, "fetch").mockRejectedValue(new Error(
+      'fetch failed: java.net.UnknownHostException: Unable to resolve host "equipo.tailnet.ts.net": No address associated with hostname',
+    ));
+
+    await expect(checkJarvisBackend({ ...settings, url: "https://equipo.tailnet.ts.net" }))
+      .rejects.toThrow("Tailscale no puede resolver la dirección privada");
+  });
+
   it("expone perfil y memoria reales sin inventar datos locales", async () => {
     const fetchMock = jest.spyOn(global, "fetch")
       .mockResolvedValueOnce({ ok: true, json: async () => ({ user_id: "owner", display_name: null, onboarding_completed: false }) } as Response)

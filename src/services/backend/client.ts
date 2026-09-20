@@ -107,6 +107,10 @@ function endpoint(settings: BackendSettings, path: string) {
   return `${normalized}${path}`;
 }
 
+function isPrivateHostResolutionFailure(error: Error): boolean {
+  return /UnknownHostException|Unable to resolve host|ENOTFOUND/i.test(error.message);
+}
+
 async function request<T>(settings: BackendSettings, path: string, init: RequestInit, timeoutMs = 60_000): Promise<T> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -129,6 +133,9 @@ async function request<T>(settings: BackendSettings, path: string, init: Request
     return body as T;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") throw new Error("El servidor JARVIS tardó demasiado en responder.");
+    if (error instanceof Error && isPrivateHostResolutionFailure(error)) {
+      throw new Error("Tailscale no puede resolver la dirección privada de JARVIS. Abre Tailscale en este teléfono, inicia sesión en la misma tailnet y vuelve a probar.");
+    }
     if (error instanceof Error && !/^Network request failed$/.test(error.message)) throw error;
     throw new Error("No pude conectar con el servidor JARVIS. Comprueba Tailscale, la dirección y que el backend esté activo.");
   } finally { clearTimeout(timeout); }

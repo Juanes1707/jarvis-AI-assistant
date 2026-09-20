@@ -917,6 +917,40 @@ When an Integration Note is no longer relevant, it may be marked obsolete or rem
 
 ### Current Integration Notes
 
+#### [IN-003] Claude Code touched native app config for the phone shortcut (2026-09-19)
+
+**Boundary crossed, with the user's explicit authorisation.** Native identifiers and OS-level
+entry points are Codex-owned. The user had no Codex budget available and asked Claude Code to
+implement the shortcut directly, keeping it as small as possible. Recorded here so the change is
+not a surprise.
+
+**What changed.**
+
+- `app.json` gained `android.package` and `ios.bundleIdentifier`, both `com.juanesteban.jarvis`.
+  These did not exist, which is why the app had never been buildable as a standalone install.
+  **Codex or the user should confirm the identifier before the first build** — after an install
+  it cannot be changed without the OS treating it as a different app. No intent filter was added:
+  the existing `scheme: "jarvis"` is enough for a custom-scheme deep link, and Expo generates
+  that filter itself.
+- New route `src/app/talk.tsx`, the shortcut target for `jarvis://talk`. It redirects to
+  `/jarvis` with `listen=1` and a fresh `request` value, which remounts the conversation so the
+  microphone opens on every launch and not only the first.
+- `JarvisConversation` accepts `autoListen`; the existing mount effect gains a branch that calls
+  `listen()` when no `initialQuestion` is pending. An arriving question still wins, so the two
+  entry points can never fire together.
+
+**Not done, and deliberately.** No `expo-quick-actions`, no `shortcuts.xml`, no assistant-role
+registration (`VoiceInteractionService` / `ACTION_ASSIST`). Those need custom native Android code
+and a config plugin, which is a genuine Codex-sized piece of work. The deep link needs no new
+dependency and works in Expo Go today, so it was the smallest functional answer. If the product
+later wants the long-press-power assistant gesture, that remains a Codex request.
+
+**Validation.** `npx tsc --noEmit` clean, `npm run lint` zero warnings, `npm test` 25 suites /
+185 tests, including `tests/jarvis-shortcut.test.tsx` (microphone opens on arrival, the dictated
+text is sent and produces a proposal, opening the tab normally does not listen, an arriving
+question takes precedence). **Not validated on a device:** the deep link has not been fired from
+a real phone, and no standalone build has been produced from this session.
+
 #### [IN-001] Reanimated needs a manual Jest mock (2026-09-13)
 
 **What.** `__mocks__/react-native-reanimated.js` was added at the repository root.

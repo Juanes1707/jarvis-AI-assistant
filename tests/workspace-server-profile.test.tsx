@@ -6,6 +6,7 @@ import { getJarvisProfile, getJarvisWorkspace } from "../src/services/backend/cl
 import { readPreferences } from "../src/services/storage/preferences";
 import { initializeDatabase, readWorkspace } from "../src/services/storage/database";
 import { demoEvents, demoHabits, demoSubjects, demoTasks, demoTransactions } from "../src/services/storage/demo-data";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 jest.mock("expo-sqlite", () => ({ openDatabaseAsync: jest.fn(async () => ({})) }));
 jest.mock("../src/services/storage/database", () => ({
@@ -28,6 +29,9 @@ jest.mock("../src/services/storage/preferences", () => ({
   savePreferences: jest.fn(),
 }));
 jest.mock("../src/services/backend/client", () => ({ getJarvisProfile: jest.fn(), getJarvisWorkspace: jest.fn() }));
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn(), setItem: jest.fn(), removeItem: jest.fn(),
+}));
 
 function Probe() {
   const { data } = useWorkspace();
@@ -35,7 +39,34 @@ function Probe() {
 }
 
 describe("workspace en modo servidor", () => {
+  it("conserva el nombre confirmado cuando la red privada no responde al reiniciar", async () => {
+    jest.mocked(AsyncStorage.getItem).mockResolvedValue(JSON.stringify({
+      userId: "owner", name: "Juanes", timezone: "America/Bogota", url: "https://equipo.tailnet.ts.net",
+    }));
+    jest.mocked(initializeDatabase).mockResolvedValue();
+    jest.mocked(readWorkspace).mockResolvedValue({
+      user: { id: "demo-juan", name: "Juan", semester: 4, timezone: "America/Bogota" },
+      subjects: demoSubjects, tasks: demoTasks, events: demoEvents, transactions: demoTransactions,
+      habits: demoHabits, habitEntries: [], exams: [], budget: null,
+    });
+    jest.mocked(readPreferences).mockResolvedValue({
+      showSuggestions: true, voiceEnabled: true, voiceId: null,
+      aiEnabled: false, ollamaUrl: "", ollamaModel: "qwen3.5:4b",
+      backendEnabled: true,
+      backendUrl: "https://equipo.tailnet.ts.net",
+      backendToken: "un-token-de-servidor-con-mas-de-24",
+    });
+    jest.mocked(getJarvisProfile).mockRejectedValue(new Error("No pude conectar con el servidor JARVIS."));
+    jest.mocked(getJarvisWorkspace).mockRejectedValue(new Error("No pude conectar con el servidor JARVIS."));
+
+    await render(<WorkspaceProvider><Probe /></WorkspaceProvider>);
+
+    expect(await screen.findByText("Juanes|0|empty")).toBeTruthy();
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith("jarvis:backend-identity-cache:v1");
+  });
+
   it("usa el perfil PostgreSQL y no presenta filas demo como datos reales", async () => {
+    jest.mocked(AsyncStorage.getItem).mockResolvedValue(null);
     jest.mocked(initializeDatabase).mockResolvedValue();
     jest.mocked(readWorkspace).mockResolvedValue({
       user: { id: "demo-juan", name: "Juan", semester: 4, timezone: "America/Bogota" },

@@ -80,7 +80,7 @@ export default function IdentityScreen() {
     if (ok) { setEdits({}); setSaved(true); }
   }
 
-  return <Screen title="Tu perfil" subtitle="Lo que JARVIS usa para responderte. Vive en tu servidor, no en este teléfono." back>
+  return <Screen title="Tu perfil" subtitle="Tu perfil principal vive en el servidor. JARVIS conserva solo tu nombre para saludarte sin conexión." back>
     <ServerGate active={active} status={status} error={error} onRetry={reload}>
       {empty ? <Row style={styles.intro}>
         <Rail />

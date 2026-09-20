@@ -23,7 +23,7 @@ import { JarvisSettings } from "./settings-panel";
 import { Transcript, type TranscriptMessage } from "./transcript";
 import { useJarvisBackend } from "./use-jarvis-backend";
 
-export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?: string }) {
+export function JarvisConversation({ initialQuestion = "", autoListen = false }: { initialQuestion?: string; autoListen?: boolean }) {
   const { data, preferences, busy, executeCommand, refreshBackendWorkspace } = useWorkspace();
   const backend = useJarvisBackend(preferences);
   const mode = assistantMode(preferences);
@@ -45,6 +45,7 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
   const focused = useRef(true);
   const requestActive = useRef(false);
   const initialQuestionPending = useRef(initialQuestion.trim());
+  const autoListenPending = useRef(autoListen);
   const messageHistory = useRef<TranscriptMessage[]>(initialMessages);
   const conversationId = useRef(randomUUID());
   const scroll = useRef<ScrollView>(null);
@@ -183,10 +184,17 @@ export function JarvisConversation({ initialQuestion = "" }: { initialQuestion?:
 
   useEffect(() => {
     const question = initialQuestionPending.current;
-    if (!question) return;
-    initialQuestionPending.current = "";
-    void ask(question);
-    // The route key remounts this screen for each question; the ref prevents duplicate sends.
+    if (question) {
+      initialQuestionPending.current = "";
+      void ask(question);
+      return;
+    }
+    // Arriving from the phone shortcut: open the microphone instead of waiting for a tap.
+    if (autoListenPending.current) {
+      autoListenPending.current = false;
+      void listen();
+    }
+    // The route key remounts this screen for each entry; the refs prevent duplicate triggers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
